@@ -1,0 +1,1086 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Week 6 · Fama and French (2015): A Five-Factor Asset Pricing Model - MANG3095</title>
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reset.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/theme/black.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/theme.css">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================= TITLE ======================= -->
+<section>
+  <h1>A Five-Factor Asset Pricing Model</h1>
+  <h3>Week 6 · Fama and French (2015)</h3>
+  <p class="muted">MANG3095 · Advanced Financial Econometrics · University of Southampton</p>
+  <div class="panel def small" style="max-width:720px;margin:1em auto">
+    <b>The paper:</b> Fama, E.F. and French, K.R. (2015) 'A five-factor asset pricing model',
+    <i>Journal of Financial Economics</i>, 116(1), pp. 1-22.
+  </div>
+  <p class="tiny">Use &larr; &rarr; to move between topics, &uarr; &darr; to dive into each one. Press <code>o</code> for an overview, <code>f</code> for full screen.</p>
+</section>
+
+<!-- ======================= AGENDA ======================= -->
+<section>
+  <h2>This week</h2>
+  <ul class="small">
+    <li><b>The paper</b> - question, contribution, data, headline findings</li>
+    <li><b>Preparing the data and model</b> - the Ken French factors, excess returns, stationarity</li>
+    <li><b>The method</b> - from valuation theory to the five-factor regression, factor construction, spanning regressions, the GRS test</li>
+    <li><b>Interactive simulations</b> - factor premia explorer, live spanning regressions, an alpha map for the GRS test</li>
+    <li><b>Code environment</b> - Stata, EViews, R and Python for every step, plus runnable cells in this deck</li>
+    <li><b>Robustness</b> - subsample stability, annual vs monthly factors, redundancy re-tested</li>
+    <li><b>Results and discussion</b> - what it means for your dissertation</li>
+  </ul>
+</section>
+
+<!-- ======================= 1. THE PAPER ======================= -->
+<section>
+  <section>
+    <h2>1 · The paper</h2>
+    <h3>Question and contribution</h3>
+    <p class="small"><b>Question.</b> Average US stock returns vary with size and book-to-market (B/M), but also with
+      <b class="accent">profitability</b> and <b class="accent2">investment</b>. Does a model that adds profitability and
+      investment factors to the Fama-French (1993) three-factor model describe average returns better?</p>
+    <div class="panel def small"><b>Contribution.</b> A five-factor model with market, size (SMB), value (HML),
+      profitability (RMW) and investment (CMA) factors, motivated by the dividend discount model. It outperforms the
+      three-factor model on every metric, and delivers a striking by-product: with RMW and CMA in the model,
+      <b>HML becomes redundant</b> for describing average returns (Sections 6-7 of the paper).</div>
+    <p class="tiny muted">Prior evidence: Novy-Marx (2013) on profitability; Aharoni, Grundy and Zeng (2013) and Titman, Wei and Xie (2004) on investment.</p>
+  </section>
+  <section>
+    <h3>Data used in the paper</h3>
+    <ul class="small">
+      <li><b>Universe:</b> all NYSE, AMEX and NASDAQ stocks on both CRSP and Compustat with share codes 10 or 11</li>
+      <li><b>Period:</b> July 1963 to December 2013, <b>606 months</b></li>
+      <li><b>Test portfolios (left-hand side):</b> 25 value-weight portfolios from 5x5 sorts on Size-B/M, Size-OP and Size-Inv, plus 32 portfolios from 2x4x4 triple sorts</li>
+      <li><b>Factors (right-hand side):</b> built from 2x3, 2x2 and 2x2x2x2 sorts; breakpoints always use NYSE stocks only</li>
+    </ul>
+    <div class="panel small">
+      <b>Variable definitions</b> (for the June year-t sort): <b>OP</b> = revenues minus cost of goods sold, SG&amp;A and
+      interest, divided by book equity (fiscal year t-1). <b>Inv</b> = growth of total assets from t-2 to t-1.
+      B is book equity for fiscal t-1; M is market cap at end of December of t-1.
+    </div>
+  </section>
+  <section>
+    <h3>The patterns to explain (paper Table 1)</h3>
+    <p class="small">Average monthly percent excess returns, 25 value-weight 5x5 portfolios:</p>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Value effect.</b> In every Size row average return rises with B/M.
+        For microcaps it climbs from <b>0.26</b> (growth) to <b>1.15</b>%/month (value); for megacaps only from
+        <b>0.46</b> to <b>0.62</b>. The value effect is stronger among small stocks.</div>
+      <div class="panel small"><b class="accent2">Profitability and investment effects.</b> High OP beats low OP in every
+        Size quintile (Panel B). Low investment beats high investment (Panel C): the microcap portfolio in the highest
+        Inv quintile earns just <b>0.35</b>%/month, the lowest excess return in the matrix, vs <b>1.01</b> for low-Inv microcaps.</div>
+    </div>
+    <div class="panel warn small"><b>The troublemakers.</b> In the 2x4x4 sorts (Table 2), small stocks with low OP and
+      high Inv earn <b>-0.09</b>%/month; small stocks with low B/M and low OP earn <b>0.03</b>. These portfolios,
+      "small stocks that invest a lot despite low profitability", are lethal for every model in the paper.</div>
+  </section>
+  <section>
+    <h3>Headline findings</h3>
+    <table class="data" style="font-size:.58em">
+      <tr><th>Result</th><th>Evidence in the paper</th></tr>
+      <tr><td>All five factor premiums are positive and reliable</td>
+          <td>Table 4 (2x3 sorts): Mkt-RF 0.50 (t = 2.74), SMB 0.29 (2.31), HML 0.37 (3.20), RMW 0.25 (2.92), CMA 0.33 (4.07) %/month</td></tr>
+      <tr><td>GRS rejects <em>every</em> model, but FF5 improves on FF3</td>
+          <td>Table 5: for the 25 Size-B/M portfolios GRS falls from 3.62 (FF3) to 2.84 (FF5); FF5 explains 71-94% of the cross-section variance of expected returns</td></tr>
+      <tr><td>HML is redundant once RMW and CMA are added</td>
+          <td>Table 6: regressing HML on the other four gives an intercept of -0.04 (t = -0.47); RMW and CMA keep intercepts of 0.43 (5.45) and 0.28 (5.03)</td></tr>
+      <tr><td>Results are not sensitive to factor definitions</td>
+          <td>2x3, 2x2 and 2x2x2x2 factor versions give much the same answers (Tables 4-6)</td></tr>
+      <tr><td>Main failure: small aggressive-investment, low-profitability stocks</td>
+          <td>Table 11: small low-OP high-Inv portfolio has FF3 alpha -0.87 (t = -8.45), still -0.47 (t = -5.89) under FF5</td></tr>
+    </table>
+    <p class="tiny muted">Fama and French caution that the redundancy of HML "may be specific to this sample" - we test exactly that in the robustness section.</p>
+  </section>
+</section>
+
+<!-- ======================= 2. PREPARING THE DATA ======================= -->
+<section>
+  <section>
+    <h2>2 · Preparing the data and model</h2>
+    <h3>The factor data we use</h3>
+    <ul class="small">
+      <li><code>ff5_monthly</code>: the Ken French data library five factors, <b>July 1963 to August 2022, T = 710 months</b> (the paper stops in December 2013; we get nine extra years)</li>
+      <li>Columns: <code>Date, Mkt-RF, SMB, HML, RMW, CMA, RF</code></li>
+      <li><code>ff5_annual</code>: the same factors at annual frequency, 1964-2021 (58 years)</li>
+    </ul>
+    <div class="panel def small"><b>Units.</b> The factors are already <b>simple returns in percent per month</b>
+      (0.50 means 0.50%, not 50%). No further returns construction is needed - the hard work
+      (CRSP prices, delistings, Compustat book equity) is done by the data library.</div>
+    <p class="tiny muted">Replication note: build the factors yourself from CRSP and Compustat with the tidy-finance.org chapter
+      "Replicating Fama and French factors" (R) or the FamaFrench2015FF5 package on GitHub - links in the code files and references.</p>
+  </section>
+  <section>
+    <h3>Excess returns: why we can regress without subtracting RF</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Mkt-RF</b> is the value-weight market return <em>minus</em> the one-month
+        US Treasury bill rate: a classic <b>excess return</b>. The T-bill rate is the RF column.</div>
+      <div class="panel small"><b class="accent2">SMB, HML, RMW, CMA</b> are <b>long-short (zero-investment) portfolios</b>:
+        long one set of stocks, short another. Borrowing costs cancel, so they are already excess returns by construction.</div>
+    </div>
+    <ul class="small">
+      <li>The left-hand side of the model is also an excess return, \(R_{it}-R_{Ft}\)</li>
+      <li>A zero-investment portfolio should earn zero <em>excess</em> return unless it carries risk (or mispricing): that is why testing whether mean factor returns and regression intercepts are zero makes economic sense</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Stationarity: returns vs price levels</h3>
+    <ul class="small">
+      <li>OLS on time series needs stationary variables. Factor <b>returns</b> hover around a constant mean with no trend: stationary</li>
+      <li>The <b>cumulative index</b> (a "price level" built from the same returns) wanders: a stochastic trend, not stationary</li>
+      <li>Rule for this week and your dissertation: <b>always regress returns on returns</b>, never price levels on price levels (spurious regression, Week 2 of MANG2074 econometrics)</li>
+    </ul>
+    <div class="panel tip small"><b>Check it with the ADF test.</b> The augmented Dickey-Fuller test has
+      \(H_0\): unit root (not stationary). On our data: HML returns ADF = -22.3 (p &lt; 0.001, reject: stationary);
+      the HML cumulative index ADF = -1.9 (p = 0.33, cannot reject: not stationary). Run it yourself below.</div>
+  </section>
+  <section>
+    <h3>&#128187; Run it yourself: ADF on returns vs the cumulative index</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+df = load("ff5_monthly")                  # Ken French factors, % per month
+print(df.head(3).to_string(index=False))
+hml = df["HML"]
+level = np.log1p(hml / 100).cumsum()      # cumulative log return: a "price"
+for name, x in [("HML monthly returns ", hml), ("HML cumulative index", level)]:
+    stat, p = adfuller(x, autolag="AIC")[:2]
+    print(f"{name}  ADF = {stat:6.2f}   p = {p:.4f}")
+fig, ax = plt.subplots(1, 2, figsize=(7.6, 2.6))
+ax[0].plot(hml.values, lw=0.5)
+ax[0].set_title("returns: stationary")
+ax[1].plot(level.values, lw=1.2)
+ax[1].set_title("cumulative index: unit root")
+plt.tight_layout()
+</textarea>
+    </div>
+    <p class="tiny muted">The first run downloads Python into your browser (~15 MB), so it takes a little while; later runs are quick.</p>
+  </section>
+</section>
+
+<!-- ======================= 3. THE METHOD ======================= -->
+<section>
+  <section>
+    <h2>3 · The method: why these factors?</h2>
+    <p class="small">The dividend discount model says a share's price is the discounted value of expected dividends;
+      with clean surplus accounting (Miller and Modigliani, 1961) total market value satisfies:</p>
+    <div class="eq small">$$m_t=\sum_{\tau=1}^{\infty}\frac{E(d_{t+\tau})}{(1+r)^\tau}
+      \qquad\Longrightarrow\qquad
+      \frac{M_t}{B_t}=\frac{\sum_{\tau=1}^{\infty}E(Y_{t+\tau}-\Delta B_{t+\tau})/(1+r)^\tau}{B_t}$$</div>
+    <p class="small">Fix everything else and this equation makes <b>three predictions</b> about the expected return \(r\):</p>
+    <div class="cols" style="font-size:.62em">
+      <div class="panel">higher \(B_t/M_t\) &rArr; <b class="good">higher</b> \(r\) <span class="muted">(value)</span></div>
+      <div class="panel">higher expected earnings \(Y\) &rArr; <b class="good">higher</b> \(r\) <span class="muted">(profitability)</span></div>
+      <div class="panel">higher expected growth of book equity \(\Delta B\) - investment - &rArr; <b class="bad">lower</b> \(r\)</div>
+    </div>
+    <p class="tiny muted">So profitability and investment are not arbitrary anomaly patches: they are the natural choices implied by valuation theory (paper Section 1).</p>
+  </section>
+  <section>
+    <h3>From three factors to five</h3>
+    <p class="small">The FF (1993) three-factor time-series regression (paper Eq. 4):</p>
+    <div class="eq small">$$R_{it}-R_{Ft}=a_i+b_i(R_{Mt}-R_{Ft})+s_i\,SMB_t+h_i\,HML_t+e_{it}$$</div>
+    <p class="small">Add profitability (RMW: robust minus weak OP) and investment (CMA: conservative minus aggressive Inv) factors (paper Eq. 5):</p>
+    <div class="eq">$$R_{it}-R_{Ft}=a_i+b_i(R_{Mt}-R_{Ft})+s_i\,SMB_t+h_i\,HML_t+r_i\,RMW_t+c_i\,CMA_t+e_{it}$$</div>
+    <div class="panel def small"><b>The zero-intercept hypothesis.</b> If the five exposures capture all variation in
+      expected returns, the intercept \(a_i\) is zero for every asset \(i\). Interpretation via Huberman and Kandel (1987):
+      the factors plus the riskfree asset span the mean-variance-efficient tangency portfolio.</div>
+  </section>
+  <section>
+    <h3>Factor construction: the 2x3 sorts (paper Table 3)</h3>
+    <p class="small">Independent sorts into 2 Size groups (NYSE median) and 3 B/M, OP or Inv groups
+      (NYSE 30th and 70th percentiles) give six value-weight portfolios per sort, e.g. SH, SN, SL, BH, BN, BL for B/M:</p>
+    <div class="eq small">$$HML=\tfrac{1}{2}(SH+BH)-\tfrac{1}{2}(SL+BL),\qquad
+    RMW=\tfrac{1}{2}(SR+BR)-\tfrac{1}{2}(SW+BW)$$</div>
+    <div class="eq small">$$CMA=\tfrac{1}{2}(SC+BC)-\tfrac{1}{2}(SA+BA),\qquad
+    SMB=\tfrac{1}{3}(SMB_{B/M}+SMB_{OP}+SMB_{Inv})$$</div>
+    <ul class="small">
+      <li>Equal-weighting small and big legs makes HML, RMW, CMA <b>roughly Size-neutral</b></li>
+      <li>Alternatives tested in the paper: 2x2 sorts (NYSE medians) and 2x2x2x2 joint sorts; correlations between versions of the same factor are 0.80-1.00 and test results barely change</li>
+    </ul>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; The sorting machine: build HML yourself</h3>
+    <div class="sim" id="sim-sort">
+      <canvas id="cv-sort" width="880" height="190"></canvas>
+      <div class="controls-row" id="ctl-sort"></div>
+      <div class="note">A simulated cross-section of 400 firms (fixed seed). The vertical line is the NYSE size median;
+        the horizontal lines are the B/M breakpoints you control. <b style="color:#34d399">High B/M (value)</b> firms earn
+        more on average, <b style="color:#f87171">low B/M (growth)</b> firms less, by the amount of the value-effect slider.</div>
+    </div>
+    <div class="panel tip" style="font-size:.6em"><b>Reading the results.</b> HML is just the average return gap between the green and red
+      buckets. Squeeze the breakpoints towards the middle (30/70, the paper's 2x3 choice) and HML focuses on the extremes,
+      so the premium is larger; widen them to 50/50 (the 2x2 choice) and every stock is used but the premium shrinks -
+      exactly the paper's Table 4, where 2x3 HML averages 0.37%/month vs 0.28 for 2x2. A researcher reads this as:
+      <em>factor definitions change magnitudes, not conclusions</em>, but always disclose the sort you used.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it scatters 400 simulated firms by size and B/M, colours the six 2x3 buckets, and recomputes the HML premium as you move the B/M breakpoint and value-effect sliders.</div></noscript>
+  </section>
+  <section>
+    <h3>Tool 1: factor spanning regressions</h3>
+    <p class="small">To ask whether a factor is <em>redundant</em>, regress it on the other four (paper Table 6), e.g.</p>
+    <div class="eq small">$$HML_t=a+b\,(R_{Mt}-R_{Ft})+s\,SMB_t+r\,RMW_t+c\,CMA_t+e_t$$</div>
+    <ul class="small">
+      <li>The intercept \(a\) is the average HML return <b>left unexplained</b> by exposures to the other four factors</li>
+      <li>\(a=0\): adding HML does not improve the tangency portfolio already spanned by the others - it is redundant</li>
+      <li>\(a\neq 0\): the factor adds distinct information about average returns</li>
+    </ul>
+    <div class="panel warn small"><b>Slopes can look counterintuitive.</b> In the paper's HML regression the RMW slope is
+      +0.23 and the CMA slope +1.04: <em>controlling for the other factors</em>, value stocks behave like robust-profitability,
+      low-investment stocks, even though unconditionally value firms tend to be less profitable. Multivariate slopes measure
+      marginal effects, not univariate characteristics.</div>
+  </section>
+  <section>
+    <h3>Tool 2: the GRS joint test (Gibbons, Ross and Shanken, 1989)</h3>
+    <p class="small">With \(N\) test portfolios regressed on \(K\) factors over \(T\) months, test
+      \(H_0: \alpha_1=\alpha_2=\dots=\alpha_N=0\) jointly:</p>
+    <div class="eq">$$GRS=\frac{T-N-K}{N}\;\frac{\hat{\boldsymbol\alpha}'\hat\Sigma^{-1}\hat{\boldsymbol\alpha}}
+      {1+\bar{\boldsymbol\mu}'\hat\Omega^{-1}\bar{\boldsymbol\mu}}\;\sim\;F(N,\,T-N-K)$$</div>
+    <ul class="small">
+      <li>\(\hat{\boldsymbol\alpha}\) = vector of estimated intercepts; \(\hat\Sigma\) = residual covariance matrix (N x N)</li>
+      <li>\(\bar{\boldsymbol\mu}\), \(\hat\Omega\) = factor sample means and covariance (K x K): the denominator penalises factors that are themselves hard to earn</li>
+      <li>Why joint? With 25 portfolios, one or two |t| &gt; 2 will happen by chance; the GRS statistic accounts for the correlation between the \(\hat\alpha_i\) and asks whether the <em>whole set</em> is too big</li>
+    </ul>
+    <p class="tiny muted">Assumes normal, homoscedastic, serially uncorrelated errors - exact F distribution in finite samples. In the browser we use ST.fCdf; in Python, scipy.stats.f.</p>
+  </section>
+</section>
+
+<!-- ======================= 4. SIMULATIONS ======================= -->
+<section>
+  <section>
+    <h3>4 &#183; &#127899;&#65039; Sim 1: factor premia explorer (real data)</h3>
+    <div class="sim" id="sim-prem">
+      <canvas id="cv-prem" width="880" height="210"></canvas>
+      <div class="controls-row" id="ctl-prem"></div>
+      <div class="note">Cumulative log return of each factor over your chosen window (the real Ken French monthly data,
+        July 1963 to August 2022, embedded in this page). Toggle factors on and off; the readout reports the annualised
+        mean, volatility and Sharpe ratio within the window.</div>
+    </div>
+    <div class="panel tip" style="font-size:.6em"><b>Reading the results.</b> Over the full sample every factor line drifts upwards: all five
+      premiums are positive, matching the paper's Table 4. But the <em>paths</em> differ: Mkt-RF is the biggest premium with the
+      biggest swings; CMA and RMW climb smoothly (Sharpe ratios around 0.4-0.5, the highest of the five); HML flattens after
+      about 2007 - drag the start slider to 2007 and its Sharpe turns negative. A researcher reads this as: factor premiums
+      are real but episodic, so <em>sample choice matters</em> - which is why we test subsamples in Section 6.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it plots cumulative log returns of the five Fama-French factors over a user-chosen date window with series toggles and reports annualised mean, sd and Sharpe ratio per factor.</div></noscript>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; Sim 2: the spanning regression, live</h3>
+    <div class="sim" id="sim-span">
+      <canvas id="cv-span" width="880" height="200"></canvas>
+      <div class="controls-row" id="ctl-span"></div>
+      <div class="note">Pick a target factor: it is regressed on the other four over your window (real data,
+        estimated in your browser with OLS). Bars are the intercept (alpha, %/month) and slopes; whiskers are 95%
+        confidence intervals. The paper's Table 6 logic: a factor whose alpha is zero is redundant.</div>
+    </div>
+    <div class="panel tip" style="font-size:.6em"><b>Reading the results.</b> With <b>HML</b> as target over the full sample the alpha is
+      -0.09 with t = -1.07: indistinguishable from zero, and the CMA slope is a huge 1.04 (t = 24.3) - HML's average return
+      is absorbed by its investment exposure, the paper's headline redundancy result (Table 6: alpha -0.04, t = -0.47 in
+      their 606-month sample). Switch the target to <b>RMW</b> (alpha 0.40, t = 5.2) or <b>CMA</b> (0.27, t = 5.0): both
+      survive - they are not redundant. A researcher concludes: for describing average returns a four-factor model without
+      HML does as well; keep HML only if you care about value <em>tilts</em>.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it regresses a chosen Fama-French factor on the other four over a user-chosen window and displays the intercept and slopes with 95% confidence intervals, reproducing the paper's Table 6 redundancy result for HML.</div></noscript>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; Sim 3: the alpha map - individual t-stats vs the GRS verdict</h3>
+    <div class="sim" id="sim-grs">
+      <canvas id="cv-grs" width="880" height="200"></canvas>
+      <div class="controls-row" id="ctl-grs"></div>
+      <div class="note">N simulated test portfolios with true alphas drawn from N(0, dispersion&sup2;) and five-factor
+        exposures, built on the <em>real</em> factor returns (fixed seed). Each is regressed on the five factors; stems are
+        the intercept t-statistics, dashed lines are &plusmn;1.96. The readout gives the GRS joint verdict.</div>
+    </div>
+    <div class="panel tip" style="font-size:.6em"><b>Reading the results.</b> Set the true dispersion to zero: stems stay mostly inside the
+      bands and GRS does not reject (it is correctly sized). Raise dispersion slowly: the GRS p-value collapses <em>before</em>
+      many individual stems cross &plusmn;1.96 - the joint test pools evidence across portfolios, so it can reject when no
+      single alpha looks significant. Also try raising idiosyncratic volatility: alphas are unchanged but the noise drowns
+      them and power evaporates. This is exactly why the paper leans on the GRS statistic (Table 5) rather than counting
+      significant intercepts - and why with 25 portfolios the occasional |t| &gt; 2 proves nothing on its own.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it simulates N portfolios with slider-controlled true alpha dispersion around the real five-factor data, plots the alpha t-statistics against the 1.96 bands, and reports the GRS joint statistic, its p-value and the number of individually significant alphas.</div></noscript>
+  </section>
+</section>
+
+<!-- ======================= 5. CODE ENVIRONMENT ======================= -->
+<section>
+  <section>
+    <h2>5 · Code environment</h2>
+    <h3>Step 1: load the factors and summarise the premiums</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>import delimited using "../../../data/csv/ff5_monthly.csv", ///
+    varnames(1) case(preserve) clear
+capture rename MktRF mktrf          // Stata drops the hyphen in Mkt-RF
+gen mdate = monthly(Date, "YM")
+format mdate %tm
+tsset mdate
+
+summarize mktrf SMB HML RMW CMA     // means, sds (already % per month)
+foreach v of varlist mktrf SMB HML RMW CMA {
+    quietly summarize `v'
+    display "`v': t(mean) = " %5.2f r(mean)/(r(sd)/sqrt(r(N))) ///
+        "   ann. Sharpe = " %5.2f r(mean)/r(sd)*sqrt(12)
+}
+pwcorr mktrf SMB HML RMW CMA, sig</code></pre></div>
+      <div class="tabpane"><pre><code>' wfopen auto-detects the csv and builds a monthly workfile from Date.
+' EViews replaces the illegal "-" in Mkt-RF with an underscore: mkt_rf
+wfopen "..\..\..\data\csv\ff5_monthly.csv"
+
+group factors mkt_rf smb hml rmw cma
+freeze(tab_stats) factors.stats       ' means and standard deviations
+show tab_stats
+freeze(tab_corr) factors.cor          ' correlation matrix
+show tab_corr
+scalar t_hml = @mean(hml) / (@stdev(hml) / @sqrt(@obs(hml)))</code></pre></div>
+      <div class="tabpane"><pre><code>df  &lt;- read.csv("../../../data/csv/ff5_monthly.csv", check.names = FALSE)
+fac &lt;- c("Mkt-RF", "SMB", "HML", "RMW", "CMA")
+T   &lt;- nrow(df)
+for (f in fac) {
+  x &lt;- df[[f]]
+  cat(sprintf("%-7s mean %6.3f  sd %5.2f  t %5.2f  ann.Sharpe %5.2f\n",
+              f, mean(x), sd(x), mean(x) / (sd(x) / sqrt(T)),
+              mean(x) / sd(x) * sqrt(12)))
+}
+round(cor(df[fac]), 2)
+# To BUILD the factors from CRSP/Compustat, see tidy-finance.org,
+# "Replicating Fama and French factors", and the replication package
+# github.com/ioannisrpt/FamaFrench2015FF5 (links in the references).</code></pre></div>
+      <div class="tabpane"><pre><code>import numpy as np, pandas as pd
+df = pd.read_csv("../../../data/csv/ff5_monthly.csv")
+fac = ["Mkt-RF", "SMB", "HML", "RMW", "CMA"]
+T = len(df)
+for f in fac:
+    x = df[f]
+    print(f"{f:8s} mean {x.mean():6.3f}  sd {x.std():5.2f}  "
+          f"t {x.mean() / (x.std() / np.sqrt(T)):5.2f}  "
+          f"Sharpe {x.mean() / x.std() * np.sqrt(12):5.2f}")
+print(df[fac].corr().round(2))</code></pre></div>
+    </div>
+    <p class="tiny muted">Full scripts: <a href="code/lecture06.do">Stata</a> · <a href="code/lecture06.prg">EViews</a> ·
+      <a href="code/lecture06.R">R</a> · <a href="code/lecture06.py">Python</a>. Run the same step in your browser on the next slide (press &darr;).</p>
+  </section>
+  <section>
+    <h3>&#128187; Run it yourself: the factor premiums, 1963-2022</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+df = load("ff5_monthly")
+fac = ["Mkt-RF", "SMB", "HML", "RMW", "CMA"]
+T = len(df)
+print(f"T = {T} months, {df['Date'].iloc[0]} to {df['Date'].iloc[-1]}\n")
+print(f"{'factor':8s}{'mean':>7s}{'sd':>7s}{'t':>7s}{'Sharpe':>8s}")
+for f in fac:
+    x = df[f]
+    print(f"{f:8s}{x.mean():7.3f}{x.std():7.2f}"
+          f"{x.mean() / (x.std() / np.sqrt(T)):7.2f}"
+          f"{x.mean() / x.std() * np.sqrt(12):8.2f}")
+print()
+print(df[fac].corr().round(2).to_string())
+</textarea>
+    </div>
+    <p class="tiny muted">Compare with the paper's Table 4 (606 months): Mkt-RF 0.50 (t = 2.74), SMB 0.29 (2.31), HML 0.37 (3.20),
+      RMW 0.25 (2.92), CMA 0.33 (4.07). Our nine extra years lift the market and RMW premiums and trim HML and SMB.
+      Note also corr(HML, CMA) = 0.68, close to the paper's 0.70.</p>
+  </section>
+  <section>
+    <h3>Step 2: the spanning regressions (paper Table 6)</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* Regress each factor on the other four; _cons is the spanning alpha
+regress HML mktrf SMB RMW CMA     // headline: alpha ~ -0.09, |t| ~ 1.1
+regress RMW mktrf SMB HML CMA     // alpha ~ 0.40, t ~ 5.2: not redundant
+regress CMA mktrf SMB HML RMW     // alpha ~ 0.27, t ~ 5.0: not redundant
+regress SMB mktrf HML RMW CMA
+regress mktrf SMB HML RMW CMA</code></pre></div>
+      <div class="tabpane"><pre><code>' Regress each factor on the other four; C(1) is the spanning alpha
+equation eq_hml.ls hml c mkt_rf smb rmw cma
+show eq_hml        ' C(1) ~ -0.09 with |t| ~ 1.1: HML is redundant
+equation eq_rmw.ls rmw c mkt_rf smb hml cma
+equation eq_cma.ls cma c mkt_rf smb hml rmw
+equation eq_smb.ls smb c mkt_rf hml rmw cma
+equation eq_mkt.ls mkt_rf c smb hml rmw cma</code></pre></div>
+      <div class="tabpane"><pre><code>spanning &lt;- function(target, data) {
+  others &lt;- setdiff(fac, target)
+  lm(data[[target]] ~ as.matrix(data[others]))
+}
+for (f in c("HML", "RMW", "CMA")) {
+  s &lt;- summary(spanning(f, df))
+  cat(sprintf("%s: alpha = %6.3f (t = %5.2f), R2 = %.2f\n",
+              f, coef(s)[1, 1], coef(s)[1, 3], s$r.squared))
+}
+# HML: alpha ~ -0.09 (t ~ -1.1) -&gt; redundant
+# RMW: alpha ~  0.40 (t ~  5.2); CMA: alpha ~ 0.27 (t ~ 5.0)</code></pre></div>
+      <div class="tabpane"><pre><code>import statsmodels.api as sm
+for target in ["HML", "RMW", "CMA"]:
+    others = [f for f in fac if f != target]
+    m = sm.OLS(df[target], sm.add_constant(df[others])).fit()
+    print(f"{target}: alpha = {m.params['const']:6.3f} "
+          f"(t = {m.tvalues['const']:5.2f}), R2 = {m.rsquared:.2f}")
+    for o in others:
+        print(f"   {o:8s} {m.params[o]:6.3f} (t = {m.tvalues[o]:6.2f})")</code></pre></div>
+    </div>
+    <p class="tiny muted">Press &darr; to run this step in the browser.</p>
+  </section>
+  <section>
+    <h3>&#128187; Run it yourself: is HML redundant?</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+import statsmodels.api as sm
+df = load("ff5_monthly")
+fac = ["Mkt-RF", "SMB", "HML", "RMW", "CMA"]
+for target in ["HML", "RMW", "CMA"]:
+    others = [f for f in fac if f != target]
+    m = sm.OLS(df[target], sm.add_constant(df[others])).fit()
+    print(f"{target} on the other four:  alpha = {m.params['const']:6.3f}"
+          f"  (t = {m.tvalues['const']:5.2f})   R2 = {m.rsquared:.2f}")
+    print("   slopes: " + "  ".join(
+        f"{o} {m.params[o]:.2f} (t {m.tvalues[o]:.1f})" for o in others))
+</textarea>
+    </div>
+    <p class="tiny muted">Expected: HML alpha = -0.090 (t = -1.07) - redundant; RMW alpha = 0.404 (t = 5.18) and
+      CMA alpha = 0.267 (t = 4.97) - both priced. The paper's Table 6 (2x3 factors, 606 months) has -0.04 (t = -0.47),
+      0.43 (5.45) and 0.28 (5.03): same conclusions.</p>
+  </section>
+  <section>
+    <h3>Step 3: the GRS test</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* No built-in GRS command. The user-written grstest2 (Stata Journal)
+* implements it:
+ssc install grstest2
+* GRS 1: are RMW and CMA priced by the FF3 factors?
+grstest2 RMW CMA, flist(mktrf SMB HML)
+* GRS 2: is HML priced by the other four (N = 1)?
+grstest2 HML, flist(mktrf SMB RMW CMA)
+* With N = 1 the GRS statistic is essentially the squared intercept
+* t-statistic from the spanning regression, scaled by (T-K-1)/T
+* and the tangency-portfolio penalty.</code></pre></div>
+      <div class="tabpane"><pre><code>' No native GRS command: build it with matrix algebra (see the full
+' .prg file for the complete listing). Sketch for N=2, K=3:
+equation eq_g1.ls rmw c mkt_rf smb hml
+equation eq_g2.ls cma c mkt_rf smb hml
+vector(2) alpha
+alpha(1) = eq_g1.@coefs(1)
+alpha(2) = eq_g2.@coefs(1)
+' ... stack residuals into matrix E, then:
+' sigma = E'E/(T-K-1),  omega = @cov(factors)
+' grs = (T-N-K)/N * a'sigma^-1 a / (1 + mu'omega^-1 mu)
+scalar p = 1 - @cfdist(grs, N, T - N - K)</code></pre></div>
+      <div class="tabpane"><pre><code>grs_test &lt;- function(assets, factors, data) {
+  Fm &lt;- as.matrix(data[factors]); Tn &lt;- nrow(Fm); K &lt;- ncol(Fm)
+  N &lt;- length(assets); X &lt;- cbind(1, Fm)
+  A &lt;- numeric(N); E &lt;- matrix(0, Tn, N)
+  for (i in seq_along(assets)) {
+    m &lt;- lm.fit(X, data[[assets[i]]])
+    A[i] &lt;- m$coefficients[1]; E[, i] &lt;- m$residuals
+  }
+  Sigma &lt;- crossprod(E) / (Tn - K - 1)
+  mu &lt;- colMeans(Fm); Omega &lt;- cov(Fm)
+  grs &lt;- (Tn - N - K) / N * drop(t(A) %*% solve(Sigma, A)) /
+         (1 + drop(t(mu) %*% solve(Omega, mu)))
+  c(GRS = grs, p = 1 - pf(grs, N, Tn - N - K))
+}
+grs_test(c("RMW", "CMA"), c("Mkt-RF", "SMB", "HML"), df)  # rejects
+grs_test("HML", c("Mkt-RF", "SMB", "RMW", "CMA"), df)     # does not</code></pre></div>
+      <div class="tabpane"><pre><code>import numpy as np, statsmodels.api as sm
+from scipy import stats
+
+def grs_test(assets, factors, data):
+    F = data[factors].values
+    Tn, K = F.shape; N = len(assets)
+    X = sm.add_constant(data[factors])
+    A, E = [], []
+    for a in assets:
+        m = sm.OLS(data[a], X).fit()
+        A.append(m.params["const"]); E.append(m.resid.values)
+    A = np.array(A); E = np.column_stack(E)
+    Sigma = E.T @ E / (Tn - K - 1)
+    mu = F.mean(axis=0); Omega = np.cov(F.T, ddof=1)
+    grs = (Tn - N - K) / N * (A @ np.linalg.solve(Sigma, A)) \
+          / (1 + mu @ np.linalg.solve(np.atleast_2d(Omega), mu))
+    return grs, 1 - stats.f.cdf(grs, N, Tn - N - K)</code></pre></div>
+    </div>
+    <p class="tiny muted">Press &darr; to run the GRS test in the browser.</p>
+  </section>
+  <section>
+    <h3>&#128187; Run it yourself: two GRS tests</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+import statsmodels.api as sm
+from scipy import stats
+df = load("ff5_monthly")
+
+def grs_test(assets, factors, data):
+    F = data[factors].values
+    Tn, K = F.shape
+    N = len(assets)
+    X = sm.add_constant(data[factors])
+    A, E = [], []
+    for a in assets:
+        m = sm.OLS(data[a], X).fit()
+        A.append(m.params["const"])
+        E.append(m.resid.values)
+    A, E = np.array(A), np.column_stack(E)
+    Sigma = E.T @ E / (Tn - K - 1)
+    mu, Omega = F.mean(axis=0), np.cov(F.T, ddof=1)
+    grs = (Tn - N - K) / N * (A @ np.linalg.solve(Sigma, A)) \
+          / (1 + mu @ np.linalg.solve(np.atleast_2d(Omega), mu))
+    return grs, 1 - stats.f.cdf(grs, N, Tn - N - K)
+
+g, p = grs_test(["RMW", "CMA"], ["Mkt-RF", "SMB", "HML"], df)
+print(f"RMW+CMA vs FF3 : GRS = {g:5.2f}, p = {p:.2e}  -> reject FF3")
+g, p = grs_test(["HML"], ["Mkt-RF", "SMB", "RMW", "CMA"], df)
+print(f"HML vs 4-factor: GRS = {g:5.2f}, p = {p:.3f}    -> HML redundant")
+</textarea>
+    </div>
+    <p class="tiny muted">Expected: GRS = 21.72 (p = 7e-10) for the first test and GRS = 1.13 (p = 0.288) for the second.
+      The FF3 model cannot price the new factors, but the four-factor model prices HML: the paper's Sections 6-7 in two lines.</p>
+  </section>
+</section>
+
+<!-- ======================= 6. ROBUSTNESS ======================= -->
+<section>
+  <section>
+    <h2>6 · Robustness checks</h2>
+    <h3>What should we stress-test?</h3>
+    <ul class="small">
+      <li>The paper's own robustness dimension is <b>factor construction</b>: 2x3 vs 2x2 vs 2x2x2x2 sorts change premiums a little (e.g. CMA mean 0.33 vs 0.22 vs 0.14) but never the model rankings (Tables 4-6)</li>
+      <li>Fama and French flag the redundancy of HML as possibly <b>sample specific</b> - so our checks focus on the sample itself:</li>
+    </ul>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Subsample stability.</b> Split the 710 months at January 1991 (and anywhere else - the sim below has a slider) and re-run the spanning regressions in each half.</div>
+      <div class="panel small"><b class="accent2">Measurement frequency.</b> Re-estimate everything on the <b>annual</b> factors (58 years): different units, more aggregation, fewer observations.</div>
+    </div>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; Sim 4: redundancy under the split slider</h3>
+    <div class="sim" id="sim-split">
+      <canvas id="cv-split" width="880" height="190"></canvas>
+      <div class="controls-row" id="ctl-split"></div>
+      <div class="note">The spanning alpha of the chosen factor, estimated separately before and after the split date
+        (real data, 95% confidence whiskers). The dashed line is the full-sample alpha.</div>
+    </div>
+    <div class="panel tip" style="font-size:.6em"><b>Reading the results.</b> With the split at 1991, HML's alpha is <b>+0.21 (t = 2.15)</b>
+      pre-1991 but <b>-0.31 (t = -2.45)</b> post-1991: the factor was priced in the first half and earned a significantly
+      <em>negative</em> risk-adjusted return in the second. The full-sample "redundant" verdict is really an average of two
+      different regimes. Now switch to RMW or CMA: their alphas stay positive and significant in both halves wherever you
+      put the slider - genuinely robust. This is exactly the check Fama and French invite when they caution the result
+      "may be specific to this sample", and it is why a dissertation should never report a full-sample alpha without a
+      subsample table.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it re-estimates the factor spanning regression before and after a slider-controlled split date and compares the two alphas, with confidence intervals, to the full-sample estimate.</div></noscript>
+  </section>
+  <section>
+    <h3>Comparison table: the redundancy result across samples</h3>
+    <table class="data" style="font-size:.62em">
+      <tr><th>Sample</th><th>HML alpha (t)</th><th>RMW alpha (t)</th><th>CMA alpha (t)</th><th>Verdict on HML</th></tr>
+      <tr><td>Paper, 1963-2013 (606 m)</td><td>-0.04 (-0.47)</td><td>0.43 (5.45)</td><td>0.28 (5.03)</td><td>redundant</td></tr>
+      <tr><td>Ours, 1963-2022 (710 m)</td><td>-0.09 (-1.07)</td><td>0.40 (5.18)</td><td>0.27 (4.97)</td><td>redundant</td></tr>
+      <tr><td>Pre-1991 (330 m)</td><td class="good"><b>+0.21 (2.15)</b></td><td>0.43 (6.28)</td><td>0.29 (4.28)</td><td><b>priced</b></td></tr>
+      <tr><td>Post-1991 (380 m)</td><td class="bad"><b>-0.31 (-2.45)</b></td><td>0.52 (4.61)</td><td>0.30 (3.67)</td><td><b>negative alpha</b></td></tr>
+      <tr><td>Annual factors, 1964-2021 (58 y, % per year)</td><td>-3.01 (-1.77)</td><td>5.46 (3.76)</td><td>3.55 (3.70)</td><td>redundant</td></tr>
+    </table>
+    <div class="panel small" style="font-size:.68em"><b>Discussion.</b> Three lessons. (1) The paper's headline replicates
+      cleanly on the extended sample and at annual frequency: HML's alpha is never reliably positive once RMW and CMA are
+      included. (2) RMW and CMA alphas are stable across every cut: the profitability and investment factors carry
+      information HML does not, in both halves and at both frequencies. (3) The HML verdict is regime dependent: "redundant"
+      over the full sample hides a significantly positive pre-1991 alpha and a significantly negative post-1991 one. The
+      annual regressions lose power (58 observations) but tell the same broad story: measurement frequency does not drive
+      the result, the sample period does.</div>
+  </section>
+  <section>
+    <h3>&#128187; Run it yourself: the whole robustness table</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+import statsmodels.api as sm
+dfm = load("ff5_monthly")
+dfa = load("ff5_annual")
+fac = ["Mkt-RF", "SMB", "HML", "RMW", "CMA"]
+
+def span(d, target):
+    others = [f for f in fac if f != target]
+    m = sm.OLS(d[target], sm.add_constant(d[others])).fit()
+    return m.params["const"], m.tvalues["const"]
+
+samples = [("full 1963-2022 ", dfm),
+           ("pre-1991       ", dfm[dfm["Date"] < "1991-01"]),
+           ("post-1991      ", dfm[dfm["Date"] >= "1991-01"]),
+           ("annual (%/year)", dfa)]
+print(f"{'sample':16s}{'HML a (t)':>16s}{'RMW a (t)':>16s}{'CMA a (t)':>16s}")
+for name, d in samples:
+    row = ""
+    for tgt in ["HML", "RMW", "CMA"]:
+        a, t = span(d, tgt)
+        row += f"{a:8.2f} ({t:5.2f})"
+    print(f"{name:16s}{row}")
+</textarea>
+    </div>
+    <p class="tiny muted">The annual row is in percent per year (about 12x the monthly numbers). Try other split dates by
+      editing the "1991-01" strings - the sign flip for HML appears for any split between the late 1980s and mid 1990s.</p>
+  </section>
+</section>
+
+<!-- ======================= 7. RESULTS AND DISCUSSION ======================= -->
+<section>
+  <section>
+    <h2>7 · Results and discussion</h2>
+    <h3>What the interactive results told us</h3>
+    <ul class="small">
+      <li><b>Premiums (Sim 1, Step 1):</b> all five factors earn positive premiums over 1963-2022; CMA has the highest t (3.71) and SMB the lowest (2.00) - the same ordering flavour as the paper's Table 4</li>
+      <li><b>Redundancy (Sim 2, Step 2):</b> HML's spanning alpha is -0.09 (t = -1.07), absorbed almost entirely by a CMA slope of 1.04; RMW and CMA keep alphas 5 standard errors from zero - paper Table 6 and Section 7 confirmed on nine extra years of data</li>
+      <li><b>Joint testing (Sim 3, Step 3):</b> GRS rejects FF3 against RMW and CMA (21.7, p &asymp; 0) but not the four-factor model against HML (1.13, p = 0.29); the alpha-map sim shows why the joint test, not a count of |t| &gt; 2, is the right tool</li>
+      <li><b>Fragility (Sim 4):</b> the redundancy verdict flips sign across a 1991 split - a caution the paper itself anticipates</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Using the five-factor model in your dissertation</h3>
+    <div class="panel def small"><b>As a benchmark.</b> Testing a trading strategy, an anomaly, a fund or an ESG screen?
+      Regress its excess returns on the five factors (data free from the Ken French library); the intercept is the
+      risk-adjusted performance and its t-statistic is your headline. With several portfolios, report the GRS test too.</div>
+    <div class="panel small" style="font-size:.72em"><b>Practical checklist.</b>
+      (1) Match frequencies and units (% per month on both sides).
+      (2) Regress returns on returns: run an ADF sanity check if you built the series yourself.
+      (3) Report subsample estimates: full-sample alphas can average away regime changes (our HML result).
+      (4) Say which factor version you use (2x3 is the standard download) and cite the construction.
+      (5) Remember the model's known weak spot: small stocks that invest a lot despite low profitability - if your
+      portfolios load there, expect trouble that is the model's fault, not necessarily your strategy's virtue.</div>
+    <div class="panel tip small"><b>Where the literature went next.</b> Momentum is still missing (Carhart, 1997);
+      Hou, Xue and Zhang (2015) propose a q-factor model with similar profitability and investment factors;
+      FF (2018) add momentum reluctantly. Factor-model horse races remain an active dissertation-friendly area.</div>
+  </section>
+  <section>
+    <h2>Summary - what you can now do</h2>
+    <ul class="small">
+      <li>Derive the value, profitability and investment predictions from the dividend discount model</li>
+      <li>Write down the five-factor regression and explain the zero-intercept hypothesis</li>
+      <li>Explain how SMB, HML, RMW and CMA are built from 2x3 sorts, and why construction choices matter little</li>
+      <li>Run and interpret factor spanning regressions, including the HML redundancy result</li>
+      <li>Compute and interpret the GRS joint test, and explain why it beats counting significant t-stats</li>
+      <li>Stress-test a factor result across subsamples and frequencies, and report the comparison honestly</li>
+    </ul>
+    <div class="panel def small">
+      <b>Reading:</b> Fama and French (2015), <i>JFE</i> 116(1), pp. 1-22 ·
+      <b>Code:</b> this week in <a href="code/lecture06.do">Stata</a>, <a href="code/lecture06.prg">EViews</a>,
+      <a href="code/lecture06.R">R</a>, <a href="code/lecture06.py">Python</a> ·
+      <b>Data:</b> <code>ff5_monthly</code>, <code>ff5_annual</code> in <code>data/csv/</code>
+    </div>
+    <div class="files" style="justify-content:center;margin-top:.6em">
+      <a href="../../">&#127968; Hub</a>
+      <a href="../lecture05/">&larr; Week 5</a>
+      <a href="../lecture07/">Week 7 &rarr;</a>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= 8. REFERENCES ======================= -->
+<section>
+  <h2>References</h2>
+  <ul class="refs" style="font-size:.5em">
+    <li><b>Fama, E.F. and French, K.R. (2015) 'A five-factor asset pricing model', <i>Journal of Financial Economics</i>, 116(1), pp. 1-22.</b></li>
+    <li>Fama, E.F. and French, K.R. (1993) 'Common risk factors in the returns on stocks and bonds', <i>Journal of Financial Economics</i>, 33(1), pp. 3-56.</li>
+    <li>Gibbons, M.R., Ross, S.A. and Shanken, J. (1989) 'A test of the efficiency of a given portfolio', <i>Econometrica</i>, 57(5), pp. 1121-1152.</li>
+    <li>Huberman, G. and Kandel, S. (1987) 'Mean-variance spanning', <i>Journal of Finance</i>, 42(4), pp. 873-888.</li>
+    <li>Novy-Marx, R. (2013) 'The other side of value: the gross profitability premium', <i>Journal of Financial Economics</i>, 108(1), pp. 1-28.</li>
+    <li>Aharoni, G., Grundy, B. and Zeng, Q. (2013) 'Stock returns and the Miller Modigliani valuation formula: revisiting the Fama French analysis', <i>Journal of Financial Economics</i>, 110(2), pp. 347-357.</li>
+    <li>Miller, M.H. and Modigliani, F. (1961) 'Dividend policy, growth, and the valuation of shares', <i>Journal of Business</i>, 34(4), pp. 411-433.</li>
+    <li>Carhart, M.M. (1997) 'On persistence in mutual fund performance', <i>Journal of Finance</i>, 52(1), pp. 57-82.</li>
+    <li>Hou, K., Xue, C. and Zhang, L. (2015) 'Digesting anomalies: an investment approach', <i>Review of Financial Studies</i>, 28(3), pp. 650-705.</li>
+    <li>French, K.R. (2024) <i>Data library</i>. Available at: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html</li>
+    <li>Scheuch, C., Voigt, S. and Weiss, P. (2023) <i>Tidy Finance with R</i>, chapter 'Replicating Fama and French factors'. Available at: https://www.tidy-finance.org</li>
+    <li>Ropotos, I. <i>FamaFrench2015FF5</i> replication package. Available at: https://github.com/ioannisrpt/FamaFrench2015FF5</li>
+    <li>Software: Stata (StataCorp), EViews (IHS Global), R (R Core Team), Python (statsmodels, scipy; Seabold and Perktold, 2010).</li>
+  </ul>
+</section>
+
+</div>
+</div>
+
+<script src="../../assets/vendor/reveal/dist/reveal.js"></script>
+<script src="../../assets/vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="../../assets/vendor/katex/katex.min.js"></script>
+<script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/sim-core.js"></script>
+<script src="data_ff5.js"></script>
+<script>
+'use strict';
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t', width: 1050, height: 700, margin: 0.06,
+  plugins: [RevealHighlight]
+});
+Reveal.on('ready', function () {
+  document.querySelectorAll('.slides section').forEach(function (s) {
+    renderMathInElement(s, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  });
+});
+
+/* ---------- shared data helpers ---------- */
+var D = window.DATA_FF5;
+var TT = D.dates.length;
+var FAC = [
+  { key: 'mkt', label: 'Mkt-RF', color: SIM.colors.accent },
+  { key: 'smb', label: 'SMB', color: '#a78bfa' },
+  { key: 'hml', label: 'HML', color: SIM.colors.accent2 },
+  { key: 'rmw', label: 'RMW', color: SIM.colors.good },
+  { key: 'cma', label: 'CMA', color: SIM.colors.bad }
+];
+function seg(key, a, b) { return D[key].slice(a, b + 1); }
+function dateAt(i) { return D.dates[Math.min(Math.max(Math.round(i), 0), TT - 1)]; }
+function momStats(x) {
+  var m = ST.mean(x), s = ST.sd(x);
+  return { mean: m, sd: s, t: m / (s / Math.sqrt(x.length)), sharpe: m / s * Math.sqrt(12) };
+}
+function spanFit(targetKey, a, b) {
+  var others = FAC.filter(function (f) { return f.key !== targetKey; });
+  var y = seg(targetKey, a, b);
+  var X = others.map(function (f) { return seg(f.key, a, b); });
+  return { res: ST.olsMulti(y, X), others: others };
+}
+function matInvN(M) { // Gauss-Jordan inverse for small square matrices
+  var n = M.length, A = M.map(function (r) { return r.slice(); }), I = [], i, j, c;
+  for (i = 0; i < n; i++) { I.push(new Array(n).fill(0)); I[i][i] = 1; }
+  for (c = 0; c < n; c++) {
+    var piv = c;
+    for (i = c + 1; i < n; i++) if (Math.abs(A[i][c]) > Math.abs(A[piv][c])) piv = i;
+    var t = A[c]; A[c] = A[piv]; A[piv] = t;
+    t = I[c]; I[c] = I[piv]; I[piv] = t;
+    var d = A[c][c]; if (Math.abs(d) < 1e-12) d = 1e-12;
+    for (j = 0; j < n; j++) { A[c][j] /= d; I[c][j] /= d; }
+    for (i = 0; i < n; i++) {
+      if (i === c) continue;
+      var f = A[i][c];
+      for (j = 0; j < n; j++) { A[i][j] -= f * A[c][j]; I[i][j] -= f * I[c][j]; }
+    }
+  }
+  return I;
+}
+function quadForm(v, Minv) {
+  var n = v.length, s = 0, i, j;
+  for (i = 0; i < n; i++) for (j = 0; j < n; j++) s += v[i] * Minv[i][j] * v[j];
+  return s;
+}
+
+/* ---------- SIM (method section): the 2x3 sorting machine ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-sort');
+  var S = { lo: 30, hi: 70, vp: 0.30, seed: 9 };
+  function draw() {
+    var rng = ST.rng(S.seed), n = 400, i;
+    var zs = [], zb = [], mu = [];
+    for (i = 0; i < n; i++) {
+      var a = ST.randn(rng), b = -0.3 * a + 0.95 * ST.randn(rng);
+      zs.push(a); zb.push(b);
+      mu.push(0.55 + S.vp * b - 0.10 * a);      // expected return, %/month
+    }
+    var qlo = ST.quantile(zb, S.lo / 100), qhi = ST.quantile(zb, S.hi / 100);
+    var buckets = { SL: [], SN: [], SH: [], BL: [], BN: [], BH: [] };
+    for (i = 0; i < n; i++) {
+      var size = zs[i] < 0 ? 'S' : 'B';
+      var val = zb[i] <= qlo ? 'L' : (zb[i] >= qhi ? 'H' : 'N');
+      buckets[size + val].push(mu[i]);
+    }
+    function avg(k) { return buckets[k].length ? ST.mean(buckets[k]) : 0; }
+    var hml = 0.5 * (avg('SH') + avg('BH')) - 0.5 * (avg('SL') + avg('BL'));
+    var p = new SIM.Plot('cv-sort', {
+      xmin: -3.2, xmax: 3.2, ymin: -3.2, ymax: 3.2,
+      xlabel: 'log size (relative to NYSE median)', ylabel: 'log B/M',
+      title: '2x3 sort: 400 simulated firms, six buckets'
+    });
+    p.clear(); p.axes(); p.vline(0, { color: SIM.colors.dim });
+    p.hline(qlo, { color: SIM.colors.text, dash: [6, 5] });
+    p.hline(qhi, { color: SIM.colors.text, dash: [6, 5] });
+    var xs, ys;
+    function pick(cond, col) {
+      xs = []; ys = [];
+      for (var j = 0; j < n; j++) if (cond(zb[j])) { xs.push(zs[j]); ys.push(zb[j]); }
+      p.scatter(xs, ys, { color: col, r: 2.4 });
+    }
+    pick(function (v) { return v >= qhi; }, SIM.colors.good);
+    pick(function (v) { return v > qlo && v < qhi; }, 'rgba(148,163,184,0.45)');
+    pick(function (v) { return v <= qlo; }, SIM.colors.bad);
+    p.label(2.0, qhi + 0.15, 'H (value)', { color: SIM.colors.good, size: 11 });
+    p.label(2.0, qlo - 0.32, 'L (growth)', { color: SIM.colors.bad, size: 11 });
+    document.getElementById('ro-sort').innerHTML =
+      'counts S/B x L/N/H: ' + ['SL', 'SN', 'SH', 'BL', 'BN', 'BH'].map(function (k) {
+        return k + ' <b>' + buckets[k].length + '</b>';
+      }).join(' · ') +
+      ' · implied HML premium = &frac12;(SH+BH) - &frac12;(SL+BL) = <b>' + hml.toFixed(2) + '%/month</b>';
+  }
+  function upd(k) { return function (v) { S[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'lower B/M breakpoint (%ile)', min: 10, max: 50, step: 5, value: S.lo, fmt: function (v) { return v.toFixed(0); } }, upd('lo'));
+  SIM.slider(ctl, { label: 'upper B/M breakpoint (%ile)', min: 50, max: 90, step: 5, value: S.hi, fmt: function (v) { return v.toFixed(0); } }, upd('hi'));
+  SIM.slider(ctl, { label: 'value effect strength', min: 0, max: 0.6, step: 0.05, value: S.vp }, upd('vp'));
+  SIM.button(ctl, 'new draw', function () { S.seed += 1; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-sort'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 1: factor premia explorer (real data) ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-prem');
+  var S = { a: 0, b: TT - 1 };
+  var on = { mkt: true, smb: true, hml: true, rmw: true, cma: true };
+  var btns = {};
+  function draw() {
+    var a = S.a, b = S.b;
+    if (b - a < 24) { b = Math.min(a + 24, TT - 1); a = b - 24; }
+    var lo = 0, hi = 0, series = {};
+    FAC.forEach(function (f) {
+      if (!on[f.key]) return;
+      var x = seg(f.key, a, b), cum = [], c = 0;
+      for (var i = 0; i < x.length; i++) { c += Math.log(1 + x[i] / 100); cum.push(c); }
+      series[f.key] = cum;
+      lo = Math.min(lo, ST.min(cum)); hi = Math.max(hi, ST.max(cum));
+    });
+    var p = new SIM.Plot('cv-prem', {
+      xmin: a, xmax: b, ymin: lo * 1.08 - 0.05, ymax: hi * 1.08 + 0.05,
+      xlabel: 'date', ylabel: 'cumulative log return',
+      title: 'Growth of the five factors, ' + dateAt(a) + ' to ' + dateAt(b)
+    });
+    p.clear();
+    p.axes({ xfmt: function (v) { return dateAt(v).slice(0, 4); } });
+    p.hline(0, { color: SIM.colors.dim });
+    var leg = [], out = [];
+    FAC.forEach(function (f) {
+      if (!on[f.key]) return;
+      var cum = series[f.key];
+      var xs = cum.map(function (_, i) { return a + i; });
+      p.line(xs, cum, { color: f.color, width: 1.6 });
+      leg.push({ label: f.label, color: f.color });
+      var st = momStats(seg(f.key, a, b));
+      out.push(f.label + ' <b>' + (st.mean * 12).toFixed(1) + '%/yr</b>, sd ' +
+        (st.sd * Math.sqrt(12)).toFixed(1) + '%, Sharpe <b>' + st.sharpe.toFixed(2) + '</b>');
+    });
+    p.legend(leg);
+    document.getElementById('ro-prem').innerHTML = out.join(' &nbsp;·&nbsp; ') || 'toggle at least one factor';
+  }
+  FAC.forEach(function (f) {
+    btns[f.key] = SIM.button(ctl, f.label, function () {
+      on[f.key] = !on[f.key];
+      btns[f.key].classList.toggle('ghost', !on[f.key]);
+      draw();
+    });
+  });
+  SIM.slider(ctl, { label: 'start', min: 0, max: TT - 25, step: 1, value: 0, fmt: dateAt }, function (v) { S.a = Math.min(v, S.b - 24); draw(); });
+  SIM.slider(ctl, { label: 'end', min: 24, max: TT - 1, step: 1, value: TT - 1, fmt: dateAt }, function (v) { S.b = Math.max(v, S.a + 24); draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-prem'; ro.className = 'readout'; ro.style.fontSize = '.52em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 2: live spanning regression (real data) ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-span');
+  var S = { target: 'hml', a: 0, b: TT - 1 };
+  var btns = {};
+  function draw() {
+    var fit = spanFit(S.target, S.a, S.b), res = fit.res;
+    var names = ['alpha'].concat(fit.others.map(function (f) { return f.label; }));
+    var lo = 0, hi = 0, i;
+    for (i = 0; i < res.beta.length; i++) {
+      lo = Math.min(lo, res.beta[i] - 1.96 * res.se[i]);
+      hi = Math.max(hi, res.beta[i] + 1.96 * res.se[i]);
+    }
+    var p = new SIM.Plot('cv-span', {
+      xmin: -0.7, xmax: 4.7, ymin: lo * 1.2 - 0.1, ymax: hi * 1.2 + 0.1,
+      xlabel: 'coefficient', ylabel: 'estimate',
+      title: FAC.filter(function (f) { return f.key === S.target; })[0].label +
+        ' on the other four, ' + dateAt(S.a) + ' to ' + dateAt(S.b) + ' (T = ' + res.n + ')'
+    });
+    p.clear();
+    p.axes({ xticks: [0, 1, 2, 3, 4], xfmt: function (v) { return names[Math.round(v)] || ''; } });
+    p.hline(0, { color: SIM.colors.dim });
+    var sig = Math.abs(res.t[0]) > 1.96;
+    p.bars([0], [res.beta[0]], { color: sig ? SIM.colors.bad : SIM.colors.good, barWidth: 46 });
+    p.bars([1, 2, 3, 4], res.beta.slice(1), { color: 'rgba(56,189,248,0.65)', barWidth: 46 });
+    for (i = 0; i < res.beta.length; i++) {
+      p.line([i, i], [res.beta[i] - 1.96 * res.se[i], res.beta[i] + 1.96 * res.se[i]],
+        { color: SIM.colors.line, width: 2 });
+    }
+    p.label(0, hi * 1.1, sig ? 'alpha significant' : 'alpha ~ 0: redundant',
+      { color: sig ? SIM.colors.bad : SIM.colors.good, size: 12, bold: true, align: 'left' });
+    document.getElementById('ro-span').innerHTML =
+      'alpha = <b>' + res.beta[0].toFixed(3) + '</b> %/month (t = <b>' + res.t[0].toFixed(2) +
+      '</b>) · R&sup2; = <b>' + res.r2.toFixed(2) + '</b> · slopes: ' +
+      fit.others.map(function (f, j) {
+        return f.label + ' ' + res.beta[j + 1].toFixed(2) + ' (t ' + res.t[j + 1].toFixed(1) + ')';
+      }).join(', ');
+  }
+  FAC.forEach(function (f) {
+    btns[f.key] = SIM.button(ctl, f.label, function () {
+      S.target = f.key;
+      FAC.forEach(function (g) { btns[g.key].classList.toggle('ghost', g.key !== f.key); });
+      draw();
+    }, f.key !== 'hml');
+  });
+  SIM.slider(ctl, { label: 'start', min: 0, max: TT - 61, step: 1, value: 0, fmt: dateAt }, function (v) { S.a = Math.min(v, S.b - 60); draw(); });
+  SIM.slider(ctl, { label: 'end', min: 60, max: TT - 1, step: 1, value: TT - 1, fmt: dateAt }, function (v) { S.b = Math.max(v, S.a + 60); draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-span'; ro.className = 'readout'; ro.style.fontSize = '.52em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 3: alpha map and the GRS joint test ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-grs');
+  var S = { N: 10, disp: 0.10, ivol: 2.0, Tn: TT, seed: 5 };
+  function draw() {
+    var rng = ST.rng(S.seed);
+    var a0 = TT - S.Tn;
+    var F = FAC.map(function (f) { return seg(f.key, a0, TT - 1); });
+    var Tn = S.Tn, K = 5, N = Math.round(S.N), i, t;
+    var tstats = [], alphas = [], resids = [];
+    for (i = 0; i < N; i++) {
+      var alpha = S.disp * ST.randn(rng);
+      var betas = [1 + 0.25 * ST.randn(rng), 0.4 * ST.randn(rng), 0.4 * ST.randn(rng),
+                   0.4 * ST.randn(rng), 0.4 * ST.randn(rng)];
+      var y = new Array(Tn);
+      for (t = 0; t < Tn; t++) {
+        var v = alpha + S.ivol * ST.randn(rng);
+        for (var k = 0; k < K; k++) v += betas[k] * F[k][t];
+        y[t] = v;
+      }
+      var res = ST.olsMulti(y, F);
+      tstats.push(res.t[0]); alphas.push(res.beta[0]); resids.push(res.resid);
+    }
+    // GRS statistic
+    var Sigma = [], j;
+    for (i = 0; i < N; i++) {
+      Sigma.push(new Array(N).fill(0));
+      for (j = 0; j <= i; j++) {
+        var s = 0;
+        for (t = 0; t < Tn; t++) s += resids[i][t] * resids[j][t];
+        Sigma[i][j] = s / (Tn - K - 1);
+      }
+    }
+    for (i = 0; i < N; i++) for (j = i + 1; j < N; j++) Sigma[i][j] = Sigma[j][i];
+    var mu = F.map(function (f) { return ST.mean(f); });
+    var Omega = [];
+    for (i = 0; i < K; i++) {
+      Omega.push(new Array(K).fill(0));
+      for (j = 0; j < K; j++) Omega[i][j] = ST.cov(F[i], F[j]);
+    }
+    var grs = (Tn - N - K) / N * quadForm(alphas, matInvN(Sigma)) /
+      (1 + quadForm(mu, matInvN(Omega)));
+    var pval = 1 - ST.fCdf(grs, N, Tn - N - K);
+    var nSig = tstats.filter(function (v) { return Math.abs(v) > 1.96; }).length;
+    var L = Math.max(3, ST.max(tstats.map(Math.abs)) * 1.2);
+    var p = new SIM.Plot('cv-grs', {
+      xmin: 0, xmax: N + 1, ymin: -L, ymax: L,
+      xlabel: 'portfolio i', ylabel: 't(alpha)',
+      title: 'Intercept t-statistics, N = ' + N + ' portfolios on the real five factors (T = ' + Tn + ')'
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+    p.hline(1.96, { color: SIM.colors.text, dash: [6, 5] });
+    p.hline(-1.96, { color: SIM.colors.text, dash: [6, 5] });
+    for (i = 0; i < N; i++) {
+      p.line([i + 1, i + 1], [0, tstats[i]],
+        { color: Math.abs(tstats[i]) > 1.96 ? SIM.colors.bad : SIM.colors.accent, width: 5 });
+    }
+    var verdict = pval < 0.05
+      ? '<b style="color:#f87171">GRS rejects H0: the alphas are not jointly zero</b>'
+      : '<b style="color:#34d399">GRS does not reject: alphas jointly indistinguishable from zero</b>';
+    document.getElementById('ro-grs').innerHTML =
+      'GRS = <b>' + grs.toFixed(2) + '</b> ~ F(' + N + ', ' + (Tn - N - K) + '), p = <b>' +
+      (pval < 0.001 ? '&lt; 0.001' : pval.toFixed(3)) + '</b> · individually significant: <b>' +
+      nSig + ' of ' + N + '</b> · ' + verdict;
+  }
+  function upd(k) { return function (v) { S[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'N (portfolios)', min: 4, max: 24, step: 1, value: S.N, fmt: function (v) { return v.toFixed(0); } }, upd('N'));
+  SIM.slider(ctl, { label: 'true alpha dispersion (%/m)', min: 0, max: 0.3, step: 0.02, value: S.disp }, upd('disp'));
+  SIM.slider(ctl, { label: 'idiosyncratic sd (%/m)', min: 0.5, max: 4, step: 0.25, value: S.ivol }, upd('ivol'));
+  SIM.slider(ctl, { label: 'T (months used)', min: 120, max: TT, step: 10, value: TT, fmt: function (v) { return v.toFixed(0); } }, upd('Tn'));
+  SIM.button(ctl, 'new draw', function () { S.seed += 1; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-grs'; ro.className = 'readout'; ro.style.fontSize = '.52em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 4 (robustness): spanning alpha across a split ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-split');
+  var S = { target: 'hml', split: D.dates.indexOf('1991-01') };
+  var btns = {};
+  function draw() {
+    var pre = spanFit(S.target, 0, S.split - 1).res;
+    var post = spanFit(S.target, S.split, TT - 1).res;
+    var full = spanFit(S.target, 0, TT - 1).res;
+    var pts = [
+      { x: 1, res: pre, label: 'pre  (' + dateAt(0) + ' to ' + dateAt(S.split - 1) + ', T = ' + pre.n + ')' },
+      { x: 2, res: post, label: 'post (' + dateAt(S.split) + ' to ' + dateAt(TT - 1) + ', T = ' + post.n + ')' }
+    ];
+    var lo = 0, hi = 0;
+    pts.forEach(function (q) {
+      lo = Math.min(lo, q.res.beta[0] - 1.96 * q.res.se[0]);
+      hi = Math.max(hi, q.res.beta[0] + 1.96 * q.res.se[0]);
+    });
+    lo = Math.min(lo, full.beta[0]) - 0.12; hi = Math.max(hi, full.beta[0]) + 0.12;
+    var lab = FAC.filter(function (f) { return f.key === S.target; })[0].label;
+    var p = new SIM.Plot('cv-split', {
+      xmin: 0.4, xmax: 2.6, ymin: lo, ymax: hi,
+      xlabel: 'subsample', ylabel: 'spanning alpha (%/month)',
+      title: lab + ' spanning alpha before and after ' + dateAt(S.split)
+    });
+    p.clear();
+    p.axes({ xticks: [1, 2], xfmt: function (v) { return Math.round(v) === 1 ? 'before split' : 'after split'; } });
+    p.hline(0, { color: SIM.colors.dim });
+    p.hline(full.beta[0], { color: SIM.colors.accent2, dash: [6, 5], width: 1.6 });
+    pts.forEach(function (q) {
+      var sig = Math.abs(q.res.t[0]) > 1.96;
+      p.line([q.x, q.x], [q.res.beta[0] - 1.96 * q.res.se[0], q.res.beta[0] + 1.96 * q.res.se[0]],
+        { color: SIM.colors.line, width: 2 });
+      p.scatter([q.x], [q.res.beta[0]], { color: sig ? SIM.colors.bad : SIM.colors.good, r: 6, stroke: '#0b1220' });
+    });
+    p.legend([{ label: 'full-sample alpha = ' + full.beta[0].toFixed(2) + ' (t = ' + full.t[0].toFixed(2) + ')', color: SIM.colors.accent2 }]);
+    document.getElementById('ro-split').innerHTML =
+      lab + ': pre alpha = <b>' + pre.beta[0].toFixed(2) + '</b> (t = <b>' + pre.t[0].toFixed(2) +
+      '</b>) · post alpha = <b>' + post.beta[0].toFixed(2) + '</b> (t = <b>' + post.t[0].toFixed(2) +
+      '</b>) · red dot = significantly different from zero at 5%';
+  }
+  ['hml', 'rmw', 'cma'].forEach(function (key) {
+    var f = FAC.filter(function (g) { return g.key === key; })[0];
+    btns[key] = SIM.button(ctl, f.label, function () {
+      S.target = key;
+      ['hml', 'rmw', 'cma'].forEach(function (k2) { btns[k2].classList.toggle('ghost', k2 !== key); });
+      draw();
+    }, key !== 'hml');
+  });
+  SIM.slider(ctl, {
+    label: 'split date', min: 120, max: TT - 120, step: 6,
+    value: S.split, fmt: dateAt
+  }, function (v) { S.split = Math.round(v); draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-split'; ro.className = 'readout'; ro.style.fontSize = '.52em';
+  ctl.appendChild(ro);
+  draw();
+})();
+</script>
+<script src="../../assets/js/pyrun.js"></script>
+<!-- editorial: the paper's Tables 7-11 (portfolio-by-portfolio intercepts for the 25 Size-B/M, Size-OP, Size-Inv and 32-portfolio sorts) are summarised in the headline-findings table and the discussion of the lethal small-stock portfolios rather than reproduced cell by cell; the deck's tests use the factor series themselves because the LHS portfolio return files are not part of the module dataset. -->
+</body>
+</html>

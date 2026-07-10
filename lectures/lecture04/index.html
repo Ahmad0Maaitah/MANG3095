@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lecture 4 · Literature Review in Finance - MANG3095</title>
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reset.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/theme/black.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/theme.css">
+<style>
+/* ABS explorer widget (this unit only) */
+.absx { text-align: left; font-size: .5em; }
+.absx .absbar { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.absx input[type="text"] {
+  flex: 1 1 240px; min-width: 200px; background: #0b1220; border: 1px solid #334155;
+  border-radius: 8px; color: #e2e8f0; padding: 7px 12px; font-size: 1em; font-family: inherit; }
+.absx input[type="text"]:focus { outline: none; border-color: var(--accent); }
+.absx button {
+  background: #1e293b; border: 1px solid #334155; border-radius: 8px; color: #cbd5e1;
+  padding: 5px 12px; font-size: .95em; cursor: pointer; font-family: inherit; }
+.absx button.on { background: #0b1220; color: var(--accent); border-color: var(--accent); }
+.absx .abswrap { max-height: 380px; overflow-y: auto; border: 1px solid #1e293b; border-radius: 10px; }
+.absx table { width: 100%; border-collapse: collapse; }
+.absx th, .absx td { padding: 4px 10px; border-bottom: 1px solid #1e293b; text-align: left; }
+.absx th { position: sticky; top: 0; background: #16213a; color: var(--accent); z-index: 1; }
+.absx td.star { color: var(--accent2); font-weight: 700; white-space: nowrap; }
+.absx .newtag { font-size: .85em; color: var(--good); }
+.absx .count { margin-left: auto; color: #94a3b8; font-size: .9em; }
+/* abstract labelling task (this unit only) */
+.abst { text-align: left; font-size: .52em; }
+.abst .sent { background: var(--panel2, #16213a); border: 1px solid #1e293b; border-radius: 10px;
+  padding: 8px 12px; margin: 6px 0; }
+.abst .sent .btns { margin-top: 6px; display: flex; gap: 6px; flex-wrap: wrap; }
+.abst .sent button { background: #1e293b; border: 1px solid #334155; border-radius: 7px;
+  color: #cbd5e1; padding: 3px 10px; font-size: .95em; cursor: pointer; font-family: inherit; }
+.abst .sent.right { border-color: var(--good); }
+.abst .sent.wrongpick { border-color: var(--bad); }
+.abst .sent .verdict { font-size: .9em; margin-top: 4px; }
+</style>
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================= TITLE ======================= -->
+<section>
+  <h1>Literature Review in Finance</h1>
+  <h3>Lecture 4 · Finding, Ranking and Evaluating Sources</h3>
+  <p class="muted">MANG3095 · Advanced Financial Econometrics · University of Southampton</p>
+  <div class="panel def small" style="max-width:680px;margin:1em auto">
+    A comprehensive guide to conducting rigorous academic research on volatility patterns,
+    market efficiency, cryptocurrency markets and other areas.
+  </div>
+  <p class="tiny">Use &larr; &rarr; to move between topics, &uarr; &darr; to dive into each one. Press <code>o</code> for an overview, <code>f</code> for full screen.</p>
+</section>
+
+<!-- ======================= AGENDA ======================= -->
+<section>
+  <h2>In this lecture</h2>
+  <ul>
+    <li>What a literature review is and why it anchors your project</li>
+    <li>Defining the research question and building a search strategy</li>
+    <li>Databases, journal quality and the <strong>ABS Academic Journal Guide</strong> (interactive explorer)</li>
+    <li>Evaluating sources systematically with the module template</li>
+    <li>Themes, trends and gaps in volatility and crypto research</li>
+    <li>Writing the review: synthesise, do not summarise</li>
+    <li>Writing the <strong>abstract</strong> of your own report</li>
+  </ul>
+</section>
+
+<!-- ======================= FOUNDATIONS ======================= -->
+<section>
+  <section>
+    <h2>Purpose and strategic scope</h2>
+    <p class="small">A well-crafted literature review serves as the <strong>foundation for original research</strong>,
+      enabling scholars to understand the current state of knowledge on many areas within finance,
+      such as volatility in traditional finance and emerging cryptocurrency markets.</p>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Survey existing theories and models</b><br>GARCH, EMH, behavioural finance frameworks</div>
+      <div class="panel small"><b class="accent">Identify research gaps</b><br>in specific fields like crypto market anomalies</div>
+    </div>
+    <div class="cols">
+      <div class="panel small"><b class="accent2">Prevent duplication</b><br>know what has already been done before you start</div>
+      <div class="panel small"><b class="accent2">Build upon established findings</b><br>position your contribution on solid ground</div>
+    </div>
+    <p class="tiny muted">This systematic approach helps researchers identify theoretical frameworks, established
+      methodologies and empirical findings that shape our understanding of market behaviour.</p>
+  </section>
+  <section>
+    <h3>What is a literature review?</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Comprehensive survey</b><br>
+        A systematic examination of scholarly works, including peer-reviewed articles, books, theses
+        and working papers on a specific topic.</div>
+      <div class="panel small"><b class="accent">Theoretical foundation</b><br>
+        Summarises key theories such as the Efficient Market Hypothesis and GARCH models, explaining
+        their development and applications.</div>
+    </div>
+    <div class="cols">
+      <div class="panel small"><b class="accent2">Research connections</b><br>
+        Reveals relationships, conflicts and gaps in existing research, showing how studies build
+        upon or challenge each other.</div>
+      <div class="panel small"><b class="accent2">Contextual positioning</b><br>
+        Establishes the foundation for your contribution by situating your work within the broader
+        academic conversation.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Define your research question</h3>
+    <div class="panel small"><b class="accent">01 · Start with clarity</b> - develop a focused topic such as
+      "Volatility patterns in cryptocurrency versus stock markets" or
+      "News impact on commodities price fluctuations".</div>
+    <div class="panel small"><b class="accent">02 · Determine scope</b> - define asset classes (equities, commodities,
+      crypto), geographic markets and temporal boundaries for your investigation.</div>
+    <div class="panel small"><b class="accent">03 · Maintain flexibility</b> - refine your question iteratively as you
+      encounter new literature and discover emerging themes in the field.</div>
+    <p class="tiny muted">Your question drives every later choice: keywords, databases, journals, and eventually
+      the data and methods you will meet in Week 5 onwards.</p>
+  </section>
+  <section>
+    <h3>Develop keywords and a search strategy</h3>
+    <p class="small"><b>Building your search architecture.</b> Effective literature searches require a comprehensive
+      vocabulary that captures all relevant research. Begin by listing key concepts and their synonyms,
+      then employ Boolean operators to combine terms strategically.</p>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Concept family</th><th>Search vocabulary</th></tr>
+      <tr><td>Volatility concepts</td><td>risk, fluctuation, variance, standard deviation, price swings</td></tr>
+      <tr><td>Cryptocurrency terms</td><td>Bitcoin, Ethereum, altcoins, digital assets, blockchain</td></tr>
+      <tr><td>Market efficiency</td><td>EMH, anomalies, predictability, information asymmetry</td></tr>
+      <tr><td>Boolean logic</td><td>use AND / OR to refine searches, e.g. volatility AND cryptocurrency</td></tr>
+    </table>
+    <div class="panel tip small">Update your keyword list continuously as you discover new terminology in influential papers.</div>
+  </section>
+  <section>
+    <h3>Search scholarly databases</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Google Scholar</b><br>Broad coverage across disciplines with
+        citation tracking and "cited by" features.</div>
+      <div class="panel small"><b class="accent">SSRN &amp; EconLit</b><br>Specialised finance and economics
+        repositories with working papers and published research.</div>
+      <div class="panel small"><b class="accent">JSTOR &amp; Scopus</b><br>University library resources providing
+        full-text access to peer-reviewed journals.</div>
+    </div>
+    <div class="panel def small"><b>Stay organised.</b> Utilise reference management tools such as Zotero or Mendeley
+      to organise sources systematically and maintain proper citations throughout your research process.
+      See also LibGuides@Southampton (Springshare): Research Services.</div>
+  </section>
+</section>
+
+<!-- ======================= JOURNAL QUALITY + ABS EXPLORER ======================= -->
+<section>
+  <section>
+    <h2>Focus on high-quality journals</h2>
+    <div class="panel small"><b class="accent">Top-tier finance journals.</b> Prioritise ABS 3, 4 and 4* rated journals
+      for credibility and methodological rigour. Leading examples include the <i>Journal of Finance</i>,
+      <i>Journal of Financial Economics</i> and <i>Review of Financial Studies</i>, plus strong field journals
+      such as the <i>Journal of Banking and Finance</i> and <i>Energy Economics</i>.</div>
+    <div class="panel small"><b class="accent">Quality indicators.</b> Consult the Chartered ABS Academic Journal
+      Guide (AJG 2024) or the Financial Times Top 50 journal list to identify respected publications in your field.</div>
+    <div class="panel small"><b class="accent">Research reliability.</b> High-quality sources enhance the reliability
+      of your literature review and ensure your work builds upon robust empirical foundations.</div>
+    <p class="small muted">&#9660; explore the actual 2024 guide below</p>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; ABS ranking explorer - AJG 2024</h3>
+    <div class="absx" id="absx">
+      <div class="absbar">
+        <input type="text" id="abs-q" placeholder="Type to filter, e.g. banking, energy, econometrics, review..." autocomplete="off">
+        <span id="abs-stars"></span>
+        <span id="abs-fields"></span>
+        <span class="count" id="abs-count"></span>
+      </div>
+      <div class="abswrap">
+        <table id="abs-table">
+          <thead><tr><th>Journal</th><th>Field</th><th>AJG 2024</th><th>AJG 2021</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em;margin-top:8px"><b>How to use this.</b> The table holds the Finance
+      field of the Chartered ABS Academic Journal Guide 2024 (all 126 journals) plus every Economics, Econometrics and
+      Statistics journal rated 3 or above. Filter by star rating, switch field, or search by name. For your project,
+      aim to anchor the review in 3, 4 and 4* outlets; a "new 2024" tag marks journals added to the guide in 2024.</div>
+    <noscript><div class="sim-fallback">The interactive table requires JavaScript: it lists 220 finance-relevant journals
+      from the ABS Academic Journal Guide 2024 with their 2024 and 2021 ratings, searchable by name and filterable by
+      star rating and field.</div></noscript>
+  </section>
+  <section>
+    <h3>Quick check: journal quality</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">Your dissertation cites mostly papers from unranked open-access outlets found via a quick web
+        search. According to this lecture, what is the main risk?</div>
+      <div class="opt">Nothing: citation counts matter more than journal ratings</div>
+      <div class="opt" data-ok>The review may rest on weak empirical foundations, reducing its credibility and reliability</div>
+      <div class="opt">The review will be too short to meet the word count</div>
+      <div class="opt">ABS-rated journals are the only sources allowed in the module</div>
+      <div class="explain">High-quality sources (ABS 3, 4, 4*) enhance reliability because they have survived rigorous
+        peer review. Working papers (SSRN, NBER) and lower-rated journals can still be cited, but the backbone of the
+        review should be respected outlets. Journal rating is a quality signal, not a formal module rule.</div>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= EVALUATING SOURCES ======================= -->
+<section>
+  <section>
+    <h2>Critical evaluation framework</h2>
+    <p class="small"><b>Systematic source assessment.</b> Each source requires rigorous evaluation beyond surface-level
+      reading. Document the research question, methodology, data characteristics and conclusions of every paper you review.</p>
+    <ul class="small">
+      <li>Verify <strong>peer-review status</strong> and author credentials</li>
+      <li>Assess <strong>journal ranking</strong> and impact factor</li>
+      <li>Determine how it <strong>relates to existing work</strong>: does it confirm, extend, or challenge previous findings?</li>
+      <li>Identify <strong>methodological strengths</strong>: innovative approaches, robust data, rigorous analysis</li>
+      <li>Note <strong>potential limitations</strong>: sample size constraints, assumptions, temporal boundaries</li>
+    </ul>
+  </section>
+  <section>
+    <h3>The evaluating-sources template</h3>
+    <p class="small">The module provides a table template for logging every source you evaluate. One row per paper,
+      seven columns; here is the worked example row supplied with it:</p>
+    <table class="data" style="font-size:.42em">
+      <tr>
+        <th>Source information</th><th>Research objective</th><th>Problem or gap addressed</th>
+        <th>Findings and conclusions</th><th>Limitations or weaknesses</th>
+        <th>Implications / future research</th><th>How your research fills the gap</th>
+      </tr>
+      <tr>
+        <td>Akarsu et al (2016) - URL</td>
+        <td>To explore the effect of technology interface and student engagement</td>
+        <td>Technology is integral to the modern teaching-learning setup and can significantly impact student satisfaction</td>
+        <td>With the mediation of student engagement, the influence of the technology interface on student satisfaction is improved</td>
+        <td>Evaluated sources are possibly outdated</td>
+        <td>Technology may be a prerequisite, but it must be translated into satisfaction via engagement (new skills, active involvement, achievement)</td>
+        <td>Look into the effect of various technology interfaces / gamification and ways to differentiate their influence</td>
+      </tr>
+    </table>
+    <div class="panel tip small">Fill one row in per source as you read. By the time you write, the "findings",
+      "limitations" and "gap" columns almost draft the review for you, and the final column keeps every source
+      tied to <em>your</em> contribution.</div>
+  </section>
+</section>
+
+<!-- ======================= THEMES, TRENDS, GAPS ======================= -->
+<section>
+  <section>
+    <h2>Identify themes, trends and gaps</h2>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Lens</th><th>What you find in volatility / crypto research</th></tr>
+      <tr><td><b>Recurring topics</b></td><td>volatility models, efficiency tests, behavioural biases</td></tr>
+      <tr><td><b>Temporal patterns</b></td><td>interest spikes after the 2017 Bitcoin surge</td></tr>
+      <tr><td><b>Contradictions</b></td><td>disagreements on crypto market efficiency</td></tr>
+      <tr><td><b>Asset comparisons</b></td><td>cross-market volatility behaviour</td></tr>
+      <tr><td><b>Method evolution</b></td><td>traditional econometrics to AI-based approaches</td></tr>
+      <tr><td><b>Research gaps</b></td><td>limited DeFi volatility studies</td></tr>
+    </table>
+    <div class="panel tip small">Group findings by themes to reveal patterns and structure your narrative. Look for
+      chronological trends showing how research interest evolved, particularly following major market events.</div>
+  </section>
+  <section>
+    <h3>Key research themes: volatility and efficiency</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Volatility clustering</b><br>
+        Large price movements tend to be followed by large movements, and small changes by small changes:
+        fundamental to financial time series behaviour.
+        <ul class="tiny">
+          <li><b>Seminal models:</b> ARCH (Engle 1982) and GARCH (Bollerslev 1986) capture clustering in traditional equity markets</li>
+          <li><b>Crypto applications:</b> Bitcoin returns exhibit similar clustering with potentially higher intensity</li>
+          <li><b>Measurement:</b> compare realised (historical) versus implied (forward-looking) volatility across asset classes</li>
+        </ul></div>
+      <div class="panel small"><b class="accent2">Market efficiency</b><br>
+        The Efficient Market Hypothesis posits that asset prices reflect all available information,
+        tested across three forms: weak, semi-strong and strong.
+        <ul class="tiny">
+          <li><b>Testing approaches:</b> anomaly studies of momentum, mean reversion and event-driven price movements</li>
+          <li><b>Cryptocurrency question:</b> do crypto prices rapidly incorporate news, or are there systematic delays?</li>
+          <li><b>Empirical evidence:</b> regulatory changes and technological upgrades show varying speeds of price adjustment across cryptocurrencies</li>
+        </ul></div>
+    </div>
+  </section>
+  <section>
+    <h3>Key research themes: behavioural finance and crypto</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Behavioural biases</b><br>Humans frequently deviate from rational
+        decision-making, leading to market anomalies. Loss aversion, overconfidence and herding significantly
+        impact asset prices.</div>
+      <div class="panel small"><b class="accent">Herding effects</b><br>Investors follow the crowd during market
+        bubbles. Bitcoin's 2017 surge exemplifies how retail sentiment can drive extreme price movements beyond
+        fundamental values.</div>
+      <div class="panel small"><b class="accent">Sentiment analysis</b><br>Social media buzz correlates with market
+        swings. Twitter, Reddit and news sentiment indices predict short-term crypto volatility more strongly than
+        for traditional assets.</div>
+    </div>
+    <div class="panel small"><b class="accent2">Cryptocurrency market inefficiencies.</b> Crypto markets, newer and
+      less regulated than traditional markets, exhibit greater inefficiencies: price bubbles, liquidity constraints,
+      information asymmetry and cross-exchange arbitrage opportunities. Research demonstrates higher volatility and
+      lower predictability in smaller-cap cryptocurrencies compared to Bitcoin; pump-and-dump schemes and regulatory
+      announcements create exploitable patterns that challenge the EMH.</div>
+  </section>
+</section>
+
+<!-- ======================= WRITING THE REVIEW ======================= -->
+<section>
+  <section>
+    <h2>Structuring your literature review</h2>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Thematic organisation</b><br>Group papers by key themes: volatility
+        models, market efficiency, behavioural finance, crypto-specific factors. Highlights conceptual connections.</div>
+      <div class="panel small"><b class="accent">Chronological structure</b><br>Trace theoretical evolution from early
+        ARCH models through modern machine learning applications. Shows how understanding developed over time.</div>
+      <div class="panel small"><b class="accent">Methodological approach</b><br>Compare qualitative versus quantitative
+        methods, traditional econometrics versus AI techniques. Useful for methodology-focused research.</div>
+    </div>
+    <div class="panel def small">Use clear headings and subheadings to guide readers through your narrative. Most
+      finance literature reviews employ <strong>thematic organisation with chronological elements within each theme</strong>.</div>
+  </section>
+  <section>
+    <h3>Writing excellence: synthesise, don't summarise</h3>
+    <p class="small"><b>Beyond simple summary.</b> Effective literature reviews compare and contrast multiple sources
+      simultaneously rather than describing papers sequentially. Your analysis should identify patterns, highlight
+      debates and offer critical insights.</p>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Move</th><th>What it sounds like</th></tr>
+      <tr><td><b>Group and compare</b></td><td>"Several studies find X, whilst others report Y"</td></tr>
+      <tr><td><b>Highlight patterns</b></td><td>"Most papers employ GARCH models for both stock and crypto volatility"</td></tr>
+      <tr><td><b>Offer analysis</b></td><td>"This suggests EMH holds in developed stock markets but is weaker in cryptocurrency markets"</td></tr>
+      <tr><td><b>Maintain coherence</b></td><td>topic sentences and transitions give the section logical flow</td></tr>
+    </table>
+  </section>
+  <section>
+    <h3>Common pitfalls to avoid</h3>
+    <div class="cols">
+      <div class="panel warn small"><b>Listing instead of analysing</b><br>Avoid one paragraph summarising each paper
+        sequentially. Integrate multiple sources within thematic discussions to demonstrate synthesis and critical thinking.</div>
+      <div class="panel warn small"><b>Lack of focus</b><br>Maintain strict adherence to your defined research question.
+        Resist including tangentially related studies that dilute your narrative's coherence and clarity.</div>
+    </div>
+    <div class="cols">
+      <div class="panel warn small"><b>Overlooking recent research</b><br>Crypto and volatility research evolves rapidly.
+        Include the latest findings, particularly post-2020 studies addressing COVID-19 impacts and DeFi developments.</div>
+      <div class="panel warn small"><b>Ignoring methodological critiques</b><br>Acknowledge when studies challenge each
+        other's methods or conclusions. Discussing controversies and limitations demonstrates sophisticated understanding.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Quick check: synthesis</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">Which of these sentences belongs in a well-synthesised literature review?</div>
+      <div class="opt">"Smith (2021) used GARCH. The data were daily Bitcoin returns. The next paper is Jones (2022)..."</div>
+      <div class="opt" data-ok>"Whilst GARCH studies of Bitcoin consistently find strong clustering (Smith 2021; Chen 2022), evidence on asymmetry is mixed, with Jones (2022) reporting no leverage effect"</div>
+      <div class="opt">"This review will list all 42 papers found on Google Scholar in the order they were published"</div>
+      <div class="opt">"Volatility is when prices move a lot, which many papers have studied"</div>
+      <div class="explain">Synthesis means comparing and contrasting several sources in the same sentence or paragraph,
+        surfacing agreement, disagreement and patterns, rather than marching through papers one at a time.</div>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= ABSTRACTS ======================= -->
+<section>
+  <section>
+    <h2>Writing an abstract</h2>
+    <p class="small">The abstract is the <strong>first section of the report</strong>, after the title and before the
+      introduction (sometimes titled "summary"). It provides an overview of the study based on information from the
+      other sections, so the reader can decide whether to read the complete report. Because it contains elements from
+      the whole report, it is usually <strong>written last</strong>.</p>
+    <div class="panel def small"><b>Ordering your information</b> (Weissberg and Buker, 1990, p. 186) - the conventional sequence:
+      <ol class="tiny">
+        <li><b>Introduction</b> - introduce the study by describing the context / background; explain why the subject is important</li>
+        <li><b>Purpose</b> - describe the purpose of the study</li>
+        <li><b>Methods</b> - report how the study was undertaken</li>
+        <li><b>Results</b> - report the results that were found</li>
+        <li><b>Evaluation</b> - briefly evaluate the results</li>
+        <li><b>Conclusion</b> - conclude briefly; explain what is important and why</li>
+      </ol>
+    </div>
+    <p class="tiny muted">Abstracts from almost all fields of study are written in a very similar way; the types of
+      information and their order are highly conventional. Your report abstract: max 300 words.</p>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; Task: label the abstract</h3>
+    <p class="small" style="font-size:.55em">From Gillett, "Use of a writing web-site by pre-masters students on an EAP course"
+      (154 words, about half your 300-word maximum). Sentences 1 and 2 are labelled for you: both are <b class="accent">background</b>
+      ("use of the World-Wide-Web ... has increased dramatically"; "very little empirical research has been carried out").
+      Classify the rest:</p>
+    <div class="abst" id="abst"></div>
+    <noscript><div class="sim-fallback">The interactive task requires JavaScript: it presents sentences 3 to 7 of the
+      Gillett abstract and asks you to label each as background, purpose, method, results or conclusion. Answers:
+      sentence 3 purpose, sentences 4 and 5 method, sentence 6 results, sentence 7 conclusion.</div></noscript>
+  </section>
+</section>
+
+<!-- ======================= ROADMAP ======================= -->
+<section>
+  <h2>Your roadmap to research excellence</h2>
+  <table class="data" style="font-size:.52em">
+    <tr><th>Step</th><th>Action</th></tr>
+    <tr><td><b>1 · Define question</b></td><td>develop a clear, narrow topic with specific scope</td></tr>
+    <tr><td><b>2 · Search strategy</b></td><td>create comprehensive keywords and use multiple databases</td></tr>
+    <tr><td><b>3 · Quality sources</b></td><td>focus on ABS 3, 4 and 4* journals and well-cited papers</td></tr>
+    <tr><td><b>4 · Evaluate and annotate</b></td><td>summarise methods and findings, noting relevance</td></tr>
+    <tr><td><b>5 · Identify themes</b></td><td>group by theory: volatility, efficiency, behaviour, crypto</td></tr>
+    <tr><td><b>6 · Structure review</b></td><td>organise thematically with clear sections and transitions</td></tr>
+    <tr><td><b>7 · Write and critique</b></td><td>synthesise sources and discuss agreements and disagreements</td></tr>
+  </table>
+  <div class="panel tip small"><b>Your unique contribution.</b> A thorough review builds expertise and sharpens your
+    research question whilst identifying gaps. Plan an introduction establishing context, themed body sections analysing
+    key research areas, and a conclusion highlighting opportunities for original contribution.
+    <b>Critical question:</b> what unique angle can your study bring? Consider emerging themes such as DeFi volatility,
+    regulatory impacts, or cross-market contagion effects.</div>
+</section>
+
+<!-- ======================= SUMMARY ======================= -->
+<section>
+  <h2>Summary - what you can now do</h2>
+  <ul class="small">
+    <li>Explain what a literature review is for: survey theories, find gaps, prevent duplication, position your contribution</li>
+    <li>Turn a research question into keywords, Boolean searches and a database strategy</li>
+    <li>Use the <strong>ABS Academic Journal Guide 2024</strong> to weight sources by quality</li>
+    <li>Log every source in the evaluating-sources template, from objective to the gap your project fills</li>
+    <li>Organise the review thematically and write synthesis, not sequential summaries</li>
+    <li>Draft a conventional six-move abstract within the 300-word limit</li>
+  </ul>
+  <div class="panel def small">
+    <b>Next week:</b> Lecture 5 bridges from research skills into the five paper-replication weeks:
+    methodology, data types and the econometric toolkit.
+  </div>
+  <div class="files" style="justify-content:center;margin-top:.6em">
+    <a href="../../">&#127968; Hub</a>
+    <a href="../lecture03/">&larr; Lecture 3</a>
+    <a href="../lecture05/">Lecture 5 &rarr;</a>
+  </div>
+</section>
+
+<!-- ======================= REFERENCES ======================= -->
+<section>
+  <h2>References</h2>
+  <ul class="refs">
+    <li><b>Chartered Association of Business Schools (2024) <i>Academic Journal Guide 2024</i>. London: Chartered ABS.</b></li>
+    <li>Bollerslev, T. (1986) 'Generalized autoregressive conditional heteroskedasticity', <i>Journal of Econometrics</i>, 31(3), pp. 307-327.</li>
+    <li>Engle, R.F. (1982) 'Autoregressive conditional heteroscedasticity with estimates of the variance of United Kingdom inflation', <i>Econometrica</i>, 50(4), pp. 987-1007.</li>
+    <li>Fama, E.F. (1970) 'Efficient capital markets: a review of theory and empirical work', <i>Journal of Finance</i>, 25(2), pp. 383-417.</li>
+    <li>Gillett, A.J. (no date) 'Using English for academic purposes: writing genres', <i>UEfAP</i>. Available at: http://www.uefap.com/writing/genre/genrefram.htm (content used with permission).</li>
+    <li>Weissberg, R. and Buker, S. (1990) <i>Writing Up Research: Experimental Research Report Writing for Students of English</i>. Englewood Cliffs, NJ: Prentice Hall.</li>
+    <li>University of Southampton Library, <i>LibGuides@Southampton: Research Services</i> (Springshare).</li>
+  </ul>
+</section>
+
+</div>
+</div>
+
+<script src="../../assets/vendor/reveal/dist/reveal.js"></script>
+<script src="../../assets/vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="../../assets/vendor/katex/katex.min.js"></script>
+<script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/sim-core.js"></script>
+<script src="data_abs.js"></script>
+<script>
+'use strict';
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t', width: 1050, height: 700, margin: 0.06,
+  plugins: [RevealHighlight]
+});
+Reveal.on('ready', function () {
+  document.querySelectorAll('.slides section').forEach(function (s) {
+    renderMathInElement(s, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  });
+});
+SIM.initQuiz();
+
+/* ---------- INTERACTIVE 1: ABS ranking explorer ---------- */
+(function () {
+  var rows = (window.DATA_ABS && window.DATA_ABS.rows) || [];
+  var tbody = document.querySelector('#abs-table tbody');
+  var q = document.getElementById('abs-q');
+  var state = { text: '', star: 'All', field: 'All' };
+  function stars(r) {
+    if (r === '4*') return '&#9733;&#9733;&#9733;&#9733;&#10029; 4*';
+    var n = parseInt(r, 10);
+    if (!n) return r || '<span class="muted">-</span>';
+    var s = '';
+    for (var i = 0; i < n; i++) s += '&#9733;';
+    return s + ' ' + r;
+  }
+  function render() {
+    var t = state.text.toLowerCase(), html = '', shown = 0;
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      if (state.field !== 'All' && r[0] !== state.field) continue;
+      if (state.star !== 'All' && r[2] !== state.star) continue;
+      if (t && r[1].toLowerCase().indexOf(t) === -1) continue;
+      shown++;
+      html += '<tr><td>' + r[1] + (r[3] === '' ? ' <span class="newtag">new 2024</span>' : '') +
+        '</td><td>' + r[0] + '</td><td class="star">' + stars(r[2]) + '</td><td class="star">' + stars(r[3]) + '</td></tr>';
+    }
+    tbody.innerHTML = html || '<tr><td colspan="4" class="muted">No journals match this filter.</td></tr>';
+    document.getElementById('abs-count').textContent = shown + ' of ' + rows.length + ' journals';
+  }
+  function buttonGroup(holder, key, values) {
+    var host = document.getElementById(holder);
+    values.forEach(function (v) {
+      var b = document.createElement('button');
+      b.textContent = v;
+      if (v === state[key]) b.className = 'on';
+      b.addEventListener('click', function () {
+        state[key] = v;
+        host.querySelectorAll('button').forEach(function (x) { x.className = ''; });
+        b.className = 'on';
+        render();
+      });
+      host.appendChild(b);
+    });
+  }
+  buttonGroup('abs-stars', 'star', ['All', '4*', '4', '3', '2', '1']);
+  buttonGroup('abs-fields', 'field', ['All', 'Finance', 'Economics']);
+  q.addEventListener('input', function () { state.text = q.value.trim(); render(); });
+  q.addEventListener('focus', function () { Reveal.configure({ keyboard: false }); });
+  q.addEventListener('blur', function () { Reveal.configure({ keyboard: true }); });
+  render();
+})();
+
+/* ---------- INTERACTIVE 2: label-the-abstract task ---------- */
+(function () {
+  var host = document.getElementById('abst');
+  var LABELS = ['Background', 'Purpose', 'Method', 'Results', 'Conclusion'];
+  var ITEMS = [
+    { n: 3, text: 'The aim of this study was therefore to investigate the effectiveness of using the World-Wide-Web on an EAP writing course.', ok: 'Purpose' },
+    { n: 4, text: 'Two groups of students were taught writing by two different methods: one group was taught by a teacher in a traditional classroom, while a second group included use of an on-line web-site in their course.', ok: 'Method' },
+    { n: 5, text: 'The two groups were assessed in the same way after a twelve-week period of instruction.', ok: 'Method' },
+    { n: 6, text: 'Results of the assessment showed significant differences between the two groups, the group that used the on-line web-site performing much better on all aspects of the test.', ok: 'Results' },
+    { n: 7, text: 'This suggests that the use of computer assisted learning programmes for at least some of the teaching time available can be recommended for EAP writing courses.', ok: 'Conclusion' }
+  ];
+  var done = 0;
+  ITEMS.forEach(function (it) {
+    var d = document.createElement('div');
+    d.className = 'sent';
+    d.innerHTML = '<b class="accent">Sentence ' + it.n + '.</b> ' + it.text +
+      '<div class="btns"></div><div class="verdict"></div>';
+    var btns = d.querySelector('.btns'), verdict = d.querySelector('.verdict');
+    var solved = false;
+    LABELS.forEach(function (lab) {
+      var b = document.createElement('button');
+      b.textContent = lab;
+      b.addEventListener('click', function () {
+        if (solved) return;
+        if (lab === it.ok) {
+          solved = true; done++;
+          d.classList.remove('wrongpick'); d.classList.add('right');
+          verdict.innerHTML = '<span class="good">Correct: ' + it.ok.toLowerCase() + '.</span>' +
+            (done === ITEMS.length ? ' <b>All five placed - that is the full conventional sequence.</b>' : '');
+        } else {
+          d.classList.add('wrongpick');
+          verdict.innerHTML = '<span class="bad">Not ' + lab.toLowerCase() + ' - look at what the sentence is doing and try again.</span>';
+        }
+      });
+      btns.appendChild(b);
+    });
+    host.appendChild(d);
+  });
+})();
+</script>
+<script src="../../assets/js/pyrun.js"></script>
+<!-- editorial: source PDF page 16 is a closing "Thank you" slide; replaced by the summary, nav and references slides per module convention. -->
+<!-- editorial: the evaluating-sources template docx contains one worked example row plus blank rows; the blank rows are represented by the instruction to fill one row per source rather than as an empty table. -->
+</body>
+</html>

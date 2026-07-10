@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lecture 9 · Forecasting with Multivariate GARCH - MANG3095</title>
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reset.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/theme/black.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/theme.css">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================= TITLE ======================= -->
+<section>
+  <h1>Forecasting the Covariance Matrix</h1>
+  <h3>Lecture 9 · Multivariate GARCH and the Model Confidence Set</h3>
+  <p class="muted">MANG3095 · Advanced Financial Econometrics · University of Southampton</p>
+  <div class="panel def small" style="max-width:760px;margin:1em auto">
+    <b>This week's paper:</b> Laurent, S., Rombouts, J.V.K. and Violante, F. (2012)
+    'On the forecasting accuracy of multivariate GARCH models',
+    <i>Journal of Applied Econometrics</i>, 27(6), pp. 934-955.
+  </div>
+  <p class="tiny">Use &larr; &rarr; to move between topics, &uarr; &darr; to dive into each one. Press <code>o</code> for an overview, <code>f</code> for full screen.</p>
+</section>
+
+<!-- ======================= AGENDA ======================= -->
+<section>
+  <h2>In this lecture</h2>
+  <ul>
+    <li><strong>The paper:</strong> 125 multivariate GARCH models race to forecast a 10-stock covariance matrix</li>
+    <li><strong>Preparing the data:</strong> open-to-close returns, zero-return days, stationarity, variance targeting</li>
+    <li><strong>The method:</strong> BEKK, CCC, DCC; loss functions; the model confidence set (MCS)</li>
+    <li><strong>Interactive labs:</strong> a DCC laboratory, a covariance forecast race, the curse of dimensionality, and MCS intuition, all on the paper's own data</li>
+    <li><strong>Code:</strong> Stata, EViews, R and Python, plus runnable cells in this page</li>
+    <li><strong>Robustness:</strong> horizon, estimation window, loss function, calm vs turbulent markets</li>
+  </ul>
+</section>
+
+<!-- ======================= 1. THE PAPER ======================= -->
+<section>
+  <section>
+    <h2>1 · The paper</h2>
+    <h3>Which multivariate GARCH model forecasts best?</h3>
+    <p class="small">Portfolio choice, hedging and value-at-risk all need a forecast of the <em>conditional covariance matrix</em>
+      \(H_t\) of many assets at once. Dozens of multivariate GARCH (MGARCH) models exist, but, as the authors put it,
+      "from an applied viewpoint there are no clear guidelines available on model evaluation and selection".</p>
+    <div class="panel def small"><b>The experiment (Section 2 and Table I):</b> 10 liquid NYSE stocks ·
+      <b>125 MGARCH specifications</b> (105 conditional-correlation, 17 orthogonal, 3 BEKK-type) ·
+      forecast horizons of <b>1, 5 and 20 days</b> · 6 realised-covariance proxies ·
+      <b>4 statistical loss functions</b> · two multiple-comparison tests, the
+      <b>model confidence set</b> (MCS) and the <b>superior predictive ability</b> (SPA) test.</div>
+    <p class="small">The forecast sample runs over 10 years (2,486 trading days, 1 April 1999 to 27 December 2008),
+      split into three volatility regimes: the dot-com bubble and burst, a calm period, and the 2007-08 financial crisis.</p>
+  </section>
+  <section>
+    <h3>The data (Section 3, Table II)</h3>
+    <p class="small">1-minute prices from TickData's OMED database, 2 March 1988 to 27 December 2008; after cleaning, 5,226 trading
+      days. Models are estimated on daily <em>open-to-close</em> returns; forecasts are scored against realised covariance from
+      5-minute intraday returns. Descriptive statistics from the paper's Table II (daily returns, full period):</p>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Stock</th><th>Sector</th><th>Mean</th><th>SD</th><th>Max</th><th>Min</th><th>Skew</th><th>Kurtosis</th></tr>
+      <tr><td>Coca Cola (KO)</td><td>Consumer Stap.</td><td>0.067</td><td>1.38</td><td>8.92</td><td>-11.08</td><td>0.06</td><td>3.79</td></tr>
+      <tr><td>PepsiCo (PEP)</td><td>Consumer Stap.</td><td>0.127</td><td>1.44</td><td>12.14</td><td>-13.78</td><td>-0.11</td><td>5.97</td></tr>
+      <tr><td>Procter &amp; Gamble (PG)</td><td>Consumer Stap.</td><td>0.100</td><td>1.33</td><td>10.50</td><td>-9.05</td><td>0.00</td><td>5.01</td></tr>
+      <tr><td>BP plc (BP)</td><td>Energy</td><td>0.013</td><td>1.17</td><td>10.27</td><td>-13.96</td><td>-0.22</td><td>11.83</td></tr>
+      <tr><td>Eastman Kodak (EK)</td><td>Consumer Disc.</td><td>-0.043</td><td>1.74</td><td>12.76</td><td>-14.13</td><td>-0.14</td><td>6.42</td></tr>
+    </table>
+    <p class="tiny muted">Plus ABT, CL, FDX, WMT and WYE - health care, consumer staples and industrials. Estimation uses a rolling window
+      of the most recent 2,740 daily observations, with parameters re-estimated every 22 trading days.</p>
+    <div class="panel tip small"><b>We have the paper's own data.</b> The authors published their estimation sample, and this module
+      ships it as <code>lrv_returns</code>: 2,740 daily open-to-close % returns for all 10 stocks, starting 2 March 1988. Every chart,
+      cell and code file this week runs on the same numbers the authors used.</div>
+  </section>
+  <section>
+    <h3>Headline findings: full sample (Table III)</h3>
+    <ul class="small">
+      <li>Under the symmetric <b>Euclidean loss</b> the MCS keeps <b>39 of 125 models</b> - dominated by orthogonal and
+        DECO specifications; the best sample performer is Orth.-GJR(2,1) (average loss 3.468)</li>
+      <li>Under the asymmetric <b>Stein loss</b> (under-predictions punished) the MCS shrinks to <b>10 models, all DCC-family</b>,
+        led by integrated and long-memory variances</li>
+      <li>Under the \(L_3\) loss (over-predictions punished) <b>20 models</b> survive, mostly orthogonal - a hint that
+        <b>orthogonal models under-predict</b> the covariance matrix</li>
+      <li>Models with <b>leverage</b> (GJR, EGARCH, APARCH variances) systematically outperform symmetric ones, and higher-order
+        lags beat single lags on sample loss, though differences are often not significant</li>
+    </ul>
+    <div class="panel warn small"><b>Key diagnosis:</b> full-sample results are "strongly driven by short periods of high market
+      instability during which multivariate GARCH models appear to be inaccurate" - the average Euclidean loss is about
+      <b>0.3 in the calm period</b> but <b>14.5 during the 2007-08 crisis</b>.</div>
+  </section>
+  <section>
+    <h3>Headline findings: regimes, horizons, benchmark</h3>
+    <ul class="small">
+      <li><b>Dot-com turbulence:</b> the MCS (38 models under \(L_E\)) is dominated by DCC-type models with EGARCH leverage
+        in the variances; under Stein loss only <b>two models</b> survive (DCCE and DCCT with IGARCH variances)</li>
+      <li><b>Calm markets:</b> 74 of 125 models survive - "a simple assumption like constant conditional correlation and
+        symmetry in the conditional variances cannot be rejected"</li>
+      <li><b>2007-08 crisis:</b> non-stationary variances (IGARCH, FIGARCH, RiskMetrics) generate superior forecasts;
+        EGARCH specifications are systematically rejected</li>
+      <li><b>Longer horizons (Table IV):</b> at 5 and 20 days the MCS shrinks to 16 and 12 models; explosive non-stationary
+        forecasts are rejected and RiskMetrics multi-step forecasts are "uninformative" (flat at the 1-step value)</li>
+      <li><b>SPA test (Table V):</b> the <b>DCC of Engle (2002) with leverage (EGARCH) in the variances</b> is never significantly
+        outperformed by any of the other 124 models, whatever the period - the paper's practical recommendation</li>
+    </ul>
+  </section>
+</section>
+
+<!-- ======================= 2. PREPARING THE DATA ======================= -->
+<section>
+  <section>
+    <h2>2 · Preparing the data</h2>
+    <h3>Open-to-close, not close-to-close</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Open-to-close returns</b> (used here)
+        <div class="eq small">$$r_t = 100\,(\ln P_t^{close} - \ln P_t^{open})$$</div>
+        Measure volatility <em>while the market is open</em> - the same hours the 5-minute realised-covariance proxy sees.
+        Model forecast and proxy then measure the same thing.</div>
+      <div class="panel small"><b class="accent2">Close-to-close returns</b>
+        <div class="eq small">$$r_t = 100\,(\ln P_t^{close} - \ln P_{t-1}^{close})$$</div>
+        Include the <em>overnight</em> move, which intraday data cannot see. Following Andersen et al. (2010) the paper treats
+        overnight returns as deterministic jumps and strips them out.</div>
+    </div>
+    <ul class="small">
+      <li><b>Zero-return days:</b> in the estimation sample 6% to 11.5% of daily returns are exactly zero (stale or non-traded days,
+        early years especially) - a reason the authors picked the <em>most liquid</em> NYSE names</li>
+      <li><b>Scale:</b> returns are in percent; on a raw scale \(\omega\) would be about \(10^{-4}\) smaller and optimisers struggle</li>
+      <li><b>Demeaning:</b> the conditional mean is "of minor importance" for variance forecasting - the paper subtracts each
+        stock's unconditional mean and models \( \varepsilon_t = r_t - \bar r \) directly</li>
+    </ul>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: the paper's data, checked</h3>
+    <p class="small">Load the original Laurent-Rombouts-Violante estimation sample, describe the three stocks used in this week's labs,
+      count zero-return days, and confirm stationarity with ADF tests.</p>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np, pandas as pd
+from statsmodels.tsa.stattools import adfuller
+df = load("lrv_returns").apply(pd.to_numeric, errors="coerce").dropna()
+dates = pd.to_datetime(df["date_serial"], unit="D", origin="julian")
+print(f"{len(df)} trading days, {dates.iloc[0].date()} to {dates.iloc[-1].date()}")
+R = df[["KO", "PEP", "PG"]]
+print(R.describe().loc[["mean", "std", "min", "max"]].round(3))
+print("\nshare of exact-zero return days (%):")
+print(((R == 0).mean() * 100).round(2).to_string())
+print("\nADF unit-root tests (H0: unit root):")
+for tk in R:
+    stat, p = adfuller(R[tk].values, autolag="AIC")[:2]
+    print(f"  {tk:4s} ADF = {stat:8.2f}   p = {p:.4f}")
+</textarea>
+    </div>
+    <p class="tiny muted">Returns are hugely stationary (ADF near -55) - the unit root lives in prices, not returns. The day index is a
+      Julian day number; it decodes to 2 March 1988 to 31 December 1998 (the paper's readme describes the same 2,740-day file as running
+      to 31 March 1999). First run downloads Python into your browser (~15 MB).</p>
+  </section>
+  <section>
+    <h3>Variance targeting: fewer free parameters</h3>
+    <p class="small">MGARCH likelihoods have many parameters and nasty surfaces. <b>Variance targeting</b> (Engle and Mezrich, 1995)
+      pins the model's long-run covariance to the sample moment instead of estimating it:</p>
+    <div class="eq small">$$\bar H = \frac{1}{T}\sum_t \varepsilon_t\varepsilon_t' \qquad\Rightarrow\qquad
+      C = \bar H - A\bar H A' - B\bar H B' \;\;\text{(BEKK)},\qquad \bar Q = \frac{1}{T}\sum_t u_t u_t' \;\;\text{(DCC)}$$</div>
+    <ul class="small">
+      <li>The intercept matrix \(C\) (that is \(N(N+1)/2\) parameters) drops out of the numerical optimisation</li>
+      <li>The optimiser only searches over the few <em>dynamics</em> parameters - dramatically more stable in high dimensions</li>
+      <li>The model's implied unconditional covariance then matches the data by construction: \(E[H_t]=\bar H\)</li>
+    </ul>
+    <div class="panel tip small">The paper imposes covariance or correlation targeting "when possible" precisely to keep 125 models
+      estimable on 10 assets, re-estimated 113 times each over the rolling forecast exercise.</div>
+  </section>
+</section>
+
+<!-- ======================= 3. THE METHOD ======================= -->
+<section>
+  <section>
+    <h2>3 · The method</h2>
+    <h3>The object: a whole matrix, every day</h3>
+    <p class="small">Returns \(r_t = \mu + \varepsilon_t\) with information set \(\Im_{t-1}\). The target is the
+      <b>conditional variance matrix</b></p>
+    <div class="eq">$$H_t = E[\varepsilon_t \varepsilon_t' \,|\, \Im_{t-1}]$$</div>
+    <ul class="small">
+      <li>\(H_t\) has \(N(N+1)/2\) distinct elements - <b>55</b> for the paper's \(N=10\), each moving every day</li>
+      <li>\(H_t\) must be <b>positive definite</b> at every \(t\) - the binding design constraint for all MGARCH models</li>
+      <li>Three families in the paper: direct generalisations of GARCH (<b>BEKK</b>, RiskMetrics), <b>linear</b> combinations
+        of univariate GARCH (orthogonal/factor models), and <b>nonlinear</b> combinations (CCC, DCC and relatives)</li>
+    </ul>
+  </section>
+  <section>
+    <h3>BEKK and RiskMetrics (the direct route)</h3>
+    <p class="small">The BEKK(1,1,1) model of Engle and Kroner (1995) - equation (1) of the paper:</p>
+    <div class="eq small">$$H_t = CC' + A\,\varepsilon_{t-1}\varepsilon_{t-1}'\,A' + B\,H_{t-1}\,B'$$</div>
+    <ul class="small">
+      <li>Quadratic forms keep \(H_t\) positive definite by construction</li>
+      <li><b>Full BEKK:</b> \(A, B\) unrestricted - "not feasible for large cross-sectional dimensions" (the paper drops it)</li>
+      <li><b>Diagonal BEKK:</b> \(A, B\) diagonal; <b>scalar BEKK:</b> \(A = aI_N\), \(B = bI_N\) - two parameters after targeting</li>
+      <li><b>RiskMetrics (J.P. Morgan, 1996):</b> integrated scalar case, smoothing fixed at \(b = 0.96\), \(a = 1-b\), \(C=0\):
+        no estimation at all, "widely used by practitioners"</li>
+    </ul>
+    <p class="tiny muted">The orthogonal family (equations (2)-(4)) instead rotates returns into uncorrelated principal components,
+      fits a univariate GARCH to each, and rotates back.</p>
+  </section>
+  <section>
+    <h3>DCC: model variances and correlations separately</h3>
+    <p class="small">The dynamic conditional correlation model of Engle (2002) - equations (5)-(7) of the paper:</p>
+    <div class="eq small">$$H_t = D_t^{1/2}\,R_t\,D_t^{1/2},\qquad D_t=\operatorname{diag}(\sigma^2_{1,t},\dots,\sigma^2_{N,t})$$
+      $$Q_t = (1-a-b)\,\bar Q + a\,u_{t-1}u_{t-1}' + b\,Q_{t-1},\qquad
+      R_t = (Q_t \odot I_N)^{-1/2}\, Q_t\, (Q_t \odot I_N)^{-1/2}$$</div>
+    <ul class="small">
+      <li>\(u_{i,t} = \varepsilon_{i,t}/\sigma_{i,t}\) are the <b>devolatilised</b> (standardised) innovations</li>
+      <li><b>\(a\)</b>: how hard yesterday's shock pair moves today's correlation (news); <b>\(b\)</b>: how long it lasts (memory);
+        \(a+b<1\) keeps correlations mean-reverting to the target \(\bar Q\)</li>
+      <li><b>CCC</b> (Bollerslev, 1990) is the special case \(a=b=0\): correlations constant at the sample value</li>
+      <li>Relatives: DCC of Tse and Tsui (2002), asymmetric DCC (Cappiello et al., 2006), equicorrelation DECO (Engle and Kelly)</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Two-step estimation: why DCC scales</h3>
+    <ol class="small">
+      <li><b>Step 1 - variances:</b> fit \(N\) separate univariate GARCH models (any flavour: GARCH, GJR, EGARCH, FIGARCH ...),
+        one per asset; form \(u_{i,t} = \varepsilon_{i,t}/\hat\sigma_{i,t}\)</li>
+      <li><b>Step 2 - correlations:</b> set \(\bar Q = \tfrac1T\sum_t u_t u_t'\) (correlation targeting), then maximise the
+        correlation part of the likelihood over just \((a, b)\):
+        <div class="eq small">$$\log L_2 = -\tfrac12 \sum_t \big( \log|R_t| + u_t'R_t^{-1}u_t - u_t'u_t \big)$$</div></li>
+    </ol>
+    <ul class="small">
+      <li>"Although inefficient, this procedure is consistent and it dramatically reduces the computational burden" - the
+        optimiser never sees more than a handful of parameters at once</li>
+      <li>This is exactly what the interactive laboratory on the simulation slides does, live, on the paper's data</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Scoring forecasts: loss functions (equations 10-13)</h3>
+    <p class="small">Compare the forecast \(H_t\) with an ex post proxy \(\hat\Sigma_t\) for the unobservable truth:</p>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Loss</th><th>Formula</th><th>Character</th></tr>
+      <tr><td>Euclidean \(L_E\)</td><td>\(\operatorname{vech}(\hat\Sigma_t-H_t)'\operatorname{vech}(\hat\Sigma_t-H_t)\)</td><td>symmetric, unique elements once</td></tr>
+      <tr><td>Frobenius \(L_F\)</td><td>\(\operatorname{Tr}[(\hat\Sigma_t-H_t)'(\hat\Sigma_t-H_t)]\)</td><td>symmetric, covariances counted twice</td></tr>
+      <tr><td>Stein \(L_S\)</td><td>\(\operatorname{Tr}[H_t^{-1}\hat\Sigma_t] - \log|H_t^{-1}\hat\Sigma_t| - N\)</td><td>asymmetric: punishes <b>under</b>-prediction</td></tr>
+      <tr><td>\(L_3\) (\(b=3\))</td><td>weighted matrix power loss</td><td>asymmetric: punishes <b>over</b>-prediction</td></tr>
+    </table>
+    <ul class="small">
+      <li>All four are <b>robust</b> in the Laurent-Rombouts-Violante (2009)/Patton sense: replacing the truth by an unbiased proxy
+        does not distort the <em>ranking</em> of models</li>
+      <li>The paper's proxy is 5-minute realised covariance; intraday data for 1988-99 are proprietary, so our labs use the
+        outer product \(\varepsilon_t\varepsilon_t'\) - noisier, but unbiased, so rankings survive</li>
+    </ul>
+  </section>
+  <section>
+    <h3>The model confidence set, in one slide</h3>
+    <p class="small">Hansen, Lunde and Nason's MCS answers: <em>which subset of models contains the best one, at confidence level
+      \(1-\alpha\), given how noisy the loss differences are?</em></p>
+    <ol class="small">
+      <li>Start with all models; compute loss differentials \(d_{ij,t} = L_{i,t} - L_{j,t}\)</li>
+      <li>Test \(H_0: E(d_{ij,t}) = 0\) for all pairs, using a <b>block bootstrap</b> for the distribution of the deviation statistic</li>
+      <li>If rejected, <b>eliminate</b> the model with the worst standardised performance; repeat until no rejection</li>
+      <li>Survivors form the \((1-\alpha)\) model confidence set; the paper uses \(\alpha = 0.25\), block length 2, 10,000 bootstraps</li>
+    </ol>
+    <div class="panel tip small"><b>Why not just pick the lowest average loss?</b> With noisy proxies and 125 similar models the
+      sample winner changes with the sample. The MCS keeps every model whose inferiority cannot be established - an honest
+      confidence statement about model selection. The SPA test (Hansen, 2005) instead asks whether one pre-chosen benchmark
+      is beaten by <em>any</em> rival.</div>
+  </section>
+</section>
+
+<!-- ======================= 4. SIMULATIONS ======================= -->
+<section>
+  <section>
+    <h2>4 · Interactive laboratory</h2>
+    <h3>🎛️ Sim 1: a DCC(1,1) laboratory on the paper's data</h3>
+    <p class="tiny">KO, PepsiCo and P&amp;G, the last 2,000 days of the paper's estimation sample (April 1991 to December 1998). Univariate
+      GARCH(1,1) filters are pre-estimated by maximum likelihood; you drive the correlation recursion.</p>
+    <div class="sim" id="sim-dcc">
+      <canvas id="cv-dcc" width="880" height="270"></canvas>
+      <div class="controls-row" id="ctl-dcc"></div>
+    </div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it filters the three stocks with estimated GARCH(1,1) models, runs the DCC recursion on the standardised residuals with sliders for a and b, plots the three pairwise conditional correlations through 1991-1998, and fits (a, b) by maximum likelihood at the press of a button.</div></noscript>
+    <div class="panel tip" style="font-size:.5em"><b>Reading the results.</b> With <b>a = b = 0</b> you get CCC: three flat lines at the
+      sample correlations (0.44, 0.43, 0.33). Raise <b>a</b> and correlations spike whenever two stocks are shocked together; raise
+      <b>b</b> and those spikes decay slowly. Press <b>fit a, b by MLE</b>: the likelihood picks a &asymp; 0.016, b &asymp; 0.933
+      (persistence 0.949) - small news impact, long memory, exactly the shape Engle (2002) found. A researcher reads the peaks
+      (1997-98, the Asian and LTCM crises) as evidence that correlations rise in stressed markets, which is why constant-correlation
+      hedges fail when they are needed most.</div>
+  </section>
+  <section>
+    <h3>🎛️ Sim 2: CCC vs DCC vs EWMA, a covariance forecast race</h3>
+    <p class="tiny">Each model produces a 1-step covariance matrix forecast every day over the last 800 days (June 1995 to December 1998);
+      forecasts are scored against the outer-product proxy \(\varepsilon_t\varepsilon_t'\). The chart shows each model's <b>cumulative
+      average loss advantage over CCC</b> (above zero = beating CCC).</p>
+    <div class="sim" id="sim-race">
+      <canvas id="cv-race" width="880" height="260"></canvas>
+      <div class="controls-row" id="ctl-race"></div>
+    </div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it computes one-step covariance forecasts from CCC, DCC and RiskMetrics EWMA on the same three stocks, scores them with a Frobenius or simplified QLIKE loss against squared-return proxies, and plots the running loss comparison.</div></noscript>
+    <div class="panel tip" style="font-size:.5em"><b>Reading the results.</b> This is the paper's question in miniature. Under the
+      <b>Frobenius</b> loss DCC edges out CCC (374.6 vs 374.9 average) and both beat EWMA (379.1); the gap opens almost entirely during
+      the turbulent 1997-98 stretch and is nearly flat over calm 1995-96 - the paper's finding that "over calm periods ... constant
+      conditional correlation cannot be rejected" while DCC-type models win in instability. Switch to <b>QLIKE</b>: the ordering
+      survives here (DCC 5.247, CCC 5.280, EWMA 5.352) but the gaps change shape, because QLIKE punishes under-predicted variance far
+      more than over-predicted. The loss function choice is not innocent - it is why the paper reports four of them.</div>
+  </section>
+  <section>
+    <h3>🎛️ Sim 3: the curse of dimensionality</h3>
+    <p class="tiny">Parameters each model asks the optimiser to find (orders 1, variance/correlation targeting imposed as in the paper),
+      as the number of assets \(N\) grows. Log scale.</p>
+    <div class="sim" id="sim-curse">
+      <canvas id="cv-curse" width="880" height="270"></canvas>
+      <div class="controls-row" id="ctl-curse"></div>
+    </div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it plots the number of estimated parameters against the number of assets N (2 to 50) for full VEC, full BEKK, diagonal BEKK, scalar BEKK, DCC and CCC on a log scale, with a slider to read off the counts at any N.</div></noscript>
+    <div class="panel tip" style="font-size:.5em"><b>Reading the results.</b> At the paper's \(N=10\): a full VEC would need
+      <b>6,105</b> parameters and a full BEKK <b>200</b> - hopeless against 55 distinct data moments per day - while diagonal BEKK
+      needs 20, DCC-GARCH(1,1) 32 (three per stock plus a and b), scalar BEKK 2 and RiskMetrics none. This is exactly why the paper
+      restricts attention to feasible families (Table I) and why "the first generation of models ... are tractable only for a small
+      number of series, typically lower than four". DCC's trick: the 45 correlation targets come free from sample moments, so the
+      optimiser's problem barely grows with N.</div>
+  </section>
+  <section>
+    <h3>🎛️ Sim 4: model confidence set intuition</h3>
+    <p class="tiny">A teaching-grade MCS on the three racers from Sim 2: block-bootstrap the daily loss differentials, eliminate the worst
+      model while its inferiority is significant, stop when the survivors are statistically indistinguishable. (The paper uses Hansen,
+      Lunde and Nason's full procedure on 125 models, \(\alpha=0.25\), 10,000 bootstraps.)</p>
+    <div class="sim" id="sim-mcs">
+      <canvas id="cv-mcs" width="880" height="240"></canvas>
+      <div class="controls-row" id="ctl-mcs"></div>
+    </div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it bootstraps the loss differentials from the forecast race, shows each model's mean loss and elimination p-value, and lets an alpha slider decide which models survive in the model confidence set.</div></noscript>
+    <div class="panel tip" style="font-size:.5em"><b>Reading the results.</b> Under the Frobenius loss at the paper's \(\alpha=0.25\),
+      EWMA is eliminated first (bootstrap p &asymp; 0.04) but the procedure then stops (p &asymp; 0.6): the MCS is <b>{CCC, DCC}</b> -
+      their 0.07% loss gap could easily be luck, so the honest conclusion is "we cannot separate them on these data". Switch to
+      <b>QLIKE</b> and the elimination bites harder: both EWMA and CCC go, leaving <b>{DCC}</b> alone - exactly the paper's pattern of
+      asymmetric losses producing systematically smaller sets (Stein loss: 10 models vs Euclidean: 39). Slide \(\alpha\) down and sets
+      grow: a smaller \(\alpha\) demands stronger evidence before discarding a model.</div>
+  </section>
+</section>
+
+<!-- ======================= 5. CODE ENVIRONMENT ======================= -->
+<section>
+  <section>
+    <h2>5 · Code environment</h2>
+    <p class="small">The full workflow - data preparation, univariate GARCH, DCC estimation, forecasting and evaluation - lives in four
+      parallel files. The Python file reproduces every number quoted in this deck and exits cleanly.</p>
+    <div class="files" style="justify-content:center">
+      <a href="code/lecture09.do">lecture09.do · Stata</a>
+      <a href="code/lecture09.prg">lecture09.prg · EViews</a>
+      <a href="code/lecture09.R">lecture09.R · R</a>
+      <a href="code/lecture09.py">lecture09.py · Python</a>
+    </div>
+    <ul class="small">
+      <li><b>Stata:</b> native <code>mgarch dcc</code> (and <code>mgarch ccc</code>) - the cleanest route</li>
+      <li><b>EViews:</b> system ARCH gives diagonal BEKK and CCC natively; DCC itself needs the add-in - the file shows the honest route</li>
+      <li><b>R:</b> <code>rugarch</code> + <code>rmgarch</code>: <code>dccspec()</code>/<code>dccfit()</code>, the standard research stack</li>
+      <li><b>Python:</b> <code>arch</code> for the univariate step, then a transparent two-step DCC in scipy - the same code the browser cells run</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Step 1: univariate GARCH(1,1) per stock</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* import the paper's data (returns already in %)
+import delimited using "../../../data/csv/lrv_returns.csv", ///
+    clear stringcols(_all)
+destring date_serial-wye, replace force
+drop if missing(date_serial)          // stray text row
+gen t = _n
+tsset t
+
+* GARCH(1,1) for one stock (repeat over the 10)
+arch ko, arch(1) garch(1) nolog
+* persistence:
+display _b[ARCH:l1.arch] + _b[ARCH:l1.garch]</code></pre></div>
+      <div class="tabpane"><pre><code>' EViews: workfile + univariate GARCH(1,1)
+wfcreate(wf=lrv) u 1 2740
+import(t=txt) ..\..\..\data\csv\lrv_returns.csv skip=1
+' (or File > Import > Text-ASCII, name the 11 series)
+
+equation eq_ko.arch(1,1) ko c
+show eq_ko
+' Coefficients: C(2)=omega, RESID(-1)^2=alpha, GARCH(-1)=beta</code></pre></div>
+      <div class="tabpane"><pre><code>library(rugarch)
+lrv <- read.csv("../../../data/csv/lrv_returns.csv")
+lrv <- na.omit(as.data.frame(lapply(lrv, as.numeric)))
+
+spec <- ugarchspec(
+  variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
+  mean.model     = list(armaOrder = c(0, 0), include.mean = TRUE))
+fit <- ugarchfit(spec, data = lrv$KO)
+coef(fit)         # mu, omega, alpha1, beta1
+persistence(fit)  # alpha1 + beta1</code></pre></div>
+      <div class="tabpane"><pre><code>import pandas as pd
+from arch import arch_model
+
+lrv = (pd.read_csv("../../../data/csv/lrv_returns.csv")
+         .apply(pd.to_numeric, errors="coerce").dropna())
+e = lrv["KO"] - lrv["KO"].mean()
+
+am = arch_model(e, mean="Zero", vol="GARCH", p=1, q=1,
+                rescale=False)
+res = am.fit(disp="off")
+print(res.params)     # omega, alpha[1], beta[1]</code></pre></div>
+    </div>
+    <p class="small muted">▼ reproduce the estimates in the browser below</p>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: GARCH(1,1) on Coca Cola by MLE</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np, pandas as pd
+from scipy.optimize import minimize
+df = load("lrv_returns").apply(pd.to_numeric, errors="coerce").dropna()
+e = (df["KO"] - df["KO"].mean()).values     # demeaned, full 2740 obs
+
+def negloglik(theta):
+    omega, alpha, beta = theta
+    s2 = np.empty(len(e)); s2[0] = e.var()
+    for t in range(1, len(e)):
+        s2[t] = omega + alpha * e[t-1]**2 + beta * s2[t-1]
+    return 0.5 * np.sum(np.log(2 * np.pi) + np.log(s2) + e**2 / s2)
+
+opt = minimize(negloglik, x0=[0.05, 0.05, 0.90], method="L-BFGS-B",
+               bounds=[(1e-6, None), (0, 1), (0, 1)])
+omega, alpha, beta = opt.x
+print(f"omega = {omega:.4f}  alpha = {alpha:.4f}  beta = {beta:.4f}")
+print(f"persistence alpha + beta = {alpha + beta:.4f}")
+print(f"unconditional sd = {np.sqrt(omega / (1 - alpha - beta)):.3f}% per day")
+</textarea>
+    </div>
+    <p class="tiny muted">Expect omega = 0.0527, alpha = 0.0376, beta = 0.9342, persistence 0.9719 - the classic small-alpha, big-beta
+      pattern of daily equities. The arch package agrees to the third decimal. Run all 10 stocks with <code>code/lecture09.py</code>:
+      persistence ranges from 0.78 (Kodak) to 1.00 (BP, borderline IGARCH).</p>
+  </section>
+  <section>
+    <h3>Step 2: DCC estimation</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* DCC(1,1) with GARCH(1,1) variances, 3 stocks
+mgarch dcc (ko pep pg = ), arch(1) garch(1) nolog
+* lambda1 = a (news), lambda2 = b (memory)
+
+* constant-correlation benchmark:
+mgarch ccc (ko pep pg = ), arch(1) garch(1) nolog
+
+* in-sample conditional (co)variances:
+predict H_*, variance</code></pre></div>
+      <div class="tabpane"><pre><code>' EViews has no built-in DCC estimator. Honest routes:
+' 1) Native system ARCH: CCC or diagonal BEKK
+system mg
+mg.append ko  = c(1)
+mg.append pep = c(2)
+mg.append pg  = c(3)
+' Proc > Estimate > ARCH - select
+'   "Conditional Constant Correlation" or "Diagonal BEKK",
+'   GARCH(1,1) errors, then View > Conditional Covariances
+' 2) For DCC proper: install the "DCC GARCH" add-in
+'    (Add-ins menu) or estimate the two steps by eq_*.arch
+'    plus a LOGL object for the correlation recursion.</code></pre></div>
+      <div class="tabpane"><pre><code>library(rmgarch)
+X <- lrv[, c("KO", "PEP", "PG")]
+
+uspec <- multispec(replicate(3, ugarchspec(
+  variance.model = list(model = "sGARCH", garchOrder = c(1, 1)),
+  mean.model     = list(armaOrder = c(0, 0)))))
+dspec <- dccspec(uspec, dccOrder = c(1, 1),
+                 distribution = "mvnorm")
+dfit <- dccfit(dspec, data = X)
+coef(dfit)["[Joint]dcca1"]   # a
+coef(dfit)["[Joint]dccb1"]   # b
+R_t <- rcor(dfit)            # 3 x 3 x T correlation array</code></pre></div>
+      <div class="tabpane"><pre><code># two-step DCC, transparent scipy version
+# step 1: GARCH(1,1) per stock -> u = e / sigma
+# step 2: correlation targeting + MLE over (a, b):
+#   Q_t = (1-a-b) Qbar + a u_{t-1}u_{t-1}' + b Q_{t-1}
+#   R_t = diag(Q_t)^-1/2 Q_t diag(Q_t)^-1/2
+#   max sum -0.5(log|R_t| + u'R^-1u - u'u)
+# full code: code/lecture09.py (also runs in the cell below)</code></pre></div>
+    </div>
+    <p class="small muted">▼ estimate the full two-step DCC in the browser below</p>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: two-step DCC on KO, PEP, PG</h3>
+    <p class="small tiny">The same window as the interactive laboratory (last 2,000 days). Step 1 fits three GARCH(1,1) models; step 2
+      maximises the correlation likelihood over (a, b). Takes roughly 20-40 seconds in the browser.</p>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np, pandas as pd
+from scipy.optimize import minimize
+df = load("lrv_returns").apply(pd.to_numeric, errors="coerce").dropna()
+X = df[["KO", "PEP", "PG"]].values[-2000:]
+X = X - X.mean(0)                            # demean, as in the paper
+T = len(X)
+
+def garch_nll(th, e):
+    w, a, b = th
+    s2, ll, v = e.var(), 0.0, e.tolist()
+    for t in range(T):
+        if t > 0: s2 = w + a * v[t-1]**2 + b * s2
+        ll += np.log(s2) + v[t]**2 / s2
+    return 0.5 * ll
+
+U = np.empty_like(X)
+for i, tk in enumerate(["KO", "PEP", "PG"]):
+    r = minimize(garch_nll, [0.05, 0.05, 0.90], args=(X[:, i],),
+                 method="L-BFGS-B", bounds=[(1e-6, 1)] * 3)
+    w, a, b = r.x
+    s2 = np.empty(T); s2[0] = X[:, i].var()
+    for t in range(1, T):
+        s2[t] = w + a * X[t-1, i]**2 + b * s2[t-1]
+    U[:, i] = X[:, i] / np.sqrt(s2)
+    print(f"{tk}: omega={w:.4f} alpha={a:.4f} beta={b:.4f} pers={a+b:.4f}")
+
+Q0 = (U.T @ U) / T                           # correlation targeting
+u1, u2, u3 = U[:, 0].tolist(), U[:, 1].tolist(), U[:, 2].tolist()
+
+def dcc_nll(th):
+    a, b = th
+    if a < 0 or b < 0 or a + b > 0.999: return 1e9
+    q11, q22, q33 = Q0[0,0], Q0[1,1], Q0[2,2]
+    q12, q13, q23 = Q0[0,1], Q0[0,2], Q0[1,2]
+    ll = 0.0
+    for t in range(T):
+        if t > 0:
+            c, x, y, z = 1 - a - b, u1[t-1], u2[t-1], u3[t-1]
+            q11 = c*Q0[0,0] + a*x*x + b*q11; q22 = c*Q0[1,1] + a*y*y + b*q22
+            q33 = c*Q0[2,2] + a*z*z + b*q33; q12 = c*Q0[0,1] + a*x*y + b*q12
+            q13 = c*Q0[0,2] + a*x*z + b*q13; q23 = c*Q0[1,2] + a*y*z + b*q23
+        d1, d2, d3 = q11**0.5, q22**0.5, q33**0.5
+        r12, r13, r23 = q12/(d1*d2), q13/(d1*d3), q23/(d2*d3)
+        det = 1 - r12**2 - r13**2 - r23**2 + 2*r12*r13*r23
+        i11 = (1-r23**2)/det; i22 = (1-r13**2)/det; i33 = (1-r12**2)/det
+        i12 = (r13*r23-r12)/det; i13 = (r12*r23-r13)/det; i23 = (r12*r13-r23)/det
+        x, y, z = u1[t], u2[t], u3[t]
+        quad = i11*x*x + i22*y*y + i33*z*z + 2*(i12*x*y + i13*x*z + i23*y*z)
+        ll += np.log(det) + quad - (x*x + y*y + z*z)
+    return 0.5 * ll
+
+opt = minimize(dcc_nll, [0.02, 0.90], method="Nelder-Mead",
+               options={"xatol": 1e-4, "fatol": 1e-5})
+a, b = opt.x
+print(f"\nDCC: a = {a:.4f}  b = {b:.4f}  a+b = {a+b:.4f}")
+</textarea>
+    </div>
+    <p class="tiny muted">Expect a = 0.0163, b = 0.9330 (persistence 0.949) - matching the laboratory's "fit by MLE" button. On the full
+      2,740-day sample: a = 0.0150, b = 0.9708; on all 10 stocks: a = 0.0044, b = 0.9863 - dimension pushes DCC towards smoother,
+      more persistent correlation paths.</p>
+  </section>
+  <section>
+    <h3>Step 3: forecast and evaluate</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* one-step-ahead conditional (co)variances
+mgarch dcc (ko pep pg = ), arch(1) garch(1) nolog
+tsappend, add(1)
+predict H2_*, variance dynamic(2741)
+
+* loss vs a proxy (squared demeaned returns):
+* build L_F = sum of squared forecast errors over
+* the 6 distinct elements, then compare models
+* (Stata has no built-in MCS; see R's MCS package)</code></pre></div>
+      <div class="tabpane"><pre><code>' From a system estimated as CCC/diagonal BEKK:
+'   Proc > Forecast produces multi-step conditional
+'   variance and covariance forecasts per pair.
+' Score against realised proxies in a program loop.
+' EViews has no MCS/SPA implementation - export the
+' loss series and run the tests in R (package MCS)
+' or OxMetrics (the authors used Ox + G@RCH 6).</code></pre></div>
+      <div class="tabpane"><pre><code>fc <- dccforecast(dfit, n.ahead = 20)
+rcov(fc)     # forecast covariance matrices H_{T+1..T+20}
+
+# forecast evaluation and the MCS:
+library(MCS)  # Bernardi & Catania's implementation
+# LossVol / build your own matrix losses, then:
+# MCSprocedure(Loss = cbind(L_ccc, L_dcc, L_ewma),
+#              alpha = 0.25, B = 10000, statistic = "TR")</code></pre></div>
+      <div class="tabpane"><pre><code># 1-step forecast at T+1 from the fitted two-step DCC:
+# sigma2_{T+1} = w + a e_T^2 + b sigma2_T   (per stock)
+# Q_{T+1} = (1-a-b) Qbar + a u_T u_T' + b Q_T
+# H_{T+1} = D_{T+1}^(1/2) R_{T+1} D_{T+1}^(1/2)
+# losses: Frobenius sum((S - H)**2)
+#         QLIKE   log|H| + tr(H^-1 S)  (proxy S = e e')
+# code/lecture09.py runs the full CCC/DCC/EWMA race,
+# the horizon comparison and the window robustness.</code></pre></div>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= 6. ROBUSTNESS ======================= -->
+<section>
+  <section>
+    <h2>6 · Robustness checks</h2>
+    <h3>🎛️ Sim 5: is the ranking stable?</h3>
+    <p class="tiny">The paper's three robustness axes, rebuilt on its own data: forecast horizon (1, 5, 20 days, non-overlapping),
+      evaluation subsample (calm 1995-97 vs turbulent 1997-98), and the loss function (Sims 2 and 4 toggle Frobenius/QLIKE).
+      Bars show average Frobenius loss <b>relative to CCC = 100</b> (lower = better).</p>
+    <div class="sim" id="sim-rob">
+      <canvas id="cv-rob" width="880" height="250"></canvas>
+      <div class="controls-row" id="ctl-rob"></div>
+    </div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it recomputes the CCC/DCC/EWMA forecast race at 1-, 5- and 20-day horizons over the full evaluation window and over calm and turbulent subsamples, and draws the average losses relative to CCC as grouped bars.</div></noscript>
+    <div class="panel tip" style="font-size:.5em"><b>Reading the results.</b> At H = 1 the three models are within about 1% of each
+      other. Stretch the horizon and the ranking spreads out exactly as in the paper's Table IV: at H = 20 EWMA's flat forecast is
+      about 24% worse than CCC (13,884 vs 12,551 raw loss) because "the k-step-ahead forecast for the RiskMetrics type models ...
+      coincides with the one-step-ahead forecast independently from the forecast horizon", while mean-reverting GARCH forecasts
+      glide back towards the long-run covariance. Split the sample and the turbulent half carries losses about 13 times the calm
+      half (695 vs 54) - short unstable stretches dominate full-sample rankings, the paper's central warning.</div>
+  </section>
+  <section>
+    <h3>Estimation window: how stable are a and b?</h3>
+    <p class="small">The paper re-estimates every 22 days on a rolling window of 2,740 observations. How much does the window matter?
+      DCC on KO, PEP, PG (from <code>code/lecture09.py</code>):</p>
+    <table class="data" style="font-size:.62em">
+      <tr><th>Estimation window</th><th>a (news)</th><th>b (memory)</th><th>a + b</th></tr>
+      <tr><td>last 1,000 obs (1995-98)</td><td>0.0320</td><td>0.8847</td><td>0.9167</td></tr>
+      <tr><td>last 2,000 obs (1991-98, deck window)</td><td>0.0163</td><td>0.9330</td><td>0.9493</td></tr>
+      <tr><td>full 2,740 obs (1988-98)</td><td>0.0150</td><td>0.9708</td><td>0.9858</td></tr>
+    </table>
+    <ul class="small">
+      <li>Shorter, more turbulent windows load on <b>news</b> (higher a); longer windows load on <b>memory</b> (higher b)</li>
+      <li>The <em>persistence</em> a + b stays high throughout - the qualitative story is stable, the parameters are not</li>
+      <li>This is why the paper's mixed fixed/rolling scheme matters: it keeps forecasts conditioned on recent information while
+        satisfying the assumptions of the MCS test</li>
+    </ul>
+    <p class="small muted">▼ verify the 1,000-day row in your browser</p>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: window robustness</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np, pandas as pd
+from scipy.optimize import minimize
+df = load("lrv_returns").apply(pd.to_numeric, errors="coerce").dropna()
+
+def dcc_ab(W):
+    X = df[["KO", "PEP", "PG"]].values[-W:]
+    X = X - X.mean(0); T = len(X)
+    def gnll(th, e):
+        w, a, b = th; s2, ll, v = e.var(), 0.0, e.tolist()
+        for t in range(T):
+            if t > 0: s2 = w + a * v[t-1]**2 + b * s2
+            ll += np.log(s2) + v[t]**2 / s2
+        return 0.5 * ll
+    U = np.empty_like(X)
+    for i in range(3):
+        r = minimize(gnll, [0.05, 0.05, 0.90], args=(X[:, i],),
+                     method="L-BFGS-B", bounds=[(1e-6, 1)] * 3)
+        w, a, b = r.x
+        s2 = np.empty(T); s2[0] = X[:, i].var()
+        for t in range(1, T):
+            s2[t] = w + a * X[t-1, i]**2 + b * s2[t-1]
+        U[:, i] = X[:, i] / np.sqrt(s2)
+    Q0 = (U.T @ U) / T
+    u = [U[:, i].tolist() for i in range(3)]
+    def dnll(th):
+        a, b = th
+        if a < 0 or b < 0 or a + b > 0.999: return 1e9
+        q = [Q0[0,0], Q0[1,1], Q0[2,2], Q0[0,1], Q0[0,2], Q0[1,2]]
+        ll = 0.0
+        for t in range(T):
+            if t > 0:
+                c = 1 - a - b; x, y, z = u[0][t-1], u[1][t-1], u[2][t-1]
+                q = [c*Q0[0,0]+a*x*x+b*q[0], c*Q0[1,1]+a*y*y+b*q[1],
+                     c*Q0[2,2]+a*z*z+b*q[2], c*Q0[0,1]+a*x*y+b*q[3],
+                     c*Q0[0,2]+a*x*z+b*q[4], c*Q0[1,2]+a*y*z+b*q[5]]
+            d1, d2, d3 = q[0]**0.5, q[1]**0.5, q[2]**0.5
+            p12, p13, p23 = q[3]/(d1*d2), q[4]/(d1*d3), q[5]/(d2*d3)
+            det = 1 - p12**2 - p13**2 - p23**2 + 2*p12*p13*p23
+            x, y, z = u[0][t], u[1][t], u[2][t]
+            quad = ((1-p23**2)*x*x + (1-p13**2)*y*y + (1-p12**2)*z*z
+                    + 2*((p13*p23-p12)*x*y + (p12*p23-p13)*x*z
+                    + (p12*p13-p23)*y*z)) / det
+            ll += np.log(det) + quad - (x*x + y*y + z*z)
+        return 0.5 * ll
+    o = minimize(dnll, [0.02, 0.90], method="Nelder-Mead",
+                 options={"xatol": 1e-4, "fatol": 1e-5})
+    return o.x
+
+for W in (1000, 2000):
+    a, b = dcc_ab(W)
+    print(f"window {W}: a = {a:.4f}  b = {b:.4f}  a+b = {a+b:.4f}")
+</textarea>
+    </div>
+    <p class="tiny muted">Expect (0.0320, 0.8847) and (0.0163, 0.9330). Roughly a minute in the browser: it fits six GARCH models and
+      two DCC likelihoods. The full 2,740-day row runs locally in <code>code/lecture09.py</code>.</p>
+  </section>
+  <section>
+    <h3>Horizon and loss function: the full comparison</h3>
+    <p class="small">Average losses over the 800 evaluation days (from <code>code/lecture09.py</code>, matching Sims 2 and 5):</p>
+    <table class="data" style="font-size:.6em">
+      <tr><th></th><th>Frobenius H=1</th><th>QLIKE H=1</th><th>Frobenius H=5</th><th>Frobenius H=20</th><th>calm half</th><th>turbulent half</th></tr>
+      <tr><td>CCC</td><td>374.90</td><td>5.280</td><td><b>2,507.7</b></td><td><b>12,551</b></td><td>54.43</td><td>695.4</td></tr>
+      <tr><td>DCC</td><td><b>374.65</b></td><td><b>5.247</b></td><td>2,521.8</td><td>12,749</td><td><b>54.33</b></td><td><b>695.0</b></td></tr>
+      <tr><td>EWMA</td><td>379.06</td><td>5.352</td><td>2,657.9</td><td>15,535</td><td>54.76</td><td>703.4</td></tr>
+    </table>
+    <p class="tiny muted">Lower is better; bold marks each column's winner. Calm/turbulent columns are Frobenius at H=1. Note the flip:
+      DCC wins at H=1 under both losses, but plain CCC edges it at 5 and 20 days, where the noisy day-to-day correlation signal has
+      washed out and mean reversion dominates.</p>
+    <div class="panel warn small"><b>Is the ranking stable? Partly.</b> DCC wins at short horizons and in turbulence; CCC catches up at
+      long horizons and in calm; EWMA is competitive at 1 step and collapses at 20. That instability across horizon, sample and loss is
+      not a nuisance, it is the paper's core result - and the reason it reports MCS sets rather than a single champion.</div>
+  </section>
+</section>
+
+<!-- ======================= 7. RESULTS AND DISCUSSION ======================= -->
+<section>
+  <section>
+    <h2>7 · Results and discussion</h2>
+    <h3>What the labs told us, and what the paper adds</h3>
+    <ul class="small">
+      <li>Our three-model race on the paper's own data reproduces its qualitative findings in miniature: <b>correlation dynamics
+        matter most in turbulent markets</b>; in calm stretches CCC is statistically indistinguishable from DCC</li>
+      <li><b>Loss functions change rankings</b> - symmetric losses keep large model sets alive, asymmetric ones discriminate;
+        the paper finds orthogonal models under-predict (favoured by \(L_3\)) and DCC-type models over-predict (favoured by Stein)</li>
+      <li><b>Horizon matters:</b> integrated/RiskMetrics forecasts are flat and fail at 5-20 days; mean reversion wins there</li>
+      <li>The paper's bottom line (SPA, Table V): <b>Engle's DCC with EGARCH leverage in the variances is never significantly
+        beaten</b> across 124 rivals, three horizons and four regimes - a defensible default for applied work</li>
+    </ul>
+    <div class="panel def small"><b>The MCS habit:</b> when models are close and proxies noisy, report the <em>set</em> of
+      statistically superior models, not just the sample winner. At \(\alpha=0.25\), full sample, that set still held 39 models.</div>
+  </section>
+  <section>
+    <h3>Using this in your dissertation</h3>
+    <ul class="small">
+      <li><b>Any multivariate risk question</b> - dynamic hedge ratios, minimum-variance portfolios, VaR of a book, contagion -
+        needs an \(H_t\) forecast: start from DCC-GARCH(1,1), add leverage (GJR/EGARCH) if your assets are equities</li>
+      <li><b>Estimation:</b> Stata <code>mgarch dcc</code>, R <code>rmgarch::dccfit</code>, or the transparent two-step scipy code
+        from this deck; always impose variance/correlation targeting for N above 3 or 4</li>
+      <li><b>Evaluation:</b> hold out a forecast sample, choose a robust loss (Frobenius or QLIKE), use squared returns or realised
+        covariance as the proxy, and run the MCS (R package <code>MCS</code>) rather than crowning the lowest average loss</li>
+      <li><b>Robustness section:</b> repeat over horizons, subsamples and at least two loss functions - your examiner is looking
+        for exactly the axes this paper made standard</li>
+      <li><b>Scope your ambition:</b> N = 3 to 10 assets is the feasible zone for coursework; beyond that you are in factor and
+        shrinkage territory (Engle's 2009 book is the map)</li>
+    </ul>
+    <div class="files" style="justify-content:center;margin-top:.6em">
+      <a href="../../">🏠 Hub</a>
+      <a href="../lecture08/">← Lecture 8</a>
+      <a href="../lecture10/">Lecture 10 →</a>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= REFERENCES ======================= -->
+<section>
+  <h2>References</h2>
+  <ul class="refs" style="font-size:.52em">
+    <li><b>Laurent, S., Rombouts, J.V.K. and Violante, F. (2012) 'On the forecasting accuracy of multivariate GARCH models', <i>Journal of Applied Econometrics</i>, 27(6), pp. 934-955.</b></li>
+    <li>Bollerslev, T. (1986) 'Generalized autoregressive conditional heteroskedasticity', <i>Journal of Econometrics</i>, 31(3), pp. 307-327.</li>
+    <li>Bollerslev, T. (1990) 'Modelling the coherence in short-run nominal exchange rates: a multivariate generalized ARCH model', <i>Review of Economics and Statistics</i>, 72(3), pp. 498-505.</li>
+    <li>Bauwens, L., Laurent, S. and Rombouts, J.V.K. (2006) 'Multivariate GARCH models: a survey', <i>Journal of Applied Econometrics</i>, 21(1), pp. 79-109.</li>
+    <li>Cappiello, L., Engle, R.F. and Sheppard, K. (2006) 'Asymmetric dynamics in the correlations of global equity and bond returns', <i>Journal of Financial Econometrics</i>, 4(4), pp. 537-572.</li>
+    <li>Engle, R.F. (1982) 'Autoregressive conditional heteroscedasticity with estimates of the variance of United Kingdom inflation', <i>Econometrica</i>, 50(4), pp. 987-1007.</li>
+    <li>Engle, R.F. (2002) 'Dynamic conditional correlation: a simple class of multivariate generalized autoregressive conditional heteroskedasticity models', <i>Journal of Business and Economic Statistics</i>, 20(3), pp. 339-350.</li>
+    <li>Engle, R.F. (2009) <i>Anticipating Correlations: A New Paradigm for Risk Management</i>. Princeton: Princeton University Press.</li>
+    <li>Engle, R.F. and Kroner, K.F. (1995) 'Multivariate simultaneous generalized ARCH', <i>Econometric Theory</i>, 11(1), pp. 122-150.</li>
+    <li>Engle, R.F. and Mezrich, J. (1996) 'GARCH for groups', <i>Risk</i>, 9(8), pp. 36-40 (variance targeting; see also Engle and Mezrich, 1995, 'Grappling with GARCH').</li>
+    <li>Hansen, P.R. (2005) 'A test for superior predictive ability', <i>Journal of Business and Economic Statistics</i>, 23(4), pp. 365-380.</li>
+    <li>Hansen, P.R., Lunde, A. and Nason, J.M. (2011) 'The model confidence set', <i>Econometrica</i>, 79(2), pp. 453-497.</li>
+    <li>J.P. Morgan (1996) <i>RiskMetrics Technical Document</i>. 4th edn. New York: J.P. Morgan.</li>
+    <li>Tse, Y.K. and Tsui, A.K.C. (2002) 'A multivariate generalized autoregressive conditional heteroscedasticity model with time-varying correlations', <i>Journal of Business and Economic Statistics</i>, 20(3), pp. 351-362.</li>
+    <li>Software: Ghalanos, A. <i>rugarch</i> and <i>rmgarch</i> (R packages); Sheppard, K. <i>arch</i> (Python package); Bernardi, M. and Catania, L. <i>MCS</i> (R package); StataCorp, <code>mgarch dcc</code>, Stata Time-Series Reference Manual.</li>
+  </ul>
+</section>
+
+</div>
+</div>
+
+<script src="../../assets/vendor/reveal/dist/reveal.js"></script>
+<script src="../../assets/vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="../../assets/vendor/katex/katex.min.js"></script>
+<script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/sim-core.js"></script>
+<script src="data_lrv3.js"></script>
+<script>
+'use strict';
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t', width: 1050, height: 700, margin: 0.06,
+  plugins: [RevealHighlight]
+});
+Reveal.on('ready', function () {
+  document.querySelectorAll('.slides section').forEach(function (s) {
+    renderMathInElement(s, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  });
+});
+
+/* =========================================================================
+   Shared engine: the Laurent-Rombouts-Violante 3-stock window (KO, PEP, PG),
+   demeaned returns, pre-estimated GARCH(1,1) filters, DCC machinery.
+   ========================================================================= */
+var LRV = (function () {
+  var D = window.DATA_LRV3, tk = D.tickers, T = D.r[tk[0]].length;
+  var e = [], s2 = [], u = [];
+  for (var i = 0; i < 3; i++) {
+    var raw = D.r[tk[i]], m = 0, t;
+    for (t = 0; t < T; t++) m += raw[t];
+    m /= T;
+    var ei = new Array(T), v = 0;
+    for (t = 0; t < T; t++) { ei[t] = raw[t] - m; v += ei[t] * ei[t]; }
+    v /= T;
+    var g = D.garch[tk[i]], si = new Array(T);
+    si[0] = v;
+    for (t = 1; t < T; t++) si[t] = g.omega + g.alpha * ei[t - 1] * ei[t - 1] + g.beta * si[t - 1];
+    var ui = new Array(T);
+    for (t = 0; t < T; t++) ui[t] = ei[t] / Math.sqrt(si[t]);
+    e.push(ei); s2.push(si); u.push(ui);
+  }
+  var Q = { q11: 0, q22: 0, q33: 0, q12: 0, q13: 0, q23: 0 };
+  for (t = 0; t < T; t++) {
+    Q.q11 += u[0][t] * u[0][t]; Q.q22 += u[1][t] * u[1][t]; Q.q33 += u[2][t] * u[2][t];
+    Q.q12 += u[0][t] * u[1][t]; Q.q13 += u[0][t] * u[2][t]; Q.q23 += u[1][t] * u[2][t];
+  }
+  Q.q11 /= T; Q.q22 /= T; Q.q33 /= T; Q.q12 /= T; Q.q13 /= T; Q.q23 /= T;
+  var rb = {
+    r12: Q.q12 / Math.sqrt(Q.q11 * Q.q22),
+    r13: Q.q13 / Math.sqrt(Q.q11 * Q.q33),
+    r23: Q.q23 / Math.sqrt(Q.q22 * Q.q33)
+  };
+  return { tk: tk, T: T, x: D.yearfrac, e: e, s2: s2, u: u, Q: Q, rbar: rb, garch: D.garch, EST: 1200 };
+})();
+
+/* DCC filter on the standardised residuals. store=false returns only logL. */
+function dccPath(a, b, store) {
+  var Q = LRV.Q, u = LRV.u, T = LRV.T, c = 1 - a - b;
+  var q11 = Q.q11, q22 = Q.q22, q33 = Q.q33, q12 = Q.q12, q13 = Q.q13, q23 = Q.q23;
+  var R12 = store ? new Array(T) : null, R13 = store ? new Array(T) : null, R23 = store ? new Array(T) : null;
+  var ll = 0, x, y, z;
+  for (var t = 0; t < T; t++) {
+    if (t > 0) {
+      x = u[0][t - 1]; y = u[1][t - 1]; z = u[2][t - 1];
+      q11 = c * Q.q11 + a * x * x + b * q11; q22 = c * Q.q22 + a * y * y + b * q22;
+      q33 = c * Q.q33 + a * z * z + b * q33; q12 = c * Q.q12 + a * x * y + b * q12;
+      q13 = c * Q.q13 + a * x * z + b * q13; q23 = c * Q.q23 + a * y * z + b * q23;
+    }
+    var d1 = Math.sqrt(q11), d2 = Math.sqrt(q22), d3 = Math.sqrt(q33);
+    var p = q12 / (d1 * d2), q = q13 / (d1 * d3), r = q23 / (d2 * d3);
+    if (store) { R12[t] = p; R13[t] = q; R23[t] = r; }
+    var det = 1 - p * p - q * q - r * r + 2 * p * q * r;
+    x = u[0][t]; y = u[1][t]; z = u[2][t];
+    var quad = ((1 - r * r) * x * x + (1 - q * q) * y * y + (1 - p * p) * z * z +
+      2 * ((q * r - p) * x * y + (p * r - q) * x * z + (p * q - r) * y * z)) / det;
+    ll -= 0.5 * (Math.log(det) + quad - (x * x + y * y + z * z));
+  }
+  return { r12: R12, r13: R13, r23: R23, ll: ll };
+}
+
+/* grid MLE for (a, b): coarse pass then refinement */
+function dccMLE() {
+  var best = { ll: -Infinity, a: 0, b: 0 }, a, b, v;
+  for (a = 0.002; a <= 0.098; a += 0.008) {
+    for (b = 0.60; b <= 0.992; b += 0.014) {
+      if (a + b >= 0.999) continue;
+      v = dccPath(a, b, false).ll;
+      if (v > best.ll) best = { ll: v, a: a, b: b };
+    }
+  }
+  var a0 = best.a, b0 = best.b;
+  for (a = Math.max(0.001, a0 - 0.008); a <= a0 + 0.008; a += 0.001) {
+    for (b = Math.max(0.5, b0 - 0.015); b <= Math.min(0.995, b0 + 0.015); b += 0.001) {
+      if (a + b >= 0.999) continue;
+      v = dccPath(a, b, false).ll;
+      if (v > best.ll) best = { ll: v, a: a, b: b };
+    }
+  }
+  return best;
+}
+
+/* symmetric 3x3 helpers packed as [h11,h22,h33,h12,h13,h23] */
+function frob6(A, B) {
+  var d0 = A[0] - B[0], d1 = A[1] - B[1], d2 = A[2] - B[2];
+  var d3 = A[3] - B[3], d4 = A[4] - B[4], d5 = A[5] - B[5];
+  return d0 * d0 + d1 * d1 + d2 * d2 + 2 * (d3 * d3 + d4 * d4 + d5 * d5);
+}
+function det6(H) {
+  return H[0] * (H[1] * H[2] - H[5] * H[5]) - H[3] * (H[3] * H[2] - H[5] * H[4]) +
+    H[4] * (H[3] * H[5] - H[1] * H[4]);
+}
+function qlike6(H, ex, ey, ez) { /* log|H| + e' H^-1 e  (proxy = e e') */
+  var det = det6(H);
+  var i11 = (H[1] * H[2] - H[5] * H[5]) / det, i22 = (H[0] * H[2] - H[4] * H[4]) / det;
+  var i33 = (H[0] * H[1] - H[3] * H[3]) / det, i12 = (H[4] * H[5] - H[3] * H[2]) / det;
+  var i13 = (H[3] * H[5] - H[4] * H[1]) / det, i23 = (H[3] * H[4] - H[0] * H[5]) / det;
+  return Math.log(det) + i11 * ex * ex + i22 * ey * ey + i33 * ez * ez +
+    2 * (i12 * ex * ey + i13 * ex * ez + i23 * ey * ez);
+}
+
+/* One-step losses for the race: returns {F:{CCC,DCC,EWMA},Q:{...}} arrays over t in [EST, T) */
+var RACE = (function () {
+  var a = 0.0163, b = 0.9330;   /* the MLE on this window (matches the Python cell) */
+  var T = LRV.T, EST = LRV.EST, e = LRV.e, s2 = LRV.s2, rb = LRV.rbar;
+  var dcc = dccPath(a, b, true);
+  /* EWMA lambda = 0.96, seeded with the estimation-window covariance */
+  var C = [0, 0, 0, 0, 0, 0], t;
+  for (t = 0; t < EST; t++) {
+    C[0] += e[0][t] * e[0][t]; C[1] += e[1][t] * e[1][t]; C[2] += e[2][t] * e[2][t];
+    C[3] += e[0][t] * e[1][t]; C[4] += e[0][t] * e[2][t]; C[5] += e[1][t] * e[2][t];
+  }
+  for (var k = 0; k < 6; k++) C[k] /= EST;
+  var lam = 0.96, Hew = new Array(T);
+  Hew[0] = C.slice();
+  for (t = 1; t < T; t++) {
+    var x = e[0][t - 1], y = e[1][t - 1], z = e[2][t - 1], P = Hew[t - 1];
+    Hew[t] = [(1 - lam) * x * x + lam * P[0], (1 - lam) * y * y + lam * P[1], (1 - lam) * z * z + lam * P[2],
+      (1 - lam) * x * y + lam * P[3], (1 - lam) * x * z + lam * P[4], (1 - lam) * y * z + lam * P[5]];
+  }
+  function Hccc(t) {
+    var d1 = Math.sqrt(s2[0][t]), d2 = Math.sqrt(s2[1][t]), d3 = Math.sqrt(s2[2][t]);
+    return [d1 * d1, d2 * d2, d3 * d3, rb.r12 * d1 * d2, rb.r13 * d1 * d3, rb.r23 * d2 * d3];
+  }
+  function Hdcc(t) {
+    var d1 = Math.sqrt(s2[0][t]), d2 = Math.sqrt(s2[1][t]), d3 = Math.sqrt(s2[2][t]);
+    return [d1 * d1, d2 * d2, d3 * d3, dcc.r12[t] * d1 * d2, dcc.r13[t] * d1 * d3, dcc.r23[t] * d2 * d3];
+  }
+  var F = { CCC: [], DCC: [], EWMA: [] }, Ql = { CCC: [], DCC: [], EWMA: [] };
+  for (t = EST; t < T; t++) {
+    var ex = e[0][t], ey = e[1][t], ez = e[2][t];
+    var S = [ex * ex, ey * ey, ez * ez, ex * ey, ex * ez, ey * ez];
+    var Hc = Hccc(t), Hd = Hdcc(t), He = Hew[t];
+    F.CCC.push(frob6(S, Hc)); F.DCC.push(frob6(S, Hd)); F.EWMA.push(frob6(S, He));
+    Ql.CCC.push(qlike6(Hc, ex, ey, ez)); Ql.DCC.push(qlike6(Hd, ex, ey, ez)); Ql.EWMA.push(qlike6(He, ex, ey, ez));
+  }
+  return { a: a, b: b, F: F, Q: Ql, dcc: dcc, Hew: Hew, Hccc: Hccc, Hdcc: Hdcc };
+})();
+var MODELS = ['CCC', 'DCC', 'EWMA'];
+var MCOL = { CCC: SIM.colors.accent, DCC: SIM.colors.good, EWMA: SIM.colors.accent2 };
+
+/* ---------- SIM 1: DCC laboratory ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-dcc');
+  var P = { a: 0.02, b: 0.90 };
+  var sliders = {};
+  function draw() {
+    var res = dccPath(P.a, P.b, true);
+    var x = LRV.x, T = LRV.T;
+    var p = new SIM.Plot('cv-dcc', {
+      xmin: x[0], xmax: x[T - 1], ymin: -0.15, ymax: 1,
+      xlabel: 'year', ylabel: 'conditional correlation',
+      title: 'DCC(1,1) pairwise correlations, KO / PEP / PG (a = ' + P.a.toFixed(3) + ', b = ' + P.b.toFixed(3) + ')'
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+    p.hline(LRV.rbar.r12, { color: SIM.colors.dim, dash: [3, 5] });
+    p.line(x, res.r12, { color: SIM.colors.accent, width: 1.2 });
+    p.line(x, res.r13, { color: SIM.colors.good, width: 1.2 });
+    p.line(x, res.r23, { color: SIM.colors.accent2, width: 1.2 });
+    p.legend([
+      { label: 'KO-PEP (target 0.44)', color: SIM.colors.accent },
+      { label: 'KO-PG (target 0.43)', color: SIM.colors.good },
+      { label: 'PEP-PG (target 0.33)', color: SIM.colors.accent2 }
+    ]);
+    var mn = 1, mx = -1, i;
+    for (i = 0; i < T; i++) {
+      var v = res.r12[i];
+      if (v < mn) mn = v; if (v > mx) mx = v;
+    }
+    document.getElementById('ro-dcc').innerHTML =
+      'persistence a+b = <b>' + (P.a + P.b).toFixed(3) + '</b> · KO-PEP correlation ranges <b>' +
+      mn.toFixed(2) + '</b> to <b>' + mx.toFixed(2) + '</b> · 2nd-step log-likelihood = <b>' + res.ll.toFixed(1) + '</b>' +
+      (P.a + P.b === 0 ? ' · <b>a=b=0 is CCC: flat lines at the targets</b>' : '');
+  }
+  function sync() { sliders.a.set(P.a); sliders.b.set(P.b); }
+  sliders.a = SIM.slider(ctl, { label: 'a (news)', min: 0, max: 0.15, step: 0.001, value: P.a, fmt: function (v) { return v.toFixed(3); } },
+    function (v) { P.a = v; if (P.a + P.b > 0.998) { P.b = 0.998 - P.a; sync(); } draw(); });
+  sliders.b = SIM.slider(ctl, { label: 'b (memory)', min: 0, max: 0.998, step: 0.002, value: P.b, fmt: function (v) { return v.toFixed(3); } },
+    function (v) { P.b = v; if (P.a + P.b > 0.998) { P.a = Math.max(0, 0.998 - P.b); sync(); } draw(); });
+  SIM.button(ctl, 'fit a, b by MLE', function () {
+    var m = dccMLE(); P.a = m.a; P.b = m.b; sync(); draw();
+    document.getElementById('ro-dcc').innerHTML +=
+      ' · <b style="color:#34d399">MLE: a = ' + m.a.toFixed(3) + ', b = ' + m.b.toFixed(3) + '</b> (Python two-step: 0.016, 0.933)';
+  }, true);
+  SIM.button(ctl, 'CCC (a = b = 0)', function () { P.a = 0; P.b = 0; sync(); draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-dcc'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 2: covariance forecast race ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-race');
+  var loss = 'F';
+  function draw() {
+    var L = RACE[loss], T = LRV.T, EST = LRV.EST, n = L.CCC.length;
+    var x = LRV.x.slice(EST);
+    var adv = { DCC: new Array(n), EWMA: new Array(n) };
+    var cC = 0, cD = 0, cE = 0;
+    for (var t = 0; t < n; t++) {
+      cC += L.CCC[t]; cD += L.DCC[t]; cE += L.EWMA[t];
+      adv.DCC[t] = (cC - cD) / (t + 1);
+      adv.EWMA[t] = (cC - cE) / (t + 1);
+    }
+    var lo = 0, hi = 0;
+    for (t = 0; t < n; t++) {
+      if (adv.DCC[t] < lo) lo = adv.DCC[t]; if (adv.DCC[t] > hi) hi = adv.DCC[t];
+      if (adv.EWMA[t] < lo) lo = adv.EWMA[t]; if (adv.EWMA[t] > hi) hi = adv.EWMA[t];
+    }
+    var pad = (hi - lo) * 0.15 + 1e-6;
+    var p = new SIM.Plot('cv-race', {
+      xmin: x[0], xmax: x[n - 1], ymin: lo - pad, ymax: hi + pad,
+      xlabel: 'year', ylabel: 'avg loss advantage vs CCC',
+      title: (loss === 'F' ? 'Frobenius loss' : 'QLIKE loss (simplified)') + ' - cumulative average advantage over CCC (above 0 = better than CCC)'
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+    p.line(x, adv.DCC, { color: MCOL.DCC, width: 2 });
+    p.line(x, adv.EWMA, { color: MCOL.EWMA, width: 2 });
+    p.legend([
+      { label: 'DCC vs CCC', color: MCOL.DCC },
+      { label: 'EWMA (RiskMetrics 0.96) vs CCC', color: MCOL.EWMA }
+    ]);
+    var mC = cC / n, mD = cD / n, mE = cE / n;
+    var winner = mC <= mD && mC <= mE ? 'CCC' : (mD <= mE ? 'DCC' : 'EWMA');
+    document.getElementById('ro-race').innerHTML =
+      'average loss over ' + n + ' days: CCC = <b>' + mC.toFixed(loss === 'F' ? 2 : 4) + '</b> · DCC = <b>' +
+      mD.toFixed(loss === 'F' ? 2 : 4) + '</b> · EWMA = <b>' + mE.toFixed(loss === 'F' ? 2 : 4) +
+      '</b> · lowest: <b style="color:#34d399">' + winner + '</b>';
+  }
+  SIM.button(ctl, 'Frobenius loss', function () { loss = 'F'; draw(); });
+  SIM.button(ctl, 'QLIKE loss', function () { loss = 'Q'; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-race'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 3: curse of dimensionality ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-curse');
+  var Nsel = 10;
+  var specs = [
+    { name: 'full VEC (no targeting)', col: SIM.colors.bad, f: function (N) { var n = N * (N + 1) / 2; return n * (1 + 2 * n); } },
+    { name: 'full BEKK', col: '#f59e0b', f: function (N) { return 2 * N * N; } },
+    { name: 'diagonal BEKK', col: SIM.colors.accent2, f: function (N) { return 2 * N; } },
+    { name: 'DCC-GARCH(1,1)', col: SIM.colors.good, f: function (N) { return 3 * N + 2; } },
+    { name: 'CCC-GARCH(1,1)', col: SIM.colors.accent, f: function (N) { return 3 * N; } },
+    { name: 'scalar BEKK', col: '#e2e8f0', f: function (N) { return 2; } }
+  ];
+  function draw() {
+    var p = new SIM.Plot('cv-curse', {
+      xmin: 2, xmax: 50, ymin: 0, ymax: 7,
+      xlabel: 'number of assets N', ylabel: 'log10(parameters)',
+      title: 'Parameters the optimiser must find (orders 1, targeting imposed)'
+    });
+    p.clear(); p.axes();
+    var xs = [], k;
+    for (k = 2; k <= 50; k++) xs.push(k);
+    specs.forEach(function (s) {
+      p.line(xs, xs.map(function (N) { return Math.log10(Math.max(s.f(N), 1)); }), { color: s.col, width: 2 });
+    });
+    p.vline(Nsel, { color: SIM.colors.dim, dash: [4, 4] });
+    p.vline(10, { color: '#64748b', dash: [2, 6] });
+    p.label(10.4, 6.6, 'paper: N = 10', { color: '#94a3b8', size: 11 });
+    p.legend(specs.map(function (s) { return { label: s.name, color: s.col }; }));
+    var msg = 'at N = ' + Nsel + ': ';
+    msg += specs.map(function (s) {
+      return s.name.split(' (')[0] + ' = <b>' + s.f(Nsel).toLocaleString('en-GB') + '</b>';
+    }).join(' · ');
+    msg += ' · distinct elements of H_t: ' + (Nsel * (Nsel + 1) / 2);
+    document.getElementById('ro-curse').innerHTML = msg;
+  }
+  SIM.slider(ctl, { label: 'N (assets)', min: 2, max: 50, step: 1, value: Nsel, fmt: function (v) { return v.toFixed(0); } },
+    function (v) { Nsel = v; draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-curse'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 4: model confidence set intuition ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-mcs');
+  var alpha = 0.25, loss = 'F', seed = 21;
+  var B = 199, BLK = 25;
+  function mcs() {
+    var L = RACE[loss], n = L.CCC.length;
+    var rng = ST.rng(seed);
+    /* pre-draw bootstrap block starts shared across models */
+    var nblk = Math.ceil(n / BLK), boots = [];
+    for (var bb = 0; bb < B; bb++) {
+      var idx = new Array(n), pos = 0;
+      while (pos < n) {
+        var st = Math.floor(rng() * (n - BLK));
+        for (var j = 0; j < BLK && pos < n; j++) idx[pos++] = st + j;
+      }
+      boots.push(idx);
+    }
+    var setM = MODELS.slice(), steps = [];
+    while (setM.length > 1) {
+      var m = setM.length, means = {}, t;
+      /* d_i = mean loss of i minus mean of set average */
+      var avg = new Array(n);
+      for (t = 0; t < n; t++) {
+        var s = 0;
+        for (var i = 0; i < m; i++) s += L[setM[i]][t];
+        avg[t] = s / m;
+      }
+      var dbar = {}, dboot = {};
+      setM.forEach(function (name) {
+        var s = 0;
+        for (t = 0; t < n; t++) s += L[name][t] - avg[t];
+        dbar[name] = s / n;
+        dboot[name] = [];
+      });
+      for (bb = 0; bb < B; bb++) {
+        var idx = boots[bb];
+        setM.forEach(function (name) {
+          var s = 0;
+          for (t = 0; t < n; t++) s += L[name][idx[t]] - avg[idx[t]];
+          dboot[name].push(s / n);
+        });
+      }
+      var se = {}, tstat = {}, worst = null;
+      setM.forEach(function (name) {
+        var v = 0;
+        for (bb = 0; bb < B; bb++) { var d = dboot[name][bb] - dbar[name]; v += d * d; }
+        se[name] = Math.sqrt(v / B) + 1e-12;
+        tstat[name] = dbar[name] / se[name];
+        if (worst === null || tstat[name] > tstat[worst]) worst = name;
+      });
+      /* bootstrap distribution of the max t-stat (recentred) */
+      var exceed = 0;
+      for (bb = 0; bb < B; bb++) {
+        var mx = -Infinity;
+        setM.forEach(function (name) {
+          var tb = (dboot[name][bb] - dbar[name]) / se[name];
+          if (tb > mx) mx = tb;
+        });
+        if (mx >= tstat[worst]) exceed++;
+      }
+      var pval = (exceed + 1) / (B + 1);
+      steps.push({ set: setM.slice(), worst: worst, p: pval, tstat: tstat });
+      if (pval < alpha) setM = setM.filter(function (x) { return x !== worst; });
+      else break;
+    }
+    return { steps: steps, survivors: setM };
+  }
+  function draw() {
+    var res = mcs(), L = RACE[loss];
+    var n = L.CCC.length, means = {};
+    MODELS.forEach(function (name) {
+      var s = 0;
+      for (var t = 0; t < n; t++) s += L[name][t];
+      means[name] = s / n;
+    });
+    var vals = MODELS.map(function (m) { return means[m]; });
+    var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
+    var span = (hi - lo) || 1;
+    var p = new SIM.Plot('cv-mcs', {
+      xmin: 0, xmax: 3, ymin: lo - span * 0.6, ymax: hi + span * 0.6,
+      xlabel: '', ylabel: 'average loss',
+      title: 'Average ' + (loss === 'F' ? 'Frobenius' : 'QLIKE') + ' loss - green survives the MCS at alpha = ' + alpha.toFixed(2)
+    });
+    p.clear(); p.axes();
+    var bw = p.xpix(0.5) - p.xpix(0);
+    MODELS.forEach(function (name, i) {
+      var inSet = res.survivors.indexOf(name) >= 0;
+      p.bars([i + 0.5], [means[name]], {
+        color: inSet ? 'rgba(52,211,153,0.75)' : 'rgba(248,113,113,0.75)', barWidth: bw
+      });
+      p.label(i + 0.34, means[name] + span * 0.16, name, { color: '#e2e8f0', size: 13 });
+      p.label(i + 0.3, lo - span * 0.4, means[name].toFixed(loss === 'F' ? 1 : 4), { color: '#94a3b8', size: 11 });
+    });
+    var msg = [];
+    res.steps.forEach(function (s, k) {
+      msg.push('step ' + (k + 1) + ': worst = ' + s.worst + ', bootstrap p = ' + s.p.toFixed(3) +
+        (s.p < alpha ? ' &lt; &alpha; &rarr; <b style="color:#f87171">eliminate</b>' : ' &ge; &alpha; &rarr; <b style="color:#34d399">stop</b>'));
+    });
+    msg.push('MCS at &alpha; = ' + alpha.toFixed(2) + ': <b>{ ' + res.survivors.join(', ') + ' }</b>');
+    document.getElementById('ro-mcs').innerHTML = msg.join(' · ');
+  }
+  SIM.slider(ctl, { label: 'alpha (MCS level)', min: 0.05, max: 0.50, step: 0.05, value: alpha },
+    function (v) { alpha = v; draw(); });
+  SIM.button(ctl, 'Frobenius', function () { loss = 'F'; draw(); });
+  SIM.button(ctl, 'QLIKE', function () { loss = 'Q'; draw(); }, true);
+  SIM.button(ctl, 'new bootstrap', function () { seed += 1; draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-mcs'; ro.className = 'readout'; ro.style.fontSize = '.52em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 5: robustness explorer (horizon x subsample) ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-rob');
+  var range = 'full';   /* full | calm | turb */
+  var a = RACE.a, b = RACE.b, pers = a + b;
+  function raceH(H, t0, t1) {
+    /* average Frobenius loss of H-day aggregated forecasts over [t0, t1) */
+    var e = LRV.e, s2 = LRV.s2, rb = LRV.rbar, dcc = RACE.dcc, Hew = RACE.Hew;
+    var sums = { CCC: 0, DCC: 0, EWMA: 0 }, count = 0;
+    for (var t = t0; t + H <= t1; t += H) {
+      var Hc = [0, 0, 0, 0, 0, 0], Hd = [0, 0, 0, 0, 0, 0];
+      var h = [s2[0][t], s2[1][t], s2[2][t]];
+      var r1 = { r12: dcc.r12[t], r13: dcc.r13[t], r23: dcc.r23[t] };
+      for (var s = 0; s < H; s++) {
+        var d1 = Math.sqrt(h[0]), d2 = Math.sqrt(h[1]), d3 = Math.sqrt(h[2]);
+        var w = Math.pow(pers, s);
+        var r12 = rb.r12 + w * (r1.r12 - rb.r12), r13 = rb.r13 + w * (r1.r13 - rb.r13), r23 = rb.r23 + w * (r1.r23 - rb.r23);
+        Hc[0] += h[0]; Hc[1] += h[1]; Hc[2] += h[2];
+        Hc[3] += rb.r12 * d1 * d2; Hc[4] += rb.r13 * d1 * d3; Hc[5] += rb.r23 * d2 * d3;
+        Hd[0] += h[0]; Hd[1] += h[1]; Hd[2] += h[2];
+        Hd[3] += r12 * d1 * d2; Hd[4] += r13 * d1 * d3; Hd[5] += r23 * d2 * d3;
+        for (var i = 0; i < 3; i++) {
+          var g = LRV.garch[LRV.tk[i]];
+          h[i] = g.omega + (g.alpha + g.beta) * h[i];
+        }
+      }
+      var He = Hew[t].map(function (v) { return v * H; });
+      var S = [0, 0, 0, 0, 0, 0];
+      for (s = 0; s < H; s++) {
+        var ex = e[0][t + s], ey = e[1][t + s], ez = e[2][t + s];
+        S[0] += ex * ex; S[1] += ey * ey; S[2] += ez * ez;
+        S[3] += ex * ey; S[4] += ex * ez; S[5] += ey * ez;
+      }
+      sums.CCC += frob6(S, Hc); sums.DCC += frob6(S, Hd); sums.EWMA += frob6(S, He);
+      count++;
+    }
+    return { CCC: sums.CCC / count, DCC: sums.DCC / count, EWMA: sums.EWMA / count, n: count };
+  }
+  function draw() {
+    var EST = LRV.EST, T = LRV.T;
+    var t0 = EST, t1 = T;
+    if (range === 'calm') { t1 = EST + 400; }
+    if (range === 'turb') { t0 = EST + 400; }
+    var horizons = [1, 5, 20], res = horizons.map(function (H) { return raceH(H, t0, t1); });
+    var p = new SIM.Plot('cv-rob', {
+      xmin: 0, xmax: 3, ymin: 80, ymax: 132,
+      xlabel: '', ylabel: 'loss, CCC = 100',
+      title: 'Average Frobenius loss relative to CCC - ' +
+        (range === 'full' ? 'full evaluation window (1995-98)' : range === 'calm' ? 'calmer subsample (1995-97)' : 'turbulent subsample (1997-98)')
+    });
+    p.clear(); p.axes(); p.hline(100, { color: SIM.colors.dim, dash: [4, 4] });
+    var bw = p.xpix(0.2) - p.xpix(0);
+    horizons.forEach(function (H, gi) {
+      MODELS.forEach(function (name, mi) {
+        var rel = 100 * res[gi][name] / res[gi].CCC;
+        p.bars([gi + 0.25 + mi * 0.25], [rel], { color: MCOL[name], barWidth: bw });
+        p.label(gi + 0.17 + mi * 0.25, Math.min(rel + 2.5, 129), rel.toFixed(1), { color: '#cbd5e1', size: 10 });
+      });
+      p.label(gi + 0.3, 84, 'H = ' + H + ' (' + res[gi].n + ' windows)', { color: '#94a3b8', size: 11 });
+    });
+    p.legend(MODELS.map(function (m) { return { label: m, color: MCOL[m] }; }));
+    document.getElementById('ro-rob').innerHTML =
+      'raw Frobenius averages, H = 1 / 5 / 20: CCC <b>' + res[0].CCC.toFixed(1) + ' / ' + res[1].CCC.toFixed(0) + ' / ' + res[2].CCC.toFixed(0) +
+      '</b> · DCC <b>' + res[0].DCC.toFixed(1) + ' / ' + res[1].DCC.toFixed(0) + ' / ' + res[2].DCC.toFixed(0) +
+      '</b> · EWMA <b>' + res[0].EWMA.toFixed(1) + ' / ' + res[1].EWMA.toFixed(0) + ' / ' + res[2].EWMA.toFixed(0) + '</b>';
+  }
+  SIM.button(ctl, 'full window', function () { range = 'full'; draw(); }, true);
+  SIM.button(ctl, 'calm 1995-97', function () { range = 'calm'; draw(); });
+  SIM.button(ctl, 'turbulent 1997-98', function () { range = 'turb'; draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-rob'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+</script>
+<script src="../../assets/js/pyrun.js"></script>
+<!-- editorial: the paper's Sections 4.5 (alternative realised-covariance proxies) and the supplementary appendix tables A1-A5 are summarised in the findings and robustness slides rather than reproduced, since the required intraday data are proprietary. -->
+</body>
+</html>

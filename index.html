@@ -42,16 +42,16 @@
 'use strict';
 (function () {
   var UNITS = [
-    { n: 1,  part: 1, emoji: '🧭', title: 'Introduction to the Module', desc: 'What the module covers, how the project works, and the learner journey ahead.', ready: false },
-    { n: 2,  part: 1, emoji: '🧱', title: 'Foundations for Your Project', desc: 'Building blocks for empirical research: questions, data and methods.', ready: false },
-    { n: 3,  part: 1, emoji: '📝', title: 'The Research Proposal', desc: 'Scoping a project and writing a convincing proposal, with a worked example.', ready: false },
-    { n: 4,  part: 1, emoji: '📚', title: 'Literature Review in Finance', desc: 'Finding, ranking and evaluating sources; using the ABS journal guide.', ready: false },
-    { n: 5,  part: 1, emoji: '🌉', title: 'From Skills to Applications', desc: 'The bridge into the paper weeks: preparing data and models for real research.', ready: false },
-    { n: 6,  part: 2, emoji: '📊', title: 'Fama-French Five-Factor Model', paper: 'Fama and French (2015), JFE', desc: 'Factor construction, spanning regressions and the GRS logic, on the real Ken French factors.', ready: false },
-    { n: 7,  part: 2, emoji: '🔗', title: 'Volatility Spillovers', paper: 'Diebold and Yilmaz (2012)', desc: 'VAR-based connectedness: variance decompositions, total and directional spillover indices.', ready: false },
-    { n: 8,  part: 2, emoji: '🌊', title: 'TVP-VAR Connectedness', paper: 'Antonakakis, Chatziantoniou and Gabauer (2020)', desc: 'Time-varying parameter VAR spillovers: how connectedness moves through crises.', ready: false },
-    { n: 9,  part: 2, emoji: '🧮', title: 'Multivariate GARCH Forecasting', paper: 'Laurent, Rombouts and Violante (2012), JAE', desc: 'DCC and friends on the original 10-stock dataset: which covariance forecasts win?', ready: false },
-    { n: 10, part: 2, emoji: '🏦', title: 'Banking Panel Replication', paper: 'Review of Financial Studies (Stata package)', desc: 'A real Stata replication package dissected: panel identification, fixed effects and robustness.', ready: false }
+    { n: 1,  part: 1, emoji: '🧭', title: 'Introduction to the Module', desc: 'What the module covers, how the project works, and the learner journey ahead.', ready: true },
+    { n: 2,  part: 1, emoji: '🧱', title: 'Foundations for Your Project', desc: 'Building blocks for empirical research: questions, data and methods.', ready: true },
+    { n: 3,  part: 1, emoji: '📝', title: 'The Research Proposal', desc: 'Scoping a project and writing a convincing proposal, with a worked example.', ready: true },
+    { n: 4,  part: 1, emoji: '📚', title: 'Literature Review in Finance', desc: 'Finding, ranking and evaluating sources; using the ABS journal guide.', ready: true },
+    { n: 5,  part: 1, emoji: '🌉', title: 'From Skills to Applications', desc: 'The bridge into the paper weeks: preparing data and models for real research.', ready: true },
+    { n: 6,  part: 2, emoji: '📊', title: 'Fama-French Five-Factor Model', paper: 'Fama and French (2015), JFE', desc: 'Factor construction, spanning regressions and the GRS logic, on the real Ken French factors.', ready: true },
+    { n: 7,  part: 2, emoji: '🔗', title: 'Volatility Spillovers', paper: 'Diebold and Yilmaz (2012)', desc: 'VAR-based connectedness: variance decompositions, total and directional spillover indices.', ready: true },
+    { n: 8,  part: 2, emoji: '🌊', title: 'TVP-VAR Connectedness', paper: 'Antonakakis, Chatziantoniou and Gabauer (2020)', desc: 'Time-varying parameter VAR spillovers: how connectedness moves through crises.', ready: true },
+    { n: 9,  part: 2, emoji: '🧮', title: 'Multivariate GARCH Forecasting', paper: 'Laurent, Rombouts and Violante (2012), JAE', desc: 'DCC and friends on the original 10-stock dataset: which covariance forecasts win?', ready: true },
+    { n: 10, part: 2, emoji: '🏦', title: 'Banking Panel Replication', paper: 'Review of Financial Studies (Stata package)', desc: 'A real Stata replication package dissected: panel identification, fixed effects and robustness.', ready: true }
   ];
   function pad(n) { return (n < 10 ? '0' : '') + n; }
   function card(u) {

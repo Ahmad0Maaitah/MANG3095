@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lecture 3 · The Research Proposal - MANG3095</title>
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reset.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/theme/black.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/theme.css">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================= TITLE ======================= -->
+<section>
+  <h1>The Research Proposal</h1>
+  <h3>Lecture 3 · Crafting a Rigorous Finance Proposal</h3>
+  <p class="muted">MANG3095 · Advanced Financial Econometrics · University of Southampton</p>
+  <div class="panel def small" style="max-width:680px;margin:1em auto">
+    A practical workshop for aligning your undergraduate dissertation with <b>ABS 3/4/4* publication
+    standards</b>: develop novel research questions, identify clear gaps, and design credible identification
+    strategies with feasible data access.
+  </div>
+  <p class="tiny">Use ← → to move between topics, ↑ ↓ to dive into each one. Press <code>o</code> for an overview, <code>f</code> for full screen.</p>
+</section>
+
+<!-- ======================= AGENDA ======================= -->
+<section>
+  <h2>In this lecture</h2>
+  <ul class="small">
+    <li>What excellent research looks like, and the pitfalls examiners flag</li>
+    <li>The proposal architecture and the research onion</li>
+    <li>Four research domains with fully worked project designs (sustainable finance, DeFi, risk modelling)</li>
+    <li>Data access for UG students and identification strategies</li>
+    <li>Feasibility, timeline, the micro-literature review, and the proposal quality checklist</li>
+    <li>A worked annotated proposal, section by section</li>
+    <li><strong>Writing workshop:</strong> results, discussion, conclusions, and writing about data</li>
+  </ul>
+</section>
+
+<!-- ======================= EXCELLENCE AND PITFALLS ======================= -->
+<section>
+  <section>
+    <h2>What excellent research looks like</h2>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Novel research question</b><br>A well-defined question that addresses
+        an unexplored angle in your chosen domain.</div>
+      <div class="panel small"><b class="accent">Clear literature gap</b><br>A demonstrable omission in existing
+        scholarship that your study will fill.</div>
+    </div>
+    <div class="cols">
+      <div class="panel small"><b class="accent2">Identified data sources</b><br>Accessible, appropriate datasets that
+        enable robust empirical testing.</div>
+      <div class="panel small"><b class="accent2">Credible identification</b><br>Sound methodology addressing
+        endogeneity and establishing causal claims.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Common pitfalls examiners flag</h3>
+    <div class="cols">
+      <div class="panel warn small">
+        <b>Structural weaknesses</b>
+        <ul class="small">
+          <li>Vague or overly broad research questions</li>
+          <li>Misalignment between the RQ and the literature gap</li>
+          <li>Method unsuited to the research design</li>
+        </ul>
+      </div>
+      <div class="panel warn small">
+        <b>Execution concerns</b>
+        <ul class="small">
+          <li>Data availability not verified in advance</li>
+          <li>No robustness or sensitivity analysis planned</li>
+          <li>Feasibility unrealistic for a 12 to 16 week timeline</li>
+        </ul>
+      </div>
+    </div>
+    <div class="panel tip small">The key: ensure <b>tight integration</b> between your RQ, gap, method, identification
+      strategy, data, and contribution.</div>
+  </section>
+  <section>
+    <h3>The proposal architecture</h3>
+    <table class="data small" style="margin:0 auto;font-size:.72em">
+      <tr><th>Component</th><th>The question it answers</th></tr>
+      <tr><td><b>Research question</b></td><td>What precisely do you seek to answer?</td></tr>
+      <tr><td><b>Literature gap</b></td><td>Where does existing research fall short?</td></tr>
+      <tr><td><b>Method and identification</b></td><td>How will you establish credible findings?</td></tr>
+      <tr><td><b>Data and variables</b></td><td>What evidence will you analyse?</td></tr>
+      <tr><td><b>Contribution</b></td><td>What new insights will you deliver?</td></tr>
+    </table>
+    <p class="small muted" style="margin-top:.5em">Use the <b>research onion</b> framework to scaffold each element
+      systematically, ensuring coherence across all components.</p>
+  </section>
+</section>
+
+<!-- ======================= DOMAINS AND WORKED PROJECTS ======================= -->
+<section>
+  <section>
+    <h2>Choosing your research domain</h2>
+    <div class="cols">
+      <div class="panel small" style="font-size:.78em"><b class="accent">1 · Sustainable finance</b><br>ESG measurement divergence,
+        environmental-social trade-offs, greenwashing detection, climate risk pricing.</div>
+      <div class="panel small" style="font-size:.78em"><b class="accent">2 · Decentralised finance</b><br>Protocol valuation drivers,
+        wealth concentration risk, governance token dynamics, DeFi vs TradFi efficiency.</div>
+    </div>
+    <div class="cols">
+      <div class="panel small" style="font-size:.78em"><b class="accent2">3 · Algorithmic trading</b><br>Volatility mechanisms, liquidity
+        provision, firm value channels, market microstructure impacts.</div>
+      <div class="panel small" style="font-size:.78em"><b class="accent2">4 · Risk modelling</b><br>Credit default prediction, VaR
+        improvement methods, tail risk estimation, systemic risk measurement.</div>
+    </div>
+    <p class="tiny muted">Each domain offers distinct data availability and methodological approaches suitable for a
+      12 to 16 week undergraduate timeline.</p>
+  </section>
+  <section>
+    <h3>Identifying genuine literature gaps</h3>
+    <h4 class="muted">Live example: ESG rating divergence</h4>
+    <p class="small">Major providers (MSCI, Sustainalytics, Refinitiv) frequently assign dramatically different scores
+      to the <em>same</em> firm. This creates opportunities to examine:</p>
+    <ul class="small">
+      <li><b>Scope differences</b>: which activities each provider includes</li>
+      <li><b>Measurement approaches</b>: raw metrics versus weighted composites</li>
+      <li><b>Weighting schemes</b>: how the E, S and G pillars combine</li>
+    </ul>
+    <div class="panel def small">Recent studies document correlations <b>below 0.5</b> between providers, suggesting
+      substantial room for rigorous new tests of consequences and determinants.</div>
+  </section>
+  <section>
+    <h3>Spotting environmental-social trade-offs</h3>
+    <div class="panel small"><b class="accent">The research opportunity</b>: firms may improve environmental scores
+      whilst sacrificing social performance. Investigating <em>when</em> and <em>why</em> these trade-offs occur
+      remains underexplored.</div>
+    <ul class="small">
+      <li>Potential mechanisms: resource reallocation, stakeholder prioritisation, and regulatory pressure focusing
+        on climate over labour standards.</li>
+      <li><b>Boundary conditions matter</b>: industry context, national regulation stringency, and firm ownership
+        structure likely moderate these effects.</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Sustainable finance project A: environmental-social trade-offs</h3>
+    <p class="small muted">"Do improvements in environmental scores crowd out social performance?"</p>
+    <table class="data small" style="margin:0 auto;font-size:.68em">
+      <tr><th>01 Research question</th><th>02 Key aims</th><th>03 Contribution</th></tr>
+      <tr>
+        <td>Quantify whether gains in "E" dimensions correlate with declines in "S" metrics</td>
+        <td>Identify boundary conditions by industry, regulatory regime, and firm characteristics</td>
+        <td>Inform integrated sustainability strategies and challenge "win-win" assumptions</td>
+      </tr>
+    </table>
+    <div class="panel small" style="margin-top:.6em;font-size:.75em">
+      <b class="accent">Identification strategy:</b> panel regressions with firm and time fixed effects to control for
+      unobserved heterogeneity; exploit policy or regulatory shocks as quasi-experiments to strengthen causal inference.<br>
+      <b class="accent">Data sources:</b> Refinitiv (Asset4) granular E, S, G pillar scores and sub-metrics;
+      Compustat/CRSP via WRDS for financial fundamentals and stock returns.<br>
+      <b class="accent">Robustness:</b> compare results across MSCI and Sustainalytics to address provider-specific
+      measurement bias.
+    </div>
+  </section>
+  <section>
+    <h3>Sustainable finance project B: ESG disagreement and asset pricing</h3>
+    <p class="small muted">"Do portfolios formed on cross-provider ESG disagreement earn abnormal returns?"</p>
+    <table class="data small" style="margin:0 auto;font-size:.68em">
+      <tr><th>Portfolio construction</th><th>Performance testing</th><th>Robustness checks</th></tr>
+      <tr>
+        <td>Double-sort on disagreement level and ESG score</td>
+        <td>Calculate factor-model alphas (Fama-French plus momentum)</td>
+        <td>Implement placebo tests with alternative provider combinations</td>
+      </tr>
+    </table>
+    <div class="panel tip small" style="margin-top:.6em">This design tests whether ESG rating uncertainty creates
+      exploitable mispricings, contributing to debates on ESG integration in portfolio management.</div>
+  </section>
+  <section>
+    <h3>DeFi project: protocol valuation</h3>
+    <p class="small"><b>Research question:</b> which key performance indicators (total value locked (TVL), trading
+      volume, fee generation, active users) predict DeFi protocol market capitalisation?</p>
+    <table class="data small" style="margin:0 auto;font-size:.68em">
+      <tr><th>1 · Panel fixed effects</th><th>2 · Granger causality</th><th>3 · Lag structures</th></tr>
+      <tr>
+        <td>Control for protocol and time-specific factors influencing valuations</td>
+        <td>Establish temporal precedence between KPIs and market value changes</td>
+        <td>Test varying lag lengths to capture delayed market reactions</td>
+      </tr>
+    </table>
+    <div class="panel small" style="margin-top:.6em;font-size:.72em">
+      <b class="accent">Primary data sources:</b> on-chain data extracted directly from blockchain explorers ·
+      CoinGecko / GeckoTerminal aggregated protocol metrics and pricing · DEX-specific APIs (Uniswap, SushiSwap,
+      Curve liquidity feeds).
+    </div>
+    <div class="panel warn small" style="font-size:.72em">Document your KPI construction methodology meticulously. Address
+      <b>survivorship bias</b> by including defunct protocols, and detail all data-cleaning steps for replicability.</div>
+  </section>
+  <section>
+    <h3>Risk modelling project: improving Value-at-Risk estimates</h3>
+    <p class="small muted">"Can credibility-augmented VaR improve coverage in cryptocurrency markets?"</p>
+    <div class="cols">
+      <div class="panel small" style="font-size:.75em">
+        <b class="accent">Methodology</b><br>
+        Implement credibility theory adjustments to standard GARCH-VaR models, blending historical and
+        forward-looking volatility estimates for crypto assets. Compare to benchmark GARCH, EWMA, and historical
+        simulation VaR.
+      </div>
+      <div class="panel small" style="font-size:.75em">
+        <b class="accent2">Validation tests</b>
+        <ul class="small">
+          <li>Unconditional Coverage (UC) test</li>
+          <li>Conditional Coverage (CC) test</li>
+          <li>Diebold-Mariano test for forecast accuracy</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h3>Stretch ideas for students</h3>
+    <div class="panel small" style="font-size:.78em"><b class="accent">Extreme value theory</b>: model tail distributions explicitly using
+      the Generalised Pareto Distribution for crypto return extremes.</div>
+    <div class="panel small" style="font-size:.78em"><b class="accent">Systemic risk metrics</b>: CoVaR and VCoVaR to measure spillover
+      effects across DeFi protocols or crypto exchanges.</div>
+    <div class="panel small" style="font-size:.78em"><b class="accent">Intraday risk features</b>: construct realised volatility, jump
+      components, and microstructure noise measures from tick data.</div>
+  </section>
+  <section>
+    <h3>Data access for UG students</h3>
+    <table class="data small" style="margin:0 auto;font-size:.6em">
+      <tr><th>Source</th><th>What you get</th></tr>
+      <tr><td><b>WRDS platform</b></td><td>Comprehensive financial databases: CRSP, Compustat, TAQ (high-frequency), IBES (analyst forecasts) via institutional subscription</td></tr>
+      <tr><td><b>LSEG Workspace</b></td><td>Refinitiv Datastream and Eikon: extensive ESG scores, fundamental data, and real-time market insights</td></tr>
+      <tr><td><b>Public APIs</b></td><td>CoinGecko, CoinMarketCap, Etherscan (on-chain data), and DEX aggregators for cryptocurrency information</td></tr>
+      <tr><td><b>Bloomberg Terminal</b></td><td>Real-time financial market data, news, and analytics</td></tr>
+      <tr><td><b>University Library</b></td><td>Academic journals, research databases and statistical software: library.soton.ac.uk/business/databases</td></tr>
+    </table>
+  </section>
+</section>
+
+<!-- ======================= METHODOLOGY AND FEASIBILITY ======================= -->
+<section>
+  <section>
+    <h2>Building the methodology</h2>
+    <h3>The research onion</h3>
+    <table class="data small" style="margin:0 auto;font-size:.72em">
+      <tr><th>Layer</th><th>Typical choice for a finance dissertation</th></tr>
+      <tr><td>Philosophy</td><td>Positivist, empirical approach</td></tr>
+      <tr><td>Strategy</td><td>Quantitative analysis of secondary data</td></tr>
+      <tr><td>Sampling</td><td>Population definition and exclusions</td></tr>
+      <tr><td>Method</td><td>Panel regression, DiD, or an ML pipeline</td></tr>
+      <tr><td>Analysis</td><td>Statistical tests and robustness checks</td></tr>
+    </table>
+    <p class="tiny muted">The research onion is from Saunders, Lewis and Thornhill's Research Methods for Business Students.</p>
+  </section>
+  <section>
+    <h3>Identification strategies overview</h3>
+    <ol class="small" style="font-size:.78em">
+      <li><b class="accent">Natural experiments and DiD</b>: exploit exogenous shocks or policy changes to establish causality.</li>
+      <li><b class="accent">Instrumental variables</b>: use instruments correlated with the endogenous regressor but uncorrelated with the error term.</li>
+      <li><b class="accent">Granger causality and panel FE</b>: test temporal precedence whilst controlling for unobserved heterogeneity.</li>
+      <li><b class="accent">Mediation analysis</b>: decompose total effects into direct and indirect pathways (e.g. algorithmic trading volatility mechanisms).</li>
+      <li><b class="accent">Robustness checks</b>: pre-specify falsification tests and sensitivity analyses to strengthen credibility.</li>
+    </ol>
+  </section>
+  <section>
+    <h3>Why your research matters</h3>
+    <div class="panel def small"><b>Practical relevance:</b> high-quality dissertations influence regulatory policy,
+      inform corporate strategy, and advance market efficiency debates.</div>
+    <ul class="small">
+      <li>The Bank of England's <i>Financial Stability in Focus</i> series on AI risk channels exemplifies how academic
+        rigour translates into actionable insights for policymakers.</li>
+      <li>Your contribution should explicitly address implications for <b>regulators, investors, or firm managers</b>.</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Feasibility and timeline management</h3>
+    <table class="data small" style="margin:0 auto;font-size:.68em">
+      <tr><th>Weeks</th><th>Work</th></tr>
+      <tr><td>1 to 2</td><td>Data access verification, literature mapping, RQ refinement</td></tr>
+      <tr><td>3 to 4</td><td>Pre-analysis plan, ethics approval submission, pilot data collection</td></tr>
+      <tr><td>5 to 8</td><td>Main data analysis, primary regression/ML runs, initial robustness checks</td></tr>
+      <tr><td>9 to 11</td><td>Extended robustness grid, sensitivity analyses, result interpretation</td></tr>
+      <tr><td>12 to 16</td><td>Draft writing, table and figure refinement, supervisor feedback incorporation, final submission</td></tr>
+    </table>
+  </section>
+  <section>
+    <h3>Writing the micro-literature review</h3>
+    <h4 class="muted">The "Recently, However, Therefore" template</h4>
+    <div class="panel small" style="font-size:.78em">
+      <b class="accent">Recently,</b> scholars have documented significant divergence in ESG ratings across major
+      providers (Berg et al., 2022; Gibson Brandon et al., 2021).<br><br>
+      <b class="accent">However,</b> existing studies focus primarily on measurement causes rather than asset pricing
+      consequences of this disagreement.<br><br>
+      <b class="accent">Therefore,</b> this study examines whether cross-provider ESG disagreement creates exploitable
+      portfolio alphas.
+    </div>
+    <p class="small">Anchor your review with <b>2 to 4 seminal papers</b> that directly address your gap. Demonstrate
+      how your RQ extends or challenges current understanding.</p>
+  </section>
+  <section>
+    <h3>✅ Proposal blueprint and quality checklist</h3>
+    <p class="small" style="font-size:.8em">Tick off what your draft proposal already has. Does every component connect logically? Can an
+      examiner follow your reasoning from question to contribution?</p>
+    <div class="panel small" id="ck-prop" style="text-align:left">
+      <div class="cols">
+        <div style="font-size:.72em">
+          <b class="accent">Essential sections</b>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Research question and objectives</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Literature gap with anchor citations</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Method and identification strategy</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Data sources and variable definitions</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Practical contribution and relevance</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Risk mitigation and timeline</label>
+        </div>
+        <div style="font-size:.72em">
+          <b class="accent2">Quality markers</b>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> RQ maps to a testable empirical design</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Endogeneity explicitly addressed</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Data accessibility verified</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Evaluation metrics defined (for ML/risk)</label>
+          <label style="display:block;margin:.18em 0"><input type="checkbox"> Robustness checks pre-planned</label>
+        </div>
+      </div>
+      <div class="ck-ro" style="margin-top:.5em;font-weight:600;color:var(--accent)"></div>
+    </div>
+    <noscript><p class="tiny muted">Enable JavaScript to use the interactive checklist; the items still read as a static list.</p></noscript>
+  </section>
+</section>
+
+<!-- ======================= ANNOTATED EXAMPLE PROPOSAL ======================= -->
+<section>
+  <section>
+    <h2>A worked annotated proposal</h2>
+    <p class="small">The module provides a <b>shortened example proposal</b> for teaching purposes
+      ("Bouncing back: can introducing yoyos into UK retail workplaces improve employee productivity and job
+      satisfaction?"). Key points before you read it:</p>
+    <ul class="small" style="font-size:.8em">
+      <li><b>The format is not fixed</b>: agree variations to the structure and content with your supervisor, depending
+        on the needs of your research.</li>
+      <li><b>Choice and flexibility</b>: the example uses a mixed-methods design, but you can choose qualitative,
+        quantitative, or mixed methods. Pick a design that fits the aim and is practical in the time available.</li>
+      <li><b>Word counts are guidance only</b>, provided you stay within the overall limit of <b>2,000 words</b>.</li>
+      <li><b>Use Harvard referencing</b> conventions throughout (SBS requirements).</li>
+    </ul>
+  </section>
+  <section>
+    <h3>The example proposal, section by section</h3>
+    <table class="data small" style="margin:0 auto;font-size:.6em">
+      <tr><th>Section</th><th>Approx. words</th><th>What goes in it</th></tr>
+      <tr><td>1 · Research background, aims, objectives and RQ</td><td>200 to 300</td><td>Context for the focus; the main aim; objectives (each tied to an analysis); the research question; the potential contribution to academia, practice or policy</td></tr>
+      <tr><td>2 · Mini-literature review</td><td>600 to 800</td><td>Intro sentence; relevant theories and their fit to the RQ; case studies with strengths and weaknesses; the gap and why your intervention/topic; summary paragraph</td></tr>
+      <tr><td>3 · Methodology and data collection</td><td>600 to 800</td><td>Methodology (e.g. pragmatism), design choice with references; how each data type is analysed; limitations; data source, sample and population; ethics; summary paragraph</td></tr>
+      <tr><td>4 · Practical value of the study</td><td>approx. 150</td><td>Who benefits and how; implications for practice; contribution to broader understanding</td></tr>
+      <tr><td>5 · Conclusion (optional)</td><td>100 to 150</td><td>How each element aligns with the aims; why the study is worth doing</td></tr>
+      <tr><td>6 · Plan of proposed timescale</td><td>50 to 100</td><td>Key milestones over the seven months, with a timeline figure</td></tr>
+      <tr><td>References</td><td></td><td>Harvard format (the example's references are invented but correctly formatted)</td></tr>
+    </table>
+  </section>
+  <section>
+    <h3>What the example does well (1/2)</h3>
+    <ul class="small" style="font-size:.75em">
+      <li><b>Aim with an embedded gap:</b> "Recent research suggests that unconventional workplace practices ... can
+        influence employee engagement and motivation (North, 2022). <b class="accent">However, little is known</b>
+        about the specific impacts of these practices on job performance and satisfaction in retail settings."</li>
+      <li><b>Objectives tied to analyses:</b> "Investigate the relationship between yoyo use and employee productivity
+        via X statistical analysis of ..."; "Explore how yoyo use influences job satisfaction via thematic analysis
+        of ..."; "Synthesise findings by ..."</li>
+      <li><b>A single clear RQ:</b> "What impact does the use of yoyos in the workplace have on employee productivity
+        and job satisfaction in the UK retail industry?"</li>
+      <li><b>Literature review that builds to the gap:</b> theories (Self-Determination Theory, Social Exchange
+        Theory), case studies of gamification, then the gap on specific play objects, with reasons for the choice.</li>
+    </ul>
+  </section>
+  <section>
+    <h3>What the example does well (2/2)</h3>
+    <ul class="small" style="font-size:.75em">
+      <li><b>Methodology justified by references:</b> pragmatism as the methodology, a mixed-methods design capturing
+        quantitative productivity metrics and qualitative satisfaction themes, each choice supported by prior studies;
+        limitations stated openly.</li>
+      <li><b>Data collection specifics:</b> surveys and observations across Southampton retail stores over a two-week
+        trial; sample and population defined; strengths and weaknesses of each instrument; <b>ethical considerations
+        in collection, storage and analysis</b>.</li>
+      <li><b>Practical value:</b> implications for retail employee engagement strategies, applications for similar
+        play-based interventions, contribution to workplace innovation.</li>
+      <li><b>Summary sentences everywhere:</b> each section ends by saying what was covered and why it helps the study
+        "fit together" coherently.</li>
+    </ul>
+    <div class="panel tip small">For an empirical finance dissertation, replace the mixed-methods elements with your
+      statistical model and measures of the key variables; the architecture stays the same.</div>
+  </section>
+</section>
+
+<!-- ======================= WRITING WORKSHOP ======================= -->
+<section>
+  <section>
+    <h2>Writing workshop</h2>
+    <h3>Reporting results</h3>
+    <ul class="small">
+      <li>The results section <b>clearly describes the findings</b>, usually in both diagrams and text.</li>
+      <li><b class="bad">Do not start to interpret the results</b>: interpretation belongs to the discussion section,
+        which comes next.</li>
+      <li>Data are analysed with statistical techniques and presented in <b>tables, graphs or charts</b>.</li>
+    </ul>
+    <div class="panel small" style="font-size:.72em">
+      <b>Elements of a results section, in order:</b><br>
+      Introduction to the results (overview) → statement showing <b>where</b> the results can be found → statement
+      presenting the <b>most important findings</b> → statement <b>commenting</b> on the results (summary,
+      re-organisation to show trends and tendencies, conclusion from the results).
+    </div>
+  </section>
+  <section>
+    <h3>Results: worked example and answers</h3>
+    <div class="panel small" style="font-size:.6em;text-align:left">
+      <sup>1</sup>Two groups of students in Higher Education (Group A and Group B) on a one-year pre-Masters EAP course,
+      each comprising 50 students, were taught academic writing by different methods and compared. <sup>2</sup>Figure 3
+      displays the mean percentile scores on the five subsections of the academic writing test. <sup>3</sup>Students in
+      Group B, which used the computer assisted facilities, performed considerably better than their non
+      computer-assisted peers on all five subsections of the test, by more than two to one in terms of scores attained
+      in each of the subcategories. <sup>4</sup>For example, in the task achievement subcategory, Group A scored an
+      average of 80 percent, while Group B students scored an average of 14 percent. (+ chart)
+    </div>
+    <table class="data small" style="margin:.5em auto;font-size:.62em">
+      <tr><th>Sentence</th><th>Element</th></tr>
+      <tr><td>1</td><td>Overview</td></tr>
+      <tr><td>2</td><td>Statement showing where the results can be found</td></tr>
+      <tr><td>3</td><td>Statement presenting the most important findings</td></tr>
+      <tr><td>4</td><td>Statement presenting the most important findings</td></tr>
+    </table>
+    <p class="tiny muted">Useful language: "As can be seen from Table 1, ..." · "It can be seen in Figure 2 that ..." ·
+      "From the figures it may be inferred that ..." · "The graph shows that ..."</p>
+  </section>
+  <section>
+    <h3>The discussion section</h3>
+    <p class="small">The discussion takes a <b>broad view</b> and puts the research in a wider context, moving from the
+      narrow specific focus to a more general view. It must clearly show how the results lead to the conclusions being
+      drawn, including <b>limitations</b> and <b>possible explanations</b> for the results.</p>
+    <div class="panel small" style="font-size:.72em">
+      <b>Elements of a discussion section, in order</b> (Weissberg and Buker, 1990; Hopkins and Dudley-Evans, 1988;
+      Swales and Feak, 1994):<br>
+      Reference to the main purpose of the study → generalised review of the most important findings → possible
+      explanations for the findings → comparison with expected results and other studies → limitations that restrict
+      how far the findings can be generalised.
+    </div>
+  </section>
+  <section>
+    <h3>Discussion: worked example and answers</h3>
+    <p class="small" style="font-size:.7em">Gillett's discussion, sentence by sentence (condensed):</p>
+    <table class="data small" style="margin:0 auto;font-size:.55em">
+      <tr><th>Sentence</th><th>Element</th></tr>
+      <tr><td>1 · "The purpose of the study was to investigate whether students ... would benefit from computer assisted instruction."</td><td>Reference to main purpose</td></tr>
+      <tr><td>2 · "The findings clearly suggest that they do."</td><td>Summary of findings: general</td></tr>
+      <tr><td>3 · "The students who took part ... outperformed those who followed the traditional course in every aspect ..."</td><td>Summary of findings: most important</td></tr>
+      <tr><td>4, 5, 6 · particular strengths in task achievement; individually directed materials; more time on the course</td><td>Possible explanations</td></tr>
+      <tr><td>7 · "This supports and adds to the findings of Jones and Smith (1997) and Harris (2002) ..."</td><td>Comparison with other studies</td></tr>
+      <tr><td>8, 9, 10, 11 · a step towards justification; narrow range of subjects and countries; may not transfer to other students</td><td>Limitations</td></tr>
+      <tr><td>12 · "The approach ... should be replicated with other students in other subject areas ..."</td><td>Need for further research</td></tr>
+    </table>
+  </section>
+  <section>
+    <h3>Writing conclusions</h3>
+    <p class="small">The conclusion shows that the main purpose of the piece of writing has been achieved:</p>
+    <ol class="small">
+      <li>Recall the issues raised in the introduction: what was the purpose of the piece of writing?</li>
+      <li>Draw together the points made in the main body</li>
+      <li>Come to a <b>clear conclusion</b></li>
+    </ol>
+    <p class="small">It should clearly signal to the reader that the writing is finished and leave a clear impression
+      that the purpose has been achieved.</p>
+    <div class="panel small" style="font-size:.62em;text-align:left">
+      <b>Example (5 sentences):</b> <sup>1</sup>During the past 10 years, the use of computers in education has
+      increased dramatically ... <sup>2</sup>However, there has been very little research reported on the effectiveness
+      of such use. <sup>3</sup>The purpose of the present study was therefore to ascertain the effectiveness of using
+      computer-assisted instruction ... <sup>4</sup>The findings clearly suggest that the inclusion of web-based
+      materials ... is effective. <sup>5</sup>Further research is needed, however, before the use of such materials can
+      be recommended for all students in all subject areas at all levels.
+    </div>
+    <p class="tiny muted">Useful language: "In brief, ..." · "To conclude, ..." · "It is generally accepted that ..." ·
+      "Therefore, it can be concluded that ..." · "On this basis, it may be inferred that ..." ·
+      "In conclusion, we may say that ..."</p>
+  </section>
+  <section>
+    <h3>Writing about data: commentary on a table</h3>
+    <p class="small">Complete the introduction to the table and the commentary below it:</p>
+    <p class="small muted" style="font-size:.75em">Table 1 below shows <em>the income, expenditure and profit of small business XYZ
+      in 2015 and 2016</em>:</p>
+    <table class="data small" style="margin:0 auto;font-size:.7em">
+      <tr><th>Small business XYZ</th><th>2015</th><th>2016</th></tr>
+      <tr><td>Income</td><td>£100,000</td><td>£200,000</td></tr>
+      <tr><td>Expenditure</td><td>£20,000</td><td>£60,000</td></tr>
+      <tr><td>Profit</td><td>£80,000</td><td>£140,000</td></tr>
+    </table>
+    <div class="panel small" style="font-size:.68em;margin-top:.5em">"As can be seen from <b class="accent">Table 1</b>, income
+      <b class="accent">doubled</b> from £100,000 in 2015 to £200,000 in <b class="accent">2016</b>. However, the
+      increase in profit was only <b class="accent">75</b>% for the same period, due to the significant increase in
+      expenditure (200%) from £20,000 to <b class="accent">£60,000</b>. The reasons for this increase are not given,
+      but such a marked increase in expenditure highlights the need for further investigation, as ... (additional
+      discussion would be added here)."</div>
+  </section>
+  <section>
+    <h3>🎯 Check yourself: results, discussion and data</h3>
+    <div class="quiz small">
+      <div class="q">1. Income rose from £100,000 to £200,000 and profit from £80,000 to £140,000. The percentage increase in profit was:</div>
+      <span class="opt">100%</span>
+      <span class="opt" data-ok>75%</span>
+      <span class="opt">60%</span>
+      <div class="explain">(140,000 - 80,000) / 80,000 = 0.75, so 75%. Income doubled (a 100% rise) but expenditure tripled (a 200% rise), so profit grew more slowly than income.</div>
+    </div>
+    <div class="quiz small">
+      <div class="q">2. "Figure 3 displays the mean percentile scores on the five subsections of the test." In a results section this sentence is:</div>
+      <span class="opt">A statement presenting the most important findings</span>
+      <span class="opt" data-ok>A statement showing where the results can be found</span>
+      <span class="opt">An interpretation of the results</span>
+      <div class="explain">It points the reader to the location of the results (the figure). The headline findings come next; interpretation is saved for the discussion.</div>
+    </div>
+    <div class="quiz small">
+      <div class="q">3. Where do possible explanations for your findings belong?</div>
+      <span class="opt">The results section</span>
+      <span class="opt" data-ok>The discussion section</span>
+      <span class="opt">The references</span>
+      <div class="explain">The results section describes; the discussion interprets: purpose, summary of findings, possible explanations, comparison with other studies, limitations, and further research.</div>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= SUMMARY ======================= -->
+<section>
+  <h2>Summary</h2>
+  <ul class="small" style="font-size:.85em">
+    <li>Excellent proposals tie together a <strong>novel RQ, a clear gap, credible identification, verified data</strong> and an explicit contribution.</li>
+    <li>Four ready domains: sustainable finance, DeFi, algorithmic trading and risk modelling, each with worked designs and data sources.</li>
+    <li>Plan for the <strong>12 to 16 week</strong> execution timeline and pre-plan robustness checks.</li>
+    <li>The micro-literature review follows <strong>"Recently, However, Therefore"</strong>, anchored by 2 to 4 seminal papers.</li>
+    <li>Results describe, the <strong>discussion interprets</strong>, and the conclusion recalls, draws together, and concludes.</li>
+    <li>Thank you for your attention! For administrative queries or detailed follow-up, contact the research support team.</li>
+  </ul>
+  <div class="files" style="justify-content:center;margin-top:.8em">
+    <a href="../../">🏠 Hub</a>
+    <a href="../lecture02/">← Lecture 2</a>
+    <a href="../lecture04/">Lecture 4 →</a>
+  </div>
+</section>
+
+<!-- ======================= REFERENCES ======================= -->
+<section>
+  <h2>References</h2>
+  <ul class="refs" style="font-size:.55em">
+    <li><b>MANG3095 course materials:</b> <i>Example Annotated Dissertation Proposal</i>; <i>Week 3 Results</i>, <i>Week 3 Discussion</i>, <i>Week 3 Conclusions</i> and <i>Writing About Data</i> worksheets (Understanding Your Project Scope series), University of Southampton; worksheets adapted with permission from uefap.com.</li>
+    <li>Berg, F., Koelbel, J.F. and Rigobon, R. (2022) 'Aggregate confusion: the divergence of ESG ratings', <i>Review of Finance</i>, 26(6), pp. 1315-1344.</li>
+    <li>Gibson Brandon, R., Krueger, P. and Schmidt, P.S. (2021) 'ESG rating disagreement and stock returns', <i>Financial Analysts Journal</i>, 77(4), pp. 104-127.</li>
+    <li>Saunders, M., Lewis, P. and Thornhill, A. (2019) <i>Research Methods for Business Students</i>. 8th edn. Harlow: Pearson (the research onion).</li>
+    <li>Fama, E.F. and French, K.R. (2015) 'A five-factor asset pricing model', <i>Journal of Financial Economics</i>, 116(1), pp. 1-22 (factor-model alphas).</li>
+    <li>Diebold, F.X. and Mariano, R.S. (1995) 'Comparing predictive accuracy', <i>Journal of Business &amp; Economic Statistics</i>, 13(3), pp. 253-263.</li>
+    <li>Kupiec, P.H. (1995) 'Techniques for verifying the accuracy of risk measurement models', <i>Journal of Derivatives</i>, 3(2), pp. 73-84 (unconditional coverage); Christoffersen, P.F. (1998) 'Evaluating interval forecasts', <i>International Economic Review</i>, 39(4), pp. 841-862 (conditional coverage).</li>
+    <li>Adrian, T. and Brunnermeier, M.K. (2016) 'CoVaR', <i>American Economic Review</i>, 106(7), pp. 1705-1741.</li>
+    <li>Weissberg, R. and Buker, S. (1990) <i>Writing Up Research</i>. Englewood Cliffs, NJ: Prentice Hall; Hopkins, A. and Dudley-Evans, T. (1988); Swales, J.M. and Feak, C.B. (1994) <i>Academic Writing for Graduate Students</i>. Ann Arbor: University of Michigan Press.</li>
+    <li>Gillett, A.J. (n.d.) <i>Using English for Academic Purposes</i>: http://www.uefap.com/writing/genre/genrefram.htm; University of Manchester, <i>Academic Phrasebank</i>; Bank of England, <i>Financial Stability in Focus</i> series.</li>
+  </ul>
+</section>
+
+</div>
+</div>
+
+<script src="../../assets/vendor/reveal/dist/reveal.js"></script>
+<script src="../../assets/vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="../../assets/vendor/katex/katex.min.js"></script>
+<script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/sim-core.js"></script>
+<script>
+'use strict';
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t', width: 1050, height: 700, margin: 0.06,
+  plugins: [RevealHighlight]
+});
+Reveal.on('ready', function () {
+  document.querySelectorAll('.slides section').forEach(function (s) {
+    renderMathInElement(s, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  });
+});
+SIM.initQuiz();
+
+/* interactive checklist: proposal blueprint */
+(function () {
+  var box = document.getElementById('ck-prop');
+  if (!box) return;
+  var ro = box.querySelector('.ck-ro');
+  function upd() {
+    var all = box.querySelectorAll('input[type=checkbox]');
+    var done = 0;
+    all.forEach(function (c) { if (c.checked) done += 1; });
+    var pct = all.length ? Math.round(100 * done / all.length) : 0;
+    ro.textContent = done + ' of ' + all.length + ' items in place (' + pct + '%)' +
+      (done === all.length && all.length > 0 ? ' · examiner-ready!' : '');
+  }
+  box.addEventListener('change', upd);
+  upd();
+})();
+</script>
+<script src="../../assets/js/pyrun.js"></script>
+<!-- editorial: the source PDF's PDF-extraction artefacts ("12316 week", "environmental3social", "Weeks 132") are restored to their intended ranges (12 to 16 weeks, environmental-social, weeks 1 to 2, etc.). The closing "Thank You" page is merged into the Summary slide. The annotated example proposal's bracketed guidance notes and section word counts are consolidated into the section-by-section table and the two "what the example does well" slides; the blank example timeline figure (Figure 1) is represented by the timescale row of the table. -->
+</body>
+</html>

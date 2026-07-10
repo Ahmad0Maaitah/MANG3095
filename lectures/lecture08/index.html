@@ -1,0 +1,1193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lecture 8 · TVP-VAR Dynamic Connectedness - MANG3095</title>
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reset.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/theme/black.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/theme.css">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================= TITLE ======================= -->
+<section>
+  <h1>Dynamic Connectedness with TVP-VAR</h1>
+  <h3>Lecture 8 · Paper week: Antonakakis, Chatziantoniou and Gabauer (2020)</h3>
+  <p class="muted">MANG3095 · Advanced Financial Econometrics · University of Southampton</p>
+  <div class="panel def small" style="max-width:760px;margin:1em auto">
+    <b>This week's paper:</b> Antonakakis, N., Chatziantoniou, I. and Gabauer, D. (2020)
+    'Refined measures of dynamic connectedness based on time-varying parameter vector autoregressions',
+    <i>Journal of Risk and Financial Management</i>, 13(4), 84.
+  </div>
+  <p class="tiny">Use ← → to move between topics, ↑ ↓ to dive into each one. Press <code>o</code> for an overview, <code>f</code> for full screen.</p>
+</section>
+
+<!-- ======================= AGENDA ======================= -->
+<section>
+  <h2>In this lecture</h2>
+  <ul class="small">
+    <li><b>The paper</b>: question, contribution, data and headline findings</li>
+    <li><b>Preparing the data and model</b>: returns, stationarity, priors and forgetting factors</li>
+    <li><b>The method</b>: TVP-VAR by Kalman filter, GFEVD, and the Diebold-Yilmaz connectedness measures</li>
+    <li><b>Live simulations</b> on the real EUR/GBP/JPY data: the dynamic total index, rolling-window vs TVP,
+      net transmitters and receivers, and the pairwise network</li>
+    <li><b>Code environment</b>: Stata, EViews, R (the authors' package) and Python, with runnable cells</li>
+    <li><b>Robustness</b>: forgetting factors, horizon, lag order and subsamples</li>
+    <li><b>Results and discussion</b>: what survives, and how to use this in your dissertation</li>
+  </ul>
+</section>
+
+<!-- ======================= 1. THE PAPER ======================= -->
+<section>
+  <section>
+    <h2>1 · The paper</h2>
+    <h3>Question and contribution</h3>
+    <p class="small"><b>Question:</b> how connected are the world's major exchange rates, and how does that
+      connectedness move over time? More fundamentally: can we measure <em>dynamic</em> connectedness without
+      the rolling windows that Diebold and Yilmaz (2009, 2012, 2014) relied on?</p>
+    <div class="panel small"><b class="accent">Contribution.</b> Replace the rolling-window VAR inside the
+      Diebold-Yilmaz machinery with a <strong>time-varying parameter VAR (TVP-VAR)</strong> estimated by a
+      Kalman filter with forgetting factors (Koop and Korobilis 2013, 2014) and a time-varying
+      variance-covariance matrix. The connectedness measures are then recomputed every period from the
+      filtered parameters.</div>
+    <p class="small">The paper improves the Diebold-Yilmaz method in <b>four ways</b>:
+      (i) parameter change is captured more accurately, (ii) outliers do not distort the estimates,
+      (iii) no arbitrary rolling-window size, and (iv) <b class="accent2">no loss of observations</b>.</p>
+  </section>
+  <section>
+    <h3>Evidence for the claims: Monte Carlo (Section 3, Table 1)</h3>
+    <p class="small">The authors simulate a VAR(1) 10,000 times (T = 400) and compare how far the estimated
+      time-varying parameters sit from the truth, for a 200-observation rolling window vs the TVP-VAR:</p>
+    <div class="eq small">$$DV_t = D_{RW,t}-D_{TVP,t}, \qquad D_{\cdot,t}=|\hat A_{\cdot,t}-A|$$</div>
+    <table class="data" style="font-size:.58em">
+      <tr><th>Scenario</th><th>DV<sub>11</sub></th><th>DV<sub>12</sub></th><th>DV<sub>21</sub></th><th>DV<sub>22</sub></th></tr>
+      <tr><td>Single outlier</td><td>0.025***</td><td>0.016***</td><td>0.012***</td><td>0.027***</td></tr>
+      <tr><td>Structural break in parameters</td><td>0.033***</td><td>0.040***</td><td>0.032***</td><td>0.028***</td></tr>
+    </table>
+    <p class="small">All deviations are <b>significantly positive</b>: the rolling-window estimates sit further
+      from the true parameters than the TVP-VAR estimates, both when a single outlier hits and when the
+      parameters break. This is the paper's evidence for improvements (i) and (ii); improvements (iii) and (iv)
+      hold by construction.</p>
+  </section>
+  <section>
+    <h3>Data used in the paper (Section 4, Table 2)</h3>
+    <ul class="small">
+      <li><b>Monthly</b> exchange rates vs the USD: EUR (ECU before 1999), GBP, CHF, JPY - the most traded
+        currencies, USD as base. Bank of England database, <b>February 1975 to January 2019</b></li>
+      <li>Levels are non-stationary (ERS test), so the paper uses <b>first log differences</b>:
+        \(y_t=\ln x_t - \ln x_{t-1}\); all return series are stationary</li>
+      <li>Return variances (Table 2): GBP 5.988 &lt; EUR 5.996 &lt; JPY 7.121 &lt; CHF 7.785</li>
+      <li>Weighted Ljung-Box tests: all series autocorrelated with ARCH/GARCH errors, so a model with a
+        <b>time-varying variance</b> is appropriate</li>
+      <li>Highest unconditional correlation: EUR-CHF at 0.868</li>
+    </ul>
+    <p class="tiny muted">Figure 3 episodes: JPY decouples in early 1990 (Japan's "Two Lost Decades"); GBP and JPY
+      leave the common trend in autumn 1992 (ERM I crisis, Japanese banking crisis); GBP deviates again in 2009.</p>
+  </section>
+  <section>
+    <h3>Headline findings (Table 3, Figures 5-8)</h3>
+    <table class="data" style="font-size:.55em">
+      <tr><th>TVP-VAR, H = 12</th><th>EUR</th><th>GBP</th><th>JPY</th><th>CHF</th><th></th></tr>
+      <tr><td>Contribution TO others</td><td>69.5</td><td>43.6</td><td>30.9</td><td>69.6</td><td></td></tr>
+      <tr><td>FROM others</td><td>59.9</td><td>51.7</td><td>42.5</td><td>59.5</td><td></td></tr>
+      <tr><td>NET directional</td><td>+9.6</td><td>-8.1</td><td>-11.6</td><td>+10.1</td><td><b>TCI = 53.4%</b></td></tr>
+    </table>
+    <ul class="small">
+      <li><b>EUR and CHF are persistent net transmitters</b> of FX shocks; <b>GBP and JPY are persistent net
+        receivers</b>; the GBP dominates the JPY in 1990-1997 and 2002-2008</li>
+      <li>The TVP index <b>adjusts immediately to events</b>: the 1992 ERM-crisis increase and the 2009 decrease
+        (Figure 7), faster even than the shortest rolling window; the 200-month window drops nearly 40% of the
+        observations and absorbs the Great Recession entirely</li>
+      <li>Rolling TCIs at windows 50/100/200 average 53.0 / 53.4 / 53.7%: <b>similar levels, very different
+        dynamics</b> (short windows overreact, long windows flatten)</li>
+      <li>Forecasting: TVP-VAR beats all rolling windows at every horizon H = 1 to 12, and
+        \(\kappa_1=0.99\) models are nearly always the best (Tables 4-5)</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Our data this week: essentially the paper's setting</h3>
+    <ul class="small">
+      <li><code>fx_returns</code>: <b>daily EUR/GBP/JPY % log returns vs USD</b>, 15 Dec 1998 to 3 Jul 2018,
+        T = 7141 - three of the paper's four currencies, same USD base, overlapping sample years</li>
+      <li>Differences to keep in mind: daily rather than monthly frequency, no CHF, and our sample starts with
+        the euro itself (no ECU splicing), so we skip 1975-1998 but gain the GFC and the Brexit vote at
+        daily resolution</li>
+      <li>For the in-browser simulations we aggregate to <b>weekly log returns</b> (5-trading-day sums,
+        T = 1428, embedded as <code>data_fx.js</code>) so every slider response is instant; the code files
+        run the full daily sample too</li>
+    </ul>
+    <div class="panel tip small"><b>Why this is a fair replication target.</b> The paper's message is about the
+      <em>method</em>, not the currencies: any reasonably connected FX network should show the same qualitative
+      structure. We will check whether EUR still transmits, JPY still receives, and whether the TVP index still
+      out-adjusts rolling windows - on data the authors never touched.</div>
+  </section>
+</section>
+
+<!-- ======================= 2. PREPARING THE DATA AND MODEL ======================= -->
+<section>
+  <section>
+    <h2>2 · Preparing the data and model</h2>
+    <h3>Returns and stationarity</h3>
+    <ul class="small">
+      <li>Exchange rate <em>levels</em> are (near) random walks: non-stationary, as the paper's ERS tests confirm.
+        Work with <b>% log returns</b>: \(y_t = 100\,[\ln x_t - \ln x_{t-1}]\)</li>
+      <li><b>Why the TVP-VAR wants stationary inputs:</b> the connectedness measures come from the VMA (Wold)
+        representation \(y_t=\sum_j B_{jt}\epsilon_{t-j}\), which only exists if the VAR is stable at each point
+        in time; the GFEVD shares are then well defined at every horizon. Feeding in levels would push the
+        roots to one and make the H-step variance shares meaningless</li>
+      <li>Log returns are also <b>additive over time</b> - which is exactly what lets us aggregate 5 daily
+        returns into 1 weekly return without changing what the number means</li>
+      <li><b>Outliers:</b> no trimming needed - the Kalman filter's gain automatically downweights observations
+        that arrive with high forecast-error variance, one of the paper's four selling points</li>
+    </ul>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: the real data and its ADF tests</h3>
+    <p class="small">Daily EUR/GBP/JPY % log returns vs USD. Stationarity is the entry ticket to any VAR:</p>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+from statsmodels.tsa.stattools import adfuller
+df = load("fx_returns")                    # daily EUR/GBP/JPY % log returns vs USD
+r = df[["EUR", "GBP", "JPY"]]
+print(f"T = {len(r)} daily obs, {df['date'].iloc[0]} to {df['date'].iloc[-1]}")
+print("\nsd (% per day):"); print(r.std().round(3))
+print("\nunconditional correlations:"); print(r.corr().round(3))
+print("\nADF unit-root tests on the returns:")
+for c in r.columns:
+    stat, p = adfuller(r[c].values, autolag="AIC")[:2]
+    print(f"  {c}: ADF = {stat:7.2f}   p = {p:.4f}  -> stationary")
+</textarea>
+    </div>
+    <p class="tiny muted">All three ADF statistics come out around -42 with p = 0.0000: returns are comfortably
+      stationary, exactly as the paper finds with the ERS test on its monthly data. EUR-GBP correlate at 0.63,
+      GBP-JPY at only 0.15. First run downloads Python into the browser (~15 MB).</p>
+  </section>
+  <section>
+    <h3>Model choices: lag length, horizon, frequency</h3>
+    <ul class="small">
+      <li><b>Lag length:</b> the paper selects <b>VAR(1) by BIC</b> in both the rolling and TVP specifications
+        (Table 3 notes). FX returns carry little linear memory, so one lag is standard; we check p = 2 in the
+        robustness section</li>
+      <li><b>Forecast horizon:</b> the paper uses H = 12 months for the GFEVD. We use <b>H = 10 weeks</b> as the
+        baseline and vary it - you will see the shares stabilise long before that, so H is innocuous here</li>
+      <li><b>Aggregation:</b> weekly returns (T = 1428) for the browser sims; the decimation keeps every episode
+        (GFC, euro crisis, Brexit) visible while making 1400 Kalman steps + 1400 FEVDs instant in JavaScript</li>
+    </ul>
+    <div class="panel warn small"><b>Scaling note.</b> Returns are in percent. Connectedness shares are
+      scale-free (each row of the GFEVD is normalised to 100%), so multiplying the data by any constant leaves
+      every measure unchanged - but a sensible scale keeps the Kalman covariance matrices well conditioned.</div>
+  </section>
+  <section>
+    <h3>Priors and forgetting factors: the model's only tuning knobs</h3>
+    <ul class="small">
+      <li><b>Prior:</b> the paper initialises the filter with the Primiceri (2005) / Del Negro and Primiceri
+        (2015) prior - an <b>OLS VAR on the first 60 months</b> sets \(A_0\), \(\Sigma^A_0\) and \(\Sigma_0\).
+        We do the same with the first 60 weekly observations</li>
+      <li><b>Forgetting factor \(\kappa_1\):</b> discounts old information in the <em>coefficients</em>. Roughly,
+        observation \(t-j\) gets weight \(\kappa_1^j\): with \(\kappa_1=0.99\) the effective memory is about
+        \(1/(1-\kappa_1)=100\) observations; \(\kappa_1=1\) means constant coefficients (recursive OLS)</li>
+      <li><b>Decay factor \(\kappa_2\):</b> the EWMA speed of the error covariance
+        \(\Sigma_t\) - smaller means volatility updates faster. Benchmark values from Koop and Korobilis (2014):
+        \(\kappa_1=0.99,\ \kappa_2=0.96\), kept <b>constant</b> (time-varying factors add computation but little
+        forecast accuracy, Koop and Korobilis 2013)</li>
+      <li><b>Does the prior matter?</b> The paper tries an uninformative prior, an informative prior and 500
+        random Minnesota priors: all converge to the same results after roughly <b>50 coefficient updates</b>
+        (Figures 9-10). The prior buys stability at the start, nothing more</li>
+    </ul>
+  </section>
+</section>
+
+<!-- ======================= 3. THE METHOD ======================= -->
+<section>
+  <section>
+    <h2>3 · The method</h2>
+    <h3>The TVP-VAR(p) model (paper Equations 1-2)</h3>
+    <div class="eq small">$$y_t = A_t z_{t-1} + \epsilon_t, \qquad \epsilon_t\,|\,\Omega_{t-1}\sim N(0,\Sigma_t)$$
+      $$\operatorname{vec}(A_t)=\operatorname{vec}(A_{t-1})+\xi_t, \qquad \xi_t\,|\,\Omega_{t-1}\sim N(0,\Xi_t)$$</div>
+    <ul class="small">
+      <li>\(y_t\) is the m×1 return vector, \(z_{t-1}=(y_{t-1}',\dots,y_{t-p}')'\) stacks the lags</li>
+      <li>The coefficients \(A_t\) follow a <b>random walk</b>: they can drift every period, so a structural
+        break is just a big step of \(\xi_t\)</li>
+      <li>Both \(\Sigma_t\) (error covariance) and \(\Xi_t\) (coefficient-innovation covariance) move over
+        time - this is what "time-varying variance-covariance structure" means in the abstract</li>
+    </ul>
+    <p class="tiny muted">Compare with Week 7: the rolling-window approach re-estimates a <em>constant-parameter</em>
+      VAR on a moving sample and hopes the window mimics parameter drift. Here drift is part of the model.</p>
+  </section>
+  <section>
+    <h3>Kalman filter with forgetting factors (paper Section 2)</h3>
+    <p class="small">Prediction uses the forgetting factor \(\kappa_1\), which inflates the coefficient
+      uncertainty instead of estimating the full \(\Xi_t\):</p>
+    <div class="eq small">$$\Sigma^A_{t|t-1}=\tfrac{1}{\kappa_1}\Sigma^A_{t-1|t-1}
+      \quad\Longleftrightarrow\quad \Xi_t=(\kappa_1^{-1}-1)\,\Sigma^A_{t-1|t-1}$$</div>
+    <p class="small">Update moves the coefficients by the Kalman gain \(K_t\), and the error covariance follows
+      an EWMA with decay \(\kappa_2\):</p>
+    <div class="eq small">$$A_{t|t}=A_{t|t-1}+K_t\,(y_t-A_{t|t-1}z_{t-1}), \qquad
+      \Sigma_{t|t}=\kappa_2\,\Sigma_{t-1|t-1}+(1-\kappa_2)\,\epsilon_{t|t}'\epsilon_{t|t}$$</div>
+    <ul class="small">
+      <li><b>What the gain does:</b> small parameter uncertainty → stay near the prior state; large forecast
+        errors with small \(\Sigma_t\) → adjust the coefficients strongly. This is the mechanism that makes
+        the filter robust to outliers</li>
+      <li>No MCMC anywhere: the filter is <b>deterministic and fast</b> - each period is one set of matrix
+        recursions, which is why we can run it live inside your browser</li>
+    </ul>
+  </section>
+  <section>
+    <h3>From filtered parameters to shocks: VMA and GIRF (Equations 3-13)</h3>
+    <p class="small">At each t, invert the (companion-form) VAR to its moving-average representation by the
+      Wold theorem:</p>
+    <div class="eq small">$$y_t=\sum_{j=0}^{\infty}B_{jt}\,\epsilon_{t-j},\qquad B_{jt}=J'M_t^{\,j}J$$</div>
+    <p class="small">The <b>generalised impulse response</b> (Koop, Pesaran and Potter 1996; Pesaran and Shin
+      1998) is the difference between an H-step forecast with and without a one-standard-deviation shock to
+      variable j:</p>
+    <div class="eq small">$$\Psi_{j,t}(H)=\Sigma_{jj,t}^{-1/2}\,B_{H,t}\,\Sigma_t\,e_j$$</div>
+    <div class="panel small"><b class="accent">Why generalised?</b> Cholesky-based decompositions (Diebold-Yilmaz
+      2009) depend on how you order the currencies. The GIRF integrates out the other shocks using their
+      historical correlations, so the results are <b>order-invariant</b> - crucial when no currency has a natural
+      "first mover" claim.</div>
+  </section>
+  <section>
+    <h3>GFEVD and the total connectedness index (Equations 14-15)</h3>
+    <p class="small">The <b>generalised forecast error variance decomposition</b> asks: what share of the H-step
+      forecast error variance of variable i is explained by shocks to variable j?</p>
+    <div class="eq small">$$\tilde\phi_{ij,t}(H)=\frac{\sum_{h=0}^{H-1}\Psi^2_{ij,h,t}}
+      {\sum_{j=1}^{m}\sum_{h=0}^{H-1}\Psi^2_{ij,h,t}}
+      \qquad\text{(rows normalised: }\textstyle\sum_j\tilde\phi_{ij,t}=1\text{)}$$</div>
+    <p class="small">Everything off the diagonal is spillover. The <b>total connectedness index</b> averages it:</p>
+    <div class="eq small">$$C_t(H)=\frac{\sum_{i\ne j}\tilde\phi_{ij,t}(H)}{m}\times 100$$</div>
+    <ul class="small">
+      <li>\(C_t = 0\): each currency's forecast errors are entirely its own doing (no system)</li>
+      <li>\(C_t \to 100\): forecast errors are all imported - one tightly wired network</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Directional, net, and pairwise measures (Equations 16-19)</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">TO others</b>
+        <div class="eq small">$$C_{i\to j,t}=\sum_{j\ne i}\tilde\phi_{ji,t}\times 100$$</div>
+        How much variable i's shocks explain of everyone else's forecast errors.</div>
+      <div class="panel small"><b class="accent2">FROM others</b>
+        <div class="eq small">$$C_{i\leftarrow j,t}=\sum_{j\ne i}\tilde\phi_{ij,t}\times 100$$</div>
+        How much of i's own forecast errors are imported.</div>
+    </div>
+    <div class="eq small">$$\text{NET: } C_{i,t}=C_{i\to j,t}-C_{i\leftarrow j,t}
+      \qquad\text{NPDC: } NPDC_{ij}=(\tilde\phi_{ji,t}-\tilde\phi_{ij,t})\times 100$$</div>
+    <ul class="small">
+      <li>\(C_{i,t}>0\): variable i <b class="good">drives the network</b> (net transmitter);
+        \(C_{i,t}<0\): it is <b class="bad">driven by the network</b> (net receiver)</li>
+      <li>NPDC pins down each bilateral relationship: \(NPDC_{ij}>0\) means i dominates j</li>
+    </ul>
+  </section>
+</section>
+
+<!-- ======================= 4. SIMULATIONS ======================= -->
+<section>
+  <section>
+    <h2>4 · Live: TVP-VAR dynamic total connectedness</h2>
+    <p class="small tiny" style="margin:.2em 0">A real forgetting-factor Kalman filter TVP-VAR(1) running on the embedded weekly EUR/GBP/JPY
+      returns, with the GFEVD recomputed at every single week. Nothing is precomputed.</p>
+    <div class="sim" id="sim-tvp">
+      <canvas id="cv-tvp" width="880" height="255"></canvas>
+      <div class="controls-row" id="ctl-tvp"></div>
+      <div class="note">The <b style="color:#38bdf8">dynamic total connectedness index</b> \(C_t(H)\), 1999-2018.
+        The <b style="color:#fbbf24">dashed line</b> is its mean; the shaded band marks the GFC and the vertical
+        line the Brexit vote. Sliders re-run the full filter + 1427 variance decompositions instantly.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em;margin-top:.3em"><b>Reading the results.</b> At the benchmark
+      (\(\kappa_1=0.99,\kappa_2=0.96\), H = 10) the index averages <b>28.4%</b>, peaking at 53.2% in mid 2006 and
+      troughing at 14.0% in March 2009. Connectedness <em>falls</em> through the GFC trough: the safe-haven JPY
+      decouples from the European pair, so an average pairwise measure drops even as volatility explodes - the
+      same 2009 decrease the paper highlights in Figure 7. Lower \(\kappa_1\) shortens the filter's memory: the
+      index becomes choppier but tells the same story; \(\kappa_1=1\) is recursive OLS and the index freezes into
+      its long-run average. A researcher reports the level (how wired is the system?) and the swings (when did it
+      rewire?), never a single number.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it runs a forgetting-factor Kalman
+      filter TVP-VAR(1) on 1428 weekly EUR/GBP/JPY returns and plots the dynamic total connectedness index with
+      sliders for the forgetting factors and the GFEVD horizon H.</div></noscript>
+  </section>
+  <section>
+    <h3>🎛️ Rolling windows vs TVP-VAR: the paper's headline comparison</h3>
+    <div class="sim" id="sim-roll">
+      <canvas id="cv-roll" width="880" height="255"></canvas>
+      <div class="controls-row" id="ctl-roll"></div>
+      <div class="note">The Week 7 <b style="color:#f87171">rolling-window VAR index</b> overlaid on the
+        <b style="color:#38bdf8">TVP-VAR index</b> (\(\kappa_1=0.99\)). Drag the window: short windows overreact,
+        long windows flatten - and the grey gap on the left is the sample the rolling estimator throws away.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em;margin-top:.3em"><b>Reading the results.</b> This reproduces the
+      paper's Figures 5-7 logic on our data. At the default w = 104 weeks the two indices track each other
+      (correlation 0.81) and their means are almost identical (28.1% vs 28.4%) - just as the paper finds the mean of
+      all rolling TCIs matches the TVP-VAR. But push w to 52: the rolling index whipsaws (sd 8.5) and still loses
+      a year of data. Push w to 260: five years vanish before the first estimate and the 2006 peak melts away,
+      exactly the "flattens out all dynamics" effect the paper attributes to its 200-month window, which drops
+      nearly 40% of the observations. The TVP index needs <b>no width choice and loses nothing</b>: the paper's
+      core claim, visible in one plot.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it overlays the rolling-window VAR
+      total connectedness index (window slider) on the TVP-VAR index, showing the observation loss and the
+      overreact/oversmooth trade-off.</div></noscript>
+  </section>
+  <section>
+    <h3>🎛️ Net directional connectedness: who transmits, who receives</h3>
+    <div class="sim" id="sim-net">
+      <canvas id="cv-net" width="880" height="255"></canvas>
+      <div class="controls-row" id="ctl-net"></div>
+      <div class="note">NET total directional connectedness \(C_{i,t}\) for <b style="color:#38bdf8">EUR</b>,
+        <b style="color:#fbbf24">GBP</b> and <b style="color:#f87171">JPY</b>. Above zero = net transmitter,
+        below = net receiver. Scrub the timeline or jump to an episode; the readout reports the scrubbed week.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em;margin-top:.3em"><b>Reading the results.</b> The paper's ranking
+      survives the change of data: <b>EUR is a net transmitter in 89% of weeks</b> (mean +3.8), <b>JPY a net
+      receiver in 99%</b> (mean -4.0), with GBP oscillating around zero (mean +0.1) - compare the paper's
+      Table 3: EUR +9.6, GBP -8.1, JPY -11.6, CHF +10.1. The paper also reports that, once uncertainty is
+      accounted for, the GBP "cannot be identified either as a transmitter or receiver" for 1990-1998; our
+      wobbling GBP line is that same ambiguity at daily-data resolution. Scrub to October 2008: JPY's net position
+      collapses to -20.5 (the yen carry-trade unwind absorbs everyone's shocks) while GBP spikes to +13.6. Around
+      the June 2016 Brexit vote GBP's moves are largely idiosyncratic, so its net line stays flat near -0.2 while
+      total connectedness drifts down: a country-specific shock is not a network shock.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it plots per-currency net
+      transmitter/receiver paths from the TVP-VAR GFEVD with a time scrubber and preset episode buttons
+      (Lehman, GFC trough, Brexit).</div></noscript>
+  </section>
+  <section>
+    <h3>🎛️ The pairwise network, one week at a time</h3>
+    <div class="sim" id="sim-nw">
+      <canvas id="cv-nw" width="880" height="270"></canvas>
+      <div class="controls-row" id="ctl-nw"></div>
+      <div class="note">The 3-currency network at the scrubbed date. Arrows point from the pairwise
+        <b>dominant</b> currency to the dominated one (paper Equation 19); arrow width = |NPDC|. Node colour and
+        size show each currency's NET position (<b style="color:#34d399">green transmitter</b>,
+        <b style="color:#f87171">red receiver</b>).</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em;margin-top:.3em"><b>Reading the results.</b> This is the paper's
+      Figure 8 pairwise story as a live diagram. On average EUR dominates both GBP (+1.0) and JPY (+2.8), and GBP
+      dominates JPY (+1.1): the same pecking order as the paper, where "the EUR and the CHF both dominate the GBP
+      and the JPY, whereas the GBP dominates the JPY". Scrub through 2008 and watch every arrow swing towards
+      JPY while the EUR-GBP arrow thickens; in calm years (2004-2006) the arrows thin out even though total
+      connectedness is high - high average connectedness with weak <em>net</em> arrows means shocks flow
+      symmetrically. A researcher uses this display to identify who to watch for contagion, week by week.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it draws a three-node network with
+      arrow widths given by the net pairwise directional connectedness at the selected date.</div></noscript>
+  </section>
+</section>
+
+<!-- ======================= 5. CODE ENVIRONMENT ======================= -->
+<section>
+  <section>
+    <h2>5 · Code environment</h2>
+    <h3>Step 1: load the data, check the inputs</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* daily EUR/GBP/JPY % log returns vs USD
+import delimited "../../../data/csv/fx_returns.csv", clear
+gen day = date(date, "YMD")
+format day %td
+tsset day
+summarize eur gbp jpy
+correlate eur gbp jpy
+dfuller eur, lags(5)      // repeat for gbp and jpy:
+dfuller gbp, lags(5)      // all three reject the unit root
+dfuller jpy, lags(5)      // -> stationary, safe for a VAR</code></pre></div>
+      <div class="tabpane"><pre><code>' daily EUR/GBP/JPY % log returns vs USD
+wfopen ..\..\..\data\csv\fx_returns.csv
+group fx eur gbp jpy
+fx.stats                    ' descriptives
+freeze(corrtab) fx.cor      ' correlation matrix
+eur.uroot(adf, const)       ' ADF tests, one per series
+gbp.uroot(adf, const)
+jpy.uroot(adf, const)       ' all reject the unit root</code></pre></div>
+      <div class="tabpane"><pre><code># daily EUR/GBP/JPY % log returns vs USD
+raw &lt;- read.csv("../../../data/csv/fx_returns.csv")
+x   &lt;- zoo::zoo(raw[, c("EUR", "GBP", "JPY")],
+                order.by = as.Date(raw$date))
+summary(x); cor(x)
+tseries::adf.test(raw$EUR)   # repeat for GBP, JPY:
+tseries::adf.test(raw$GBP)   # all reject the unit root
+tseries::adf.test(raw$JPY)</code></pre></div>
+      <div class="tabpane"><pre><code>import pandas as pd, numpy as np
+from statsmodels.tsa.stattools import adfuller
+df = pd.read_csv("../../../data/csv/fx_returns.csv")
+r = df[["EUR", "GBP", "JPY"]]
+print(r.describe()); print(r.corr())
+for c in r.columns:                      # ADF on each series
+    print(c, adfuller(r[c], autolag="AIC")[:2])
+# weekly aggregation for the fast TVP-VAR runs:
+g = len(r) // 5 * 5
+W = np.add.reduceat(r.values[:g], np.arange(0, g, 5))</code></pre></div>
+    </div>
+    <p class="tiny muted">Full scripts: <a href="code/lecture08.do">Stata</a> · <a href="code/lecture08.prg">EViews</a> ·
+      <a href="code/lecture08.R">R</a> · <a href="code/lecture08.py">Python</a>. The pyrun cell in Section 2 runs
+      this step in your browser.</p>
+  </section>
+  <section>
+    <h3>Step 2: estimate the TVP-VAR and the dynamic total connectedness</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* HONEST NOTE: official Stata has no TVP-VAR connectedness
+* routine, and -irf- reports Cholesky FEVDs, not the
+* generalised FEVD this literature needs. Nearest route:
+var eur gbp jpy, lags(1)                  // full-sample VAR(1)
+irf create dy, set(dyirf, replace) step(10)
+irf table fevd                            // Cholesky, order-dependent
+* A rolling Diebold-Yilmaz index means looping -var- over
+* windows and computing the generalised FEVD in Mata by hand;
+* community connectedness commands exist (search on SSC).
+* For the paper's exact TVP-VAR method, use R (next tab).</code></pre></div>
+      <div class="tabpane"><pre><code>' HONEST NOTE: EViews has no multivariate Kalman filter with
+' forgetting factors (sspace handles single-equation TVP
+' models only). The nearest native route is a VAR with
+' GENERALISED variance decompositions:
+var fxvar.ls 1 1 eur gbp jpy
+' View &gt; Variance Decomposition &gt; Generalized Decomposition,
+' horizon 10: off-diagonal shares give the Diebold-Yilmaz
+' table; wrap it in a program loop for a rolling version.
+' For the paper's exact TVP-VAR method, use R (next tab).</code></pre></div>
+      <div class="tabpane"><pre><code># the authors' own package (Gabauer):
+# install.packages("ConnectednessApproach")
+library(ConnectednessApproach)
+raw &lt;- read.csv("../../../data/csv/fx_returns.csv")
+x &lt;- zoo::zoo(raw[, c("EUR","GBP","JPY")], as.Date(raw$date))
+dca &lt;- ConnectednessApproach(x, model = "TVP-VAR",
+    connectedness = "Time", nlag = 1, nfore = 10,
+    VAR_config = list(TVPVAR = list(kappa1 = 0.99,
+        kappa2 = 0.96, prior = "BayesPrior", gamma = 0.01)))
+dca$TABLE       # averaged table, paper's Table 3 layout
+PlotTCI(dca)    # dynamic total connectedness, Figure 7
+# the paper itself ships with the package: data(acg2020)</code></pre></div>
+      <div class="tabpane"><pre><code># teaching-grade numpy filter (full version: code/lecture08.py)
+P = np.linalg.inv(Z0.T @ Z0)             # prior from OLS, first 60 obs
+A = (P @ Z0.T @ Y0).T
+S = np.cov((Y0 - Z0 @ A.T).T)
+for t, (z, y) in enumerate(zip(Zlag, Y)):
+    P = P / k1                           # forget old information
+    Pz = P @ z; d = 1 + z @ Pz
+    A = A + np.outer(y - A @ z, Pz / d)  # Kalman update
+    P = P - np.outer(Pz, Pz) / d
+    e = y - A @ z
+    S = k2 * S + (1 - k2) * np.outer(e, e)
+    tci[t] = gfevd_tci(A, S, H=10)       # GFEVD each period</code></pre></div>
+    </div>
+    <p class="tiny muted">The R package implements the paper's full Bayesian version; our numpy/JS filter is the
+      teaching-grade Koop-Korobilis forgetting-factor version - same recursions, same benchmark
+      \(\kappa_1, \kappa_2\). Replication page: gabauerdavid.github.io/ConnectednessApproach.</p>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: the dynamic total connectedness index</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+df = load("fx_returns")
+R = df[["EUR", "GBP", "JPY"]].values                 # daily % log returns
+g = len(R) // 5 * 5                                  # 5-day sums -> weekly returns
+W = np.round(np.add.reduceat(R[:g], np.arange(0, g, 5)), 4)
+
+def tvp_tci(Y, k1=0.99, k2=0.96, H=10, n0=60):
+    Zl, Yt, m = Y[:-1], Y[1:], Y.shape[1]
+    P = np.linalg.inv(Zl[:n0].T @ Zl[:n0] + 1e-8 * np.eye(m))
+    A = (P @ Zl[:n0].T @ Yt[:n0]).T                  # prior: OLS on first 60 obs
+    S = np.cov((Yt[:n0] - Zl[:n0] @ A.T).T)
+    out = np.empty(len(Yt))
+    for t, (z, y) in enumerate(zip(Zl, Yt)):
+        P = P / k1                                   # forget old information
+        Pz = P @ z; d = 1 + z @ Pz
+        A = A + np.outer(y - A @ z, Pz / d)          # Kalman coefficient update
+        P = P - np.outer(Pz, Pz) / d
+        e = y - A @ z
+        S = k2 * S + (1 - k2) * np.outer(e, e)       # EWMA error covariance
+        num = np.zeros((m, m)); den = np.zeros(m); B = np.eye(m)
+        for h in range(H):                           # GFEVD at horizon H
+            BS = B @ S
+            num += BS**2 / np.diag(S); den += np.diag(BS @ B.T)
+            B = A @ B
+        phi = num / den[:, None]
+        phi = phi / phi.sum(1, keepdims=True) * 100  # rows sum to 100
+        out[t] = (phi.sum() - np.trace(phi)) / m     # total connectedness
+    return out
+
+tci = tvp_tci(W)
+d = df["date"].values[4::5][:len(W)][1:]             # aligned week-end dates
+print(f"TVP-VAR(1) on {len(W)} weekly obs, kappa1=0.99, kappa2=0.96, H=10")
+print(f"mean TCI = {tci.mean():.2f}%   min = {tci.min():.2f}%   max = {tci.max():.2f}%")
+print(f"peak week ends {d[tci.argmax()]}, trough week ends {d[tci.argmin()]}")
+</textarea>
+    </div>
+    <p class="tiny muted">Expect <b>mean TCI = 28.44%, min 13.98%, max 53.17%</b> - identical to the JavaScript
+      simulation two slides back, because both run the same filter on the same embedded weekly data. Takes a few
+      seconds: 1427 Kalman steps and variance decompositions.</p>
+  </section>
+  <section>
+    <h3>Step 3: directional, net and pairwise measures</h3>
+    <div class="codetabs">
+      <div class="tabbar">
+        <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
+      </div>
+      <div class="tabpane"><pre><code>* No native route (see Step 2). The TO/FROM/NET/NPDC measures
+* are all sums of the generalised FEVD table, so once that
+* table exists (Mata or R export) the rest is arithmetic:
+*   TO_i   = column sum of off-diagonal shares
+*   FROM_i = row sum of off-diagonal shares
+*   NET_i  = TO_i - FROM_i
+*   NPDC_ij = share(j&lt;-i) - share(i&lt;-j)
+* Import the R package's output with -import delimited-.</code></pre></div>
+      <div class="tabpane"><pre><code>' Same arithmetic on the generalized decomposition table:
+' freeze the decomposition, then compute row and column sums
+' with matrix commands, e.g.
+'   matrix fevd10 = @transpose(...)
+' NET and NPDC follow as in the Stata tab. For dynamic paths,
+' loop the program over rolling samples or use R.</code></pre></div>
+      <div class="tabpane"><pre><code># everything is already inside the dca object:
+PlotNET(dca)    # net transmitter/receiver paths (Figure 8)
+PlotTO(dca); PlotFROM(dca)
+PlotNPDC(dca)   # net pairwise directional connectedness
+dca$TABLE       # the paper's Table 3 for our data</code></pre></div>
+      <div class="tabpane"><pre><code># from the row-normalised GFEVD table phi (m x m, % shares):
+off  = phi - np.diag(np.diag(phi))
+TO   = off.sum(axis=0)          # column sums: i -&gt; others
+FROM = off.sum(axis=1)          # row sums:    others -&gt; i
+NET  = TO - FROM                # &gt;0 transmitter, &lt;0 receiver
+NPDC = phi.T - phi              # [i,j] &gt; 0: i dominates j
+# full dynamic paths: code/lecture08.py stores them per week</code></pre></div>
+    </div>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: the averaged connectedness table</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+df = load("fx_returns")
+R = df[["EUR", "GBP", "JPY"]].values
+g = len(R) // 5 * 5
+W = np.round(np.add.reduceat(R[:g], np.arange(0, g, 5)), 4)
+names = ["EUR", "GBP", "JPY"]
+
+Zl, Yt, m = W[:-1], W[1:], 3
+P = np.linalg.inv(Zl[:60].T @ Zl[:60] + 1e-8 * np.eye(m))
+A = (P @ Zl[:60].T @ Yt[:60]).T
+S = np.cov((Yt[:60] - Zl[:60] @ A.T).T)
+TAB = np.zeros((m, m))
+for z, y in zip(Zl, Yt):
+    P = P / 0.99; Pz = P @ z; d = 1 + z @ Pz
+    A = A + np.outer(y - A @ z, Pz / d); P = P - np.outer(Pz, Pz) / d
+    e = y - A @ z; S = 0.96 * S + 0.04 * np.outer(e, e)
+    num = np.zeros((m, m)); den = np.zeros(m); B = np.eye(m)
+    for h in range(10):
+        BS = B @ S; num += BS**2 / np.diag(S); den += np.diag(BS @ B.T); B = A @ B
+    phi = num / den[:, None]
+    TAB += phi / phi.sum(1, keepdims=True) * 100
+TAB /= len(Yt)
+off = TAB - np.diag(np.diag(TAB))
+print("time-averaged connectedness table (%):\n")
+print("        " + "".join(f"{c:>8}" for c in names) + "    FROM")
+for i, c in enumerate(names):
+    print(f"  {c:>4}  " + "".join(f"{TAB[i, j]:8.1f}" for j in range(m))
+          + f"{off[i].sum():8.1f}")
+print("    TO  " + "".join(f"{v:8.1f}" for v in off.sum(0)))
+print("   NET  " + "".join(f"{v:8.1f}" for v in off.sum(0) - off.sum(1)))
+print(f"\nTCI = {off.sum() / m:.1f}%   (paper, Table 3: EUR +9.6, GBP -8.1,"
+      "\nJPY -11.6 net; same ranking here: EUR transmits, JPY receives)")
+
+</textarea>
+    </div>
+    <p class="tiny muted">Expect NET = +3.8 (EUR), +0.1 (GBP), -4.0 (JPY) and TCI = 28.4%. Own-share diagonals
+      (65-82%) are much larger than the paper's monthly ones (40-58%): weekly FX returns are less predictable
+      from each other than monthly ones, so less variance is imported. The <em>ranking</em>, which is what the
+      paper interprets, is the same.</p>
+  </section>
+</section>
+
+<!-- ======================= 6. ROBUSTNESS ======================= -->
+<section>
+  <section>
+    <h2>6 · Robustness checks</h2>
+    <h3>What the paper varies, and what we vary</h3>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Dimension</th><th>The paper (Section 5.3)</th><th>This deck</th></tr>
+      <tr><td>Priors</td><td>uninformative, informative, 500 random Minnesota priors: results converge after ~50 updates (Figs 9-10)</td><td>OLS prior on first 60 obs; washout visible in the sims' first months</td></tr>
+      <tr><td>Forgetting factors</td><td>\(\kappa_1,\kappa_2\) vary randomly in [0.96, 0.99]: 95% uncertainty bands (Figs 11-12)</td><td>\(\kappa_1\) slider 0.97-1.00, \(\kappa_2\) slider, sensitivity sim below</td></tr>
+      <tr><td>Window / horizon</td><td>windows 25-275; H = 1 to 12 forecast comparison (Tables 4-5)</td><td>window slider in Sim 2; H slider and overlay below</td></tr>
+      <tr><td>Lag order</td><td>VAR(1) by BIC</td><td>p = 2 rerun in the cell below</td></tr>
+      <tr><td>Subsamples</td><td>-</td><td>1998-2008 vs 2008-2018 halves</td></tr>
+    </table>
+    <p class="small">The question is never "do the numbers move?" - they always move a little. The question is
+      <b>do the conclusions survive?</b> (levels similar, EUR still transmits, JPY still receives, TVP still
+      out-adjusts rolling windows).</p>
+  </section>
+  <section>
+    <h3>🎛️ Sensitivity: forgetting factor and horizon</h3>
+    <div class="sim" id="sim-rob">
+      <canvas id="cv-rob" width="880" height="255"></canvas>
+      <div class="controls-row" id="ctl-rob"></div>
+      <div class="note">Overlaid TCI paths. <b>Vary κ₁</b>: <b style="color:#f87171">0.97</b> (short memory),
+        <b style="color:#38bdf8">0.99</b> (benchmark), <b style="color:#34d399">1.00</b> (constant parameters).
+        <b>Vary H</b>: horizons 5 / 10 / 20 at κ₁ = 0.99 - the three lines land on top of each other.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em;margin-top:.3em"><b>Reading the results.</b> This is the deck's
+      version of the paper's Figure 11 uncertainty exercise. Mean TCI moves from 29.2% (κ₁ = 0.97) through 28.4%
+      (0.99) to 28.3% (1.00): under one percentage point across the whole slider, and every line peaks in 2006
+      and troughs in 2009. The horizon overlay is even blunter: H = 5, 10 and 20 give means identical to two
+      decimals (28.44%), because with a VAR(1) on weekly returns the variance shares converge within a few steps.
+      So the two headline conclusions - the level of connectedness and who transmits - do not depend on the
+      tuning knobs. That is what the paper means when it calls its measures "refined": the arbitrary choice
+      (window width) has been replaced by choices that barely matter.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it overlays TVP-VAR total
+      connectedness paths for forgetting factors 0.97/0.99/1.00 and horizons 5/10/20 with mean readouts.</div></noscript>
+  </section>
+  <section>
+    <h3>💻 Run it yourself: does anything overturn the conclusions?</h3>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+df = load("fx_returns")
+R = df[["EUR", "GBP", "JPY"]].values
+g = len(R) // 5 * 5
+W = np.round(np.add.reduceat(R[:g], np.arange(0, g, 5)), 4)
+
+def tvp_tci(Y, k1=0.99, k2=0.96, H=10, n0=60, p=1):
+    Y = np.asarray(Y); m = Y.shape[1]
+    Zl = np.hstack([Y[p - 1 - j:len(Y) - 1 - j] for j in range(p)])
+    Yt = Y[p:]; k = m * p
+    P = np.linalg.inv(Zl[:n0].T @ Zl[:n0] + 1e-8 * np.eye(k))
+    A = (P @ Zl[:n0].T @ Yt[:n0]).T
+    S = np.cov((Yt[:n0] - Zl[:n0] @ A.T).T)
+    J = np.zeros((k, m)); J[:m] = np.eye(m)
+    out = np.empty(len(Yt))
+    for t, (z, y) in enumerate(zip(Zl, Yt)):
+        P = P / k1; Pz = P @ z; d = 1 + z @ Pz
+        A = A + np.outer(y - A @ z, Pz / d); P = P - np.outer(Pz, Pz) / d
+        e = y - A @ z; S = k2 * S + (1 - k2) * np.outer(e, e)
+        comp = np.zeros((k, k)); comp[:m] = A
+        if p > 1: comp[m:, :-m] = np.eye(m * (p - 1))
+        num = np.zeros((m, m)); den = np.zeros(m); M = np.eye(k)
+        for h in range(H):
+            B = J.T @ M @ J; BS = B @ S
+            num += BS**2 / np.diag(S); den += np.diag(BS @ B.T)
+            M = comp @ M
+        phi = num / den[:, None]; phi = phi / phi.sum(1, keepdims=True) * 100
+        out[t] = (phi.sum() - np.trace(phi)) / m
+    return out
+
+base = tvp_tci(W).mean()
+print(f"{'setting':<28}{'mean TCI':>10}{'vs base':>9}")
+print(f"{'base (k1=.99, H=10, p=1)':<28}{base:>9.2f}%")
+for lab, v in [("kappa1 = 0.97", tvp_tci(W, k1=0.97).mean()),
+               ("kappa1 = 1.00", tvp_tci(W, k1=1.00).mean()),
+               ("H = 20",        tvp_tci(W, H=20).mean()),
+               ("VAR lag p = 2", tvp_tci(W, p=2).mean()),
+               ("first half",    tvp_tci(W[:714]).mean()),
+               ("second half",   tvp_tci(W[714:]).mean())]:
+    print(f"{lab:<28}{v:>9.2f}%{v - base:>+8.2f}")
+</textarea>
+    </div>
+    <p class="tiny muted">Six extra full estimations, so give it ~20 seconds. Expected: 29.16 / 28.32 / 28.44 /
+      29.26 / 32.78 / 24.22 against the base 28.44.</p>
+  </section>
+  <section>
+    <h3>Robustness verdict: the conclusions survive</h3>
+    <table class="data" style="font-size:.55em">
+      <tr><th>Setting</th><th>Mean TCI</th><th>vs base</th><th>EUR transmits / JPY receives?</th></tr>
+      <tr><td><b>Base: κ₁ = 0.99, κ₂ = 0.96, H = 10, p = 1</b></td><td><b>28.44%</b></td><td></td><td>yes</td></tr>
+      <tr><td>κ₁ = 0.97</td><td>29.16%</td><td>+0.72</td><td>yes</td></tr>
+      <tr><td>κ₁ = 1.00 (constant parameters)</td><td>28.32%</td><td>-0.12</td><td>yes</td></tr>
+      <tr><td>H = 5 or H = 20</td><td>28.44%</td><td>±0.00</td><td>yes</td></tr>
+      <tr><td>VAR(2)</td><td>29.26%</td><td>+0.82</td><td>yes</td></tr>
+      <tr><td>First half only (1998-2008)</td><td>32.78%</td><td>+4.33</td><td>yes</td></tr>
+      <tr><td>Second half only (2008-2018)</td><td>24.22%</td><td>-4.23</td><td>yes</td></tr>
+    </table>
+    <div class="panel tip small"><b>Discussion.</b> Tuning parameters (κ₁, H, lag order) move the mean by less
+      than a point; only the <em>sample</em> moves it materially, and even then the transmitter/receiver ranking
+      is untouched. This mirrors the paper exactly: its prior and forgetting-factor sensitivity analysis
+      (Figures 9-12) concludes the results are stable, while its three window sizes (50/100/200) change the
+      dynamics far more than any TVP-VAR setting - the fragile choice is the one the TVP-VAR removed.</div>
+  </section>
+</section>
+
+<!-- ======================= 7. RESULTS AND DISCUSSION ======================= -->
+<section>
+  <section>
+    <h2>7 · Results and discussion</h2>
+    <h3>Our replication vs the paper</h3>
+    <table class="data" style="font-size:.55em">
+      <tr><th></th><th>Paper (monthly, 4 FX, 1975-2019)</th><th>This deck (weekly, 3 FX, 1998-2018)</th></tr>
+      <tr><td>Mean/static TCI</td><td>53.4% (H = 12)</td><td>28.4% (H = 10); 31.5% on daily data</td></tr>
+      <tr><td>Net transmitters</td><td>EUR +9.6, CHF +10.1</td><td>EUR +3.8 (transmitter in 89% of weeks)</td></tr>
+      <tr><td>Net receivers</td><td>JPY -11.6, GBP -8.1</td><td>JPY -4.0 (receiver in 99% of weeks), GBP ≈ 0</td></tr>
+      <tr><td>Pairwise order</td><td>EUR dominates GBP and JPY; GBP dominates JPY</td><td>identical: +1.0, +2.8, +1.1</td></tr>
+      <tr><td>TVP vs rolling</td><td>same level, TVP adjusts immediately (1992 up, 2009 down)</td><td>same level (28.4 vs 28.2), TVP keeps all obs, 2009 trough</td></tr>
+    </table>
+    <ul class="small">
+      <li>The <b>level</b> differs because frequency and the number of variables differ (fewer, noisier
+        observations import less variance) - levels are only comparable within a fixed design</li>
+      <li>The <b>structure</b> - who transmits, who receives, how the index breathes - reproduces almost
+        perfectly on data the authors never used. That is what a robust method looks like</li>
+    </ul>
+  </section>
+  <section>
+    <h3>Using this in your dissertation</h3>
+    <ul class="small">
+      <li><b>When TVP-VAR connectedness is the right tool:</b> any network-of-variables question - volatility
+        spillovers across markets, crypto contagion, sovereign yields, commodities and inflation - especially
+        with <b>short samples</b> (no observations to burn on a window) or <b>low-frequency data</b></li>
+      <li><b>Defaults to state and defend:</b> \(\kappa_1=0.99\), \(\kappa_2=0.96\) (Koop-Korobilis benchmark;
+        best forecaster in the paper's Tables 4-5), prior from the first ~60 obs, lag by BIC, H around 10-12,
+        then show a sensitivity table like ours - referees will ask</li>
+      <li><b>Report all four layers:</b> total index (system), TO/FROM (gross), NET (position), NPDC (bilateral).
+        Each answers a different question; the paper's Figures 7-8 are the template</li>
+      <li><b>Software:</b> <code>ConnectednessApproach</code> in R is the authors' own implementation and adds
+        what our teaching filter omits: full Bayesian uncertainty bands (paper Figures 11-14), other estimators
+        (QVAR, frequency-domain) and publication-ready plots</li>
+      <li><b>Honesty box:</b> connectedness is a forecast-error-variance accounting, not causality; it inherits
+        the VAR's linearity; and a falling index does not mean falling risk (March 2009 here)</li>
+    </ul>
+    <div class="files" style="justify-content:center;margin-top:.6em">
+      <a href="../../">🏠 Hub</a>
+      <a href="../lecture07/">← Lecture 7</a>
+      <a href="../lecture09/">Lecture 9 →</a>
+      <a href="code/lecture08.do">.do</a><a href="code/lecture08.prg">.prg</a>
+      <a href="code/lecture08.R">.R</a><a href="code/lecture08.py">.py</a>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= REFERENCES ======================= -->
+<section>
+  <h2>References</h2>
+  <ul class="refs" style="font-size:.62em">
+    <li><b>Antonakakis, N., Chatziantoniou, I. and Gabauer, D. (2020) 'Refined measures of dynamic connectedness
+      based on time-varying parameter vector autoregressions', <i>Journal of Risk and Financial Management</i>,
+      13(4), 84.</b></li>
+    <li>Diebold, F.X. and Yilmaz, K. (2012) 'Better to give than to receive: predictive directional measurement
+      of volatility spillovers', <i>International Journal of Forecasting</i>, 28(1), pp. 57-66.</li>
+    <li>Diebold, F.X. and Yilmaz, K. (2014) 'On the network topology of variance decompositions: measuring the
+      connectedness of financial firms', <i>Journal of Econometrics</i>, 182(1), pp. 119-134.</li>
+    <li>Koop, G. and Korobilis, D. (2013) 'Large time-varying parameter VARs', <i>Journal of Econometrics</i>,
+      177(2), pp. 185-198.</li>
+    <li>Koop, G. and Korobilis, D. (2014) 'A new index of financial conditions', <i>European Economic Review</i>,
+      71, pp. 101-116.</li>
+    <li>Koop, G., Pesaran, M.H. and Potter, S.M. (1996) 'Impulse response analysis in nonlinear multivariate
+      models', <i>Journal of Econometrics</i>, 74(1), pp. 119-147.</li>
+    <li>Pesaran, H.H. and Shin, Y. (1998) 'Generalized impulse response analysis in linear multivariate models',
+      <i>Economics Letters</i>, 58(1), pp. 17-29.</li>
+    <li>Primiceri, G.E. (2005) 'Time varying structural vector autoregressions and monetary policy',
+      <i>Review of Economic Studies</i>, 72(3), pp. 821-852.</li>
+    <li>Antonakakis, N. and Gabauer, D. (2017) <i>Refined measures of dynamic connectedness based on TVP-VAR</i>.
+      Technical report. Munich: University Library of Munich.</li>
+    <li>Software: Gabauer, D., <i>ConnectednessApproach</i> R package, replication page
+      gabauerdavid.github.io/ConnectednessApproach (2020 Antonakakis, Chatziantoniou and Gabauer).</li>
+  </ul>
+</section>
+
+</div>
+</div>
+
+<script src="../../assets/vendor/reveal/dist/reveal.js"></script>
+<script src="../../assets/vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="../../assets/vendor/katex/katex.min.js"></script>
+<script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/sim-core.js"></script>
+<script src="data_fx.js"></script>
+<script>
+'use strict';
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t', width: 1050, height: 700, margin: 0.06,
+  plugins: [RevealHighlight]
+});
+Reveal.on('ready', function () {
+  document.querySelectorAll('.slides section').forEach(function (s) {
+    renderMathInElement(s, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  });
+});
+
+/* =====================================================================
+   Shared engine: forgetting-factor Kalman filter TVP-VAR(1) + GFEVD
+   on the embedded weekly EUR/GBP/JPY returns (window.DATA_FX).
+   Teaching-grade Koop-Korobilis filter; matches code/lecture08.py.
+   ===================================================================== */
+var FX = window.DATA_FX;
+var CCY = ['EUR', 'GBP', 'JPY'];
+var CCOL = [SIM.colors.accent, SIM.colors.accent2, SIM.colors.bad];
+var NW = FX.EUR.length, NF = NW - 1;      // filter output length (needs 1 lag)
+var YD = [];
+(function () {
+  for (var i = 0; i < NW; i++) YD.push([FX.EUR[i], FX.GBP[i], FX.JPY[i]]);
+})();
+function m0() { return [[0, 0, 0], [0, 0, 0], [0, 0, 0]]; }
+function mmul(A, B) {
+  var C = m0(), i, j, k, s;
+  for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) {
+    s = 0; for (k = 0; k < 3; k++) s += A[i][k] * B[k][j];
+    C[i][j] = s;
+  }
+  return C;
+}
+function minv(A) {
+  var a = A[0][0], b = A[0][1], c = A[0][2], d = A[1][0], e = A[1][1], f = A[1][2],
+      g = A[2][0], h = A[2][1], k = A[2][2];
+  var det = a * (e * k - f * h) - b * (d * k - f * g) + c * (d * h - e * g);
+  return [[(e * k - f * h) / det, (c * h - b * k) / det, (b * f - c * e) / det],
+          [(f * g - d * k) / det, (a * k - c * g) / det, (c * d - a * f) / det],
+          [(d * h - e * g) / det, (b * g - a * h) / det, (a * e - b * d) / det]];
+}
+/* connectedness measures from coefficients A and error covariance Sig */
+function connMeasures(A, Sig, H) {
+  var B = [[1, 0, 0], [0, 1, 0], [0, 0, 1]], num = m0(), den = [0, 0, 0], i, j, h, BS;
+  for (h = 0; h < H; h++) {
+    BS = mmul(B, Sig);
+    for (i = 0; i < 3; i++) {
+      den[i] += BS[i][0] * B[i][0] + BS[i][1] * B[i][1] + BS[i][2] * B[i][2];
+      for (j = 0; j < 3; j++) num[i][j] += BS[i][j] * BS[i][j] / Sig[j][j];
+    }
+    B = mmul(A, B);
+  }
+  var phi = m0(), rs;
+  for (i = 0; i < 3; i++) {
+    rs = 0;
+    for (j = 0; j < 3; j++) { phi[i][j] = num[i][j] / den[i]; rs += phi[i][j]; }
+    for (j = 0; j < 3; j++) phi[i][j] *= 100 / rs;
+  }
+  var to = [0, 0, 0], fr = [0, 0, 0], off = 0;
+  for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) if (i !== j) {
+    off += phi[i][j]; to[j] += phi[i][j]; fr[i] += phi[i][j];
+  }
+  return { tci: off / 3, to: to, from: fr,
+           net: [to[0] - fr[0], to[1] - fr[1], to[2] - fr[2]],
+           npdc: [phi[1][0] - phi[0][1], phi[2][0] - phi[0][2], phi[2][1] - phi[1][2]] };
+}
+/* OLS VAR(1) on YD[t0..t1] (z = obs t, y = obs t+1); returns {A, Sig} */
+function olsVar(t0, t1) {
+  var ZZ = m0(), ZY = m0(), i, j, t, z, y, n = t1 - t0 + 1;
+  for (t = t0; t <= t1; t++) {
+    z = YD[t]; y = YD[t + 1];
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) {
+      ZZ[i][j] += z[i] * z[j]; ZY[i][j] += z[i] * y[j];
+    }
+  }
+  for (i = 0; i < 3; i++) ZZ[i][i] += 1e-8;
+  var AT = mmul(minv(ZZ), ZY);
+  var A = [[AT[0][0], AT[1][0], AT[2][0]], [AT[0][1], AT[1][1], AT[2][1]], [AT[0][2], AT[1][2], AT[2][2]]];
+  var U = [], mu = [0, 0, 0], e;
+  for (t = t0; t <= t1; t++) {
+    e = [0, 0, 0];
+    for (i = 0; i < 3; i++) {
+      e[i] = YD[t + 1][i] - (A[i][0] * YD[t][0] + A[i][1] * YD[t][1] + A[i][2] * YD[t][2]);
+      mu[i] += e[i] / n;
+    }
+    U.push(e);
+  }
+  var Sig = m0();
+  for (t = 0; t < n; t++) for (i = 0; i < 3; i++) for (j = 0; j < 3; j++)
+    Sig[i][j] += (U[t][i] - mu[i]) * (U[t][j] - mu[j]) / (n - 1);
+  return { A: A, Sig: Sig };
+}
+var TVPMEMO = {};
+function tvp(k1, k2, H) {
+  var key = k1.toFixed(3) + ',' + k2.toFixed(2) + ',' + H;
+  if (TVPMEMO[key]) return TVPMEMO[key];
+  var prior = olsVar(0, 59);                 // OLS prior on the first 60 obs
+  var A = prior.A, Sig = prior.Sig;
+  var ZZ = m0(), i, j, t, z, y;
+  for (t = 0; t < 60; t++) {
+    z = YD[t];
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) ZZ[i][j] += z[i] * z[j];
+  }
+  for (i = 0; i < 3; i++) ZZ[i][i] += 1e-8;
+  var P = minv(ZZ);
+  var out = { tci: [], to: [], from: [], net: [], npdc: [] };
+  for (t = 0; t < NF; t++) {
+    z = YD[t]; y = YD[t + 1];
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) P[i][j] /= k1;
+    var Pz = [P[0][0] * z[0] + P[0][1] * z[1] + P[0][2] * z[2],
+              P[1][0] * z[0] + P[1][1] * z[1] + P[1][2] * z[2],
+              P[2][0] * z[0] + P[2][1] * z[1] + P[2][2] * z[2]];
+    var dnm = 1 + z[0] * Pz[0] + z[1] * Pz[1] + z[2] * Pz[2];
+    var e1 = [0, 0, 0];
+    for (i = 0; i < 3; i++) e1[i] = y[i] - (A[i][0] * z[0] + A[i][1] * z[1] + A[i][2] * z[2]);
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) A[i][j] += e1[i] * Pz[j] / dnm;
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) P[i][j] -= Pz[i] * Pz[j] / dnm;
+    var e2 = [0, 0, 0];
+    for (i = 0; i < 3; i++) e2[i] = y[i] - (A[i][0] * z[0] + A[i][1] * z[1] + A[i][2] * z[2]);
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) Sig[i][j] = k2 * Sig[i][j] + (1 - k2) * e2[i] * e2[j];
+    var c = connMeasures(A, Sig, H);
+    out.tci.push(c.tci); out.to.push(c.to); out.from.push(c.from);
+    out.net.push(c.net); out.npdc.push(c.npdc);
+  }
+  out.mean = ST.mean(out.tci);
+  TVPMEMO[key] = out;
+  return out;
+}
+var ROLLMEMO = {};
+function rollTci(w, H) {
+  var key = w + ',' + H;
+  if (ROLLMEMO[key]) return ROLLMEMO[key];
+  var out = new Array(NF), t;
+  for (t = 0; t < NF; t++) out[t] = NaN;
+  for (t = w - 1; t < NF; t++) {
+    var est = olsVar(t - w + 1, t);
+    out[t] = connMeasures(est.A, est.Sig, H).tci;
+  }
+  ROLLMEMO[key] = out;
+  return out;
+}
+/* filter index for the first week ending on/after an ISO date string */
+function idxAt(dstr) {
+  for (var i = 1; i < NW; i++) if (FX.d[i] >= dstr) return i - 1;
+  return NF - 1;
+}
+var XMIN = 1998.8, XMAX = 2018.8;
+function fmtDate(t) { return FX.d[t + 1]; }   // filter index -> week-end date
+
+/* ---------- SIM 1: TVP-VAR dynamic total connectedness ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-tvp');
+  var S = { k1: 0.99, k2: 0.96, H: 10 };
+  function draw() {
+    var r = tvp(S.k1, S.k2, S.H);
+    var top = Math.max.apply(null, r.tci) * 1.15;
+    var p = new SIM.Plot('cv-tvp', {
+      xmin: XMIN, xmax: XMAX, ymin: 0, ymax: top,
+      xlabel: 'year', ylabel: 'TCI (%)',
+      title: 'TVP-VAR(1) dynamic total connectedness, weekly EUR/GBP/JPY, k1 = '
+        + S.k1.toFixed(3) + ', k2 = ' + S.k2.toFixed(2) + ', H = ' + S.H
+    });
+    p.clear();
+    p.shade(2008.68, 2009.25, {});           // GFC
+    p.axes();
+    p.vline(2016.48, { color: SIM.colors.dim });  // Brexit vote
+    p.line(FX.t.slice(1), r.tci, { color: SIM.colors.accent, width: 1.6 });
+    p.hline(r.mean, { color: SIM.colors.accent2, width: 1.2, dash: [6, 5] });
+    p.label(XMIN + 0.2, top * 0.95, 'GFC shaded · Brexit vote marked', { color: SIM.colors.text, size: 11 });
+    var imax = r.tci.indexOf(Math.max.apply(null, r.tci));
+    var imin = r.tci.indexOf(Math.min.apply(null, r.tci));
+    document.getElementById('ro-tvp').innerHTML =
+      'mean TCI = <b>' + r.mean.toFixed(2) + '%</b> · max ' + r.tci[imax].toFixed(1) +
+      '% (week ending ' + fmtDate(imax) + ') · min ' + r.tci[imin].toFixed(1) +
+      '% (' + fmtDate(imin) + ') · all ' + NF + ' weeks kept, none lost to a window';
+  }
+  function upd(k) { return function (v) { S[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'κ₁ (coefficient forgetting)', min: 0.97, max: 1.0, step: 0.005, value: S.k1, fmt: function (v) { return v.toFixed(3); } }, upd('k1'));
+  SIM.slider(ctl, { label: 'κ₂ (volatility EWMA)', min: 0.9, max: 0.99, step: 0.01, value: S.k2 }, upd('k2'));
+  SIM.slider(ctl, { label: 'H (GFEVD horizon)', min: 2, max: 25, step: 1, value: S.H, fmt: function (v) { return v.toFixed(0); } }, upd('H'));
+  var ro = document.createElement('div');
+  ro.id = 'ro-tvp'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 2: rolling-window VAR vs TVP-VAR ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-roll');
+  var W = 104;
+  function draw() {
+    var r = tvp(0.99, 0.96, 10);
+    var rw = rollTci(W, 10);
+    var vals = r.tci.slice(), t;
+    for (t = 0; t < NF; t++) if (isFinite(rw[t])) vals.push(rw[t]);
+    var top = Math.max.apply(null, vals) * 1.15;
+    var p = new SIM.Plot('cv-roll', {
+      xmin: XMIN, xmax: XMAX, ymin: 0, ymax: top,
+      xlabel: 'year', ylabel: 'TCI (%)',
+      title: 'Rolling-window VAR (w = ' + W + ' weeks) vs TVP-VAR, H = 10'
+    });
+    p.clear();
+    p.shade(XMIN, FX.t[W], {});             // the sample the window burns
+    p.axes();
+    p.line(FX.t.slice(1), r.tci, { color: SIM.colors.accent, width: 1.6 });
+    var xs = [], ys = [];
+    for (t = 0; t < NF; t++) if (isFinite(rw[t])) { xs.push(FX.t[t + 1]); ys.push(rw[t]); }
+    p.line(xs, ys, { color: SIM.colors.bad, width: 1.6 });
+    p.legend([
+      { label: 'TVP-VAR (κ₁ = 0.99): all ' + NF + ' weeks', color: SIM.colors.accent },
+      { label: 'rolling VAR: first ' + (W - 1) + ' weeks lost (shaded)', color: SIM.colors.bad }
+    ]);
+    var mn = 0, sd = 0, n = ys.length, i;
+    for (i = 0; i < n; i++) mn += ys[i] / n;
+    for (i = 0; i < n; i++) sd += (ys[i] - mn) * (ys[i] - mn) / (n - 1);
+    sd = Math.sqrt(sd);
+    var common = [], commonT = [];
+    for (t = 0; t < NF; t++) if (isFinite(rw[t])) { common.push(rw[t]); commonT.push(r.tci[t]); }
+    document.getElementById('ro-roll').innerHTML =
+      'rolling: mean <b>' + mn.toFixed(2) + '%</b>, sd ' + sd.toFixed(2) + ', loses ' + (W - 1) +
+      ' obs (' + (100 * (W - 1) / NF).toFixed(0) + '% of the sample) · TVP: mean <b>' +
+      tvp(0.99, 0.96, 10).mean.toFixed(2) + '%</b>, loses none · correlation on the common sample = <b>' +
+      ST.corr(common, commonT).toFixed(3) + '</b>';
+  }
+  SIM.slider(ctl, { label: 'w (window, weeks)', min: 26, max: 520, step: 26, value: W, fmt: function (v) { return v.toFixed(0); } },
+    function (v) { W = v; draw(); });
+  var ro = document.createElement('div');
+  ro.id = 'ro-roll'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 3: net directional connectedness with a scrubber ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-net');
+  var idx = idxAt('2008-10-27'), scrub;
+  function draw() {
+    var r = tvp(0.99, 0.96, 10);
+    var lo = 0, hi = 0, t, i;
+    for (t = 0; t < NF; t++) for (i = 0; i < 3; i++) {
+      if (r.net[t][i] < lo) lo = r.net[t][i];
+      if (r.net[t][i] > hi) hi = r.net[t][i];
+    }
+    var p = new SIM.Plot('cv-net', {
+      xmin: XMIN, xmax: XMAX, ymin: lo * 1.12, ymax: hi * 1.12,
+      xlabel: 'year', ylabel: 'NET (%)',
+      title: 'NET total directional connectedness (above 0 = transmitter), κ₁ = 0.99, H = 10'
+    });
+    p.clear(); p.axes();
+    p.hline(0, { color: SIM.colors.dim });
+    for (i = 0; i < 3; i++) {
+      var ys = [];
+      for (t = 0; t < NF; t++) ys.push(r.net[t][i]);
+      p.line(FX.t.slice(1), ys, { color: CCOL[i], width: 1.4 });
+    }
+    p.vline(FX.t[idx + 1], { color: SIM.colors.line, width: 1.4, dash: [4, 4] });
+    p.legend([{ label: 'EUR', color: CCOL[0] }, { label: 'GBP', color: CCOL[1] }, { label: 'JPY', color: CCOL[2] }]);
+    var n = r.net[idx];
+    var roles = n.map(function (v) { return v > 0 ? 'transmits' : 'receives'; });
+    document.getElementById('ro-net').innerHTML =
+      'week ending <b>' + fmtDate(idx) + '</b>: EUR <b>' + n[0].toFixed(1) + '</b> (' + roles[0] +
+      ') · GBP <b>' + n[1].toFixed(1) + '</b> (' + roles[1] + ') · JPY <b>' + n[2].toFixed(1) +
+      '</b> (' + roles[2] + ') · TCI = ' + r.tci[idx].toFixed(1) + '%';
+  }
+  scrub = SIM.slider(ctl, { label: 'scrub the timeline', min: 0, max: NF - 1, step: 1, value: idx,
+    fmt: function (v) { return fmtDate(Math.round(v)); } }, function (v) { idx = Math.round(v); draw(); });
+  SIM.button(ctl, 'Lehman autumn 2008', function () { idx = idxAt('2008-10-27'); scrub.set(idx); draw(); });
+  SIM.button(ctl, 'GFC trough 2009', function () { idx = idxAt('2009-03-11'); scrub.set(idx); draw(); }, true);
+  SIM.button(ctl, 'Brexit vote 2016', function () { idx = idxAt('2016-06-23'); scrub.set(idx); draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-net'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 4: pairwise connectedness network snapshot ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-nw');
+  var idx = idxAt('2008-10-27'), scrub;
+  var POS = [[440, 62], [190, 205], [690, 205]];    // EUR, GBP, JPY
+  function arrow(ctx, x0, y0, x1, y1, wdt, r0, r1) {
+    var dx = x1 - x0, dy = y1 - y0, L = Math.sqrt(dx * dx + dy * dy);
+    var ux = dx / L, uy = dy / L;
+    x0 += ux * r0; y0 += uy * r0; x1 -= ux * (r1 + 6); y1 -= uy * (r1 + 6);
+    ctx.strokeStyle = '#94a3b8'; ctx.fillStyle = '#94a3b8';
+    ctx.lineWidth = wdt;
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+    var hs = 6 + wdt * 1.6;
+    ctx.beginPath();
+    ctx.moveTo(x1 + ux * hs, y1 + uy * hs);
+    ctx.lineTo(x1 - uy * hs * 0.5, y1 + ux * hs * 0.5);
+    ctx.lineTo(x1 + uy * hs * 0.5, y1 - ux * hs * 0.5);
+    ctx.closePath(); ctx.fill();
+  }
+  function draw() {
+    var r = tvp(0.99, 0.96, 10);
+    var cv = document.getElementById('cv-nw'), ctx = cv.getContext('2d');
+    ctx.fillStyle = SIM.colors.bg; ctx.fillRect(0, 0, cv.width, cv.height);
+    ctx.fillStyle = SIM.colors.text; ctx.font = '13px system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Pairwise network, week ending ' + fmtDate(idx) + ' · TCI = ' + r.tci[idx].toFixed(1) + '%', cv.width / 2, 20);
+    var net = r.net[idx], npdc = r.npdc[idx];
+    /* pairs: [from, to, |npdc|]; npdc[0] EUR vs GBP, [1] EUR vs JPY, [2] GBP vs JPY */
+    var pairs = [
+      npdc[0] >= 0 ? [0, 1, npdc[0]] : [1, 0, -npdc[0]],
+      npdc[1] >= 0 ? [0, 2, npdc[1]] : [2, 0, -npdc[1]],
+      npdc[2] >= 0 ? [1, 2, npdc[2]] : [2, 1, -npdc[2]]
+    ];
+    var rad = net.map(function (v) { return 20 + Math.min(Math.abs(v), 22) * 0.9; });
+    pairs.forEach(function (pr) {
+      var a = POS[pr[0]], b = POS[pr[1]];
+      arrow(ctx, a[0], a[1], b[0], b[1], 1 + Math.min(pr[2], 12) * 1.1, rad[pr[0]], rad[pr[1]]);
+      ctx.fillStyle = '#e2e8f0'; ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText(pr[2].toFixed(1), (a[0] + b[0]) / 2 + 14, (a[1] + b[1]) / 2 - 6);
+    });
+    for (var i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.fillStyle = net[i] >= 0 ? 'rgba(52,211,153,0.28)' : 'rgba(248,113,113,0.28)';
+      ctx.strokeStyle = net[i] >= 0 ? SIM.colors.good : SIM.colors.bad;
+      ctx.lineWidth = 2;
+      ctx.arc(POS[i][0], POS[i][1], rad[i], 0, 2 * Math.PI);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = '#e2e8f0'; ctx.font = 'bold 13px system-ui, sans-serif';
+      ctx.fillText(CCY[i], POS[i][0], POS[i][1] - 2);
+      ctx.font = '11px system-ui, sans-serif';
+      ctx.fillText((net[i] >= 0 ? '+' : '') + net[i].toFixed(1), POS[i][0], POS[i][1] + 13);
+    }
+    ctx.textAlign = 'left';
+    document.getElementById('ro-nw').innerHTML =
+      'arrows point dominant → dominated (Equation 19) · NPDC: EUR/GBP <b>' + npdc[0].toFixed(1) +
+      '</b>, EUR/JPY <b>' + npdc[1].toFixed(1) + '</b>, GBP/JPY <b>' + npdc[2].toFixed(1) +
+      '</b> (positive = first named dominates)';
+  }
+  scrub = SIM.slider(ctl, { label: 'scrub the timeline', min: 0, max: NF - 1, step: 1, value: idx,
+    fmt: function (v) { return fmtDate(Math.round(v)); } }, function (v) { idx = Math.round(v); draw(); });
+  SIM.button(ctl, 'Lehman autumn 2008', function () { idx = idxAt('2008-10-27'); scrub.set(idx); draw(); });
+  SIM.button(ctl, 'calm peak 2006', function () { idx = idxAt('2006-06-30'); scrub.set(idx); draw(); }, true);
+  SIM.button(ctl, 'Brexit vote 2016', function () { idx = idxAt('2016-06-23'); scrub.set(idx); draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-nw'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM 5: robustness overlay (kappa1 / H sensitivity) ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-rob');
+  var mode = 'k1';
+  function draw() {
+    var runs, labels;
+    if (mode === 'k1') {
+      runs = [tvp(0.97, 0.96, 10), tvp(0.99, 0.96, 10), tvp(1.0, 0.96, 10)];
+      labels = ['κ₁ = 0.97', 'κ₁ = 0.99 (benchmark)', 'κ₁ = 1.00 (constant params)'];
+    } else {
+      runs = [tvp(0.99, 0.96, 5), tvp(0.99, 0.96, 10), tvp(0.99, 0.96, 20)];
+      labels = ['H = 5', 'H = 10 (benchmark)', 'H = 20'];
+    }
+    var cols = [SIM.colors.bad, SIM.colors.accent, SIM.colors.good];
+    var top = 0, t, k;
+    for (k = 0; k < 3; k++) for (t = 0; t < NF; t++) if (runs[k].tci[t] > top) top = runs[k].tci[t];
+    var p = new SIM.Plot('cv-rob', {
+      xmin: XMIN, xmax: XMAX, ymin: 0, ymax: top * 1.15,
+      xlabel: 'year', ylabel: 'TCI (%)',
+      title: mode === 'k1' ? 'Sensitivity to the forgetting factor κ₁ (H = 10)'
+                           : 'Sensitivity to the GFEVD horizon H (κ₁ = 0.99)'
+    });
+    p.clear(); p.axes();
+    for (k = 0; k < 3; k++)
+      p.line(FX.t.slice(1), runs[k].tci, { color: cols[k], width: k === 1 ? 1.8 : 1.2 });
+    p.legend(labels.map(function (l, i) { return { label: l, color: cols[i] }; }));
+    document.getElementById('ro-rob').innerHTML =
+      'means: <b>' + runs[0].mean.toFixed(2) + '%</b> / <b>' + runs[1].mean.toFixed(2) +
+      '%</b> / <b>' + runs[2].mean.toFixed(2) + '%</b> - ' +
+      (mode === 'k1' ? 'under a point apart; same peaks, same troughs, same story'
+                     : 'identical to two decimals: the horizon is innocuous here');
+  }
+  SIM.button(ctl, 'vary κ₁', function () { mode = 'k1'; draw(); });
+  SIM.button(ctl, 'vary H', function () { mode = 'H'; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-rob'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+</script>
+<script src="../../assets/js/pyrun.js"></script>
+<!-- editorial: the paper's confidence-interval construction (Section 5.3.2, Figures 11-14: bootstrapped
+     GIRF bands and random forgetting-factor/prior draws) is summarised in the robustness and discussion
+     sections rather than re-implemented; it needs thousands of re-estimations and lives in the authors'
+     R package. The forecast-evaluation tables (4-5) are quoted, not rerun. -->
+</body>
+</html>

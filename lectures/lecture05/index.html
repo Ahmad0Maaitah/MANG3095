@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Lecture 5 · Building a Research Methodology in Finance - MANG3095</title>
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reset.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/reveal.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/dist/theme/black.css">
+<link rel="stylesheet" href="../../assets/vendor/reveal/plugin/highlight/monokai.css">
+<link rel="stylesheet" href="../../assets/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="../../assets/css/theme.css">
+</head>
+<body>
+<div class="reveal">
+<div class="slides">
+
+<!-- ======================= TITLE ======================= -->
+<section>
+  <h1>Building a Research Methodology in Finance</h1>
+  <h3>Lecture 5 · Empirical and Theoretical Foundations</h3>
+  <p class="muted">MANG3095 · Advanced Financial Econometrics · University of Southampton</p>
+  <div class="panel def small" style="max-width:660px;margin:1em auto">
+    <b>The bridge week.</b> This lecture closes the skills phase and opens the door to Weeks 6 to 10,
+    where five landmark papers are rebuilt hands-on. A final-year undergraduate guide.
+  </div>
+  <p class="tiny">Use &larr; &rarr; to move between topics, &uarr; &darr; to dive into each one. Press <code>o</code> for an overview, <code>f</code> for full screen.</p>
+</section>
+
+<!-- ======================= OVERVIEW ======================= -->
+<section>
+  <h2>Overview</h2>
+  <div class="cols">
+    <div class="panel small"><b class="accent">01 · Research methodology</b><br>The importance of rigorous research design and theoretical frameworks in finance.</div>
+    <div class="panel small"><b class="accent">02 · Data types</b><br>Cross-sectional, time series and panel data structures for empirical analysis.</div>
+  </div>
+  <div class="cols">
+    <div class="panel small"><b class="accent">03 · Econometric techniques</b><br>Models and methods for analysing financial markets and asset prices.</div>
+    <div class="panel small"><b class="accent">04 · Event studies</b><br>Methodology for testing market efficiency and price reactions to information.</div>
+  </div>
+  <div class="cols">
+    <div class="panel small"><b class="accent">05 · Advanced methods</b><br>Machine learning, network analysis and macro-finance applications.</div>
+    <div class="panel small"><b class="accent">06 · Research process</b><br>Practical guidance on conducting research, avoiding pitfalls, and future directions.</div>
+  </div>
+</section>
+
+<!-- ======================= METHODOLOGY AND DATA ======================= -->
+<section>
+  <section>
+    <h2>Why methodology matters</h2>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Bridging theory and data</b><br>
+        Finance research connects economic theory with empirical evidence. Rigorous methodology enables
+        researchers to test hypotheses, validate theories, and inform policy decisions with credible,
+        data-driven insights.</div>
+      <div class="panel small"><b class="accent">Integrating multiple dimensions</b><br>
+        Financial econometrics combines time-series, cross-sectional and panel techniques to analyse asset
+        prices, risk exposures and volatility patterns. This multidimensional approach captures the
+        complexity of financial markets.</div>
+    </div>
+    <div class="panel def small"><b>Addressing modern challenges.</b> Contemporary research must handle nonlinear
+      dynamics, structural breaks and heteroscedasticity. Machine learning techniques increasingly complement
+      traditional econometric methods for improved forecasting and risk measurement.</div>
+  </section>
+  <section>
+    <h3>Types of data</h3>
+    <table class="data" style="font-size:.5em">
+      <tr><th></th><th>Cross-sectional</th><th>Time series</th><th>Panel</th></tr>
+      <tr><td><b>What it is</b></td>
+        <td>A snapshot of many subjects (firms, countries, individuals) at a single point in time</td>
+        <td>One subject observed across multiple time periods</td>
+        <td>Multiple entities tracked over time: both dimensions at once</td></tr>
+      <tr><td><b>Strengths</b></td>
+        <td>Identifies patterns and correlations; cost-effective data collection</td>
+        <td>Captures temporal dynamics and trends; enables forecasting and momentum analysis</td>
+        <td>Controls for unobserved heterogeneity; richer information; more sophisticated techniques and more robust causal inference</td></tr>
+      <tr><td><b>Watch out for</b></td>
+        <td>Limited ability to infer causation or temporal relationships</td>
+        <td>Requires testing for stationarity and autocorrelation</td>
+        <td>Needs entity and time identifiers; balanced versus unbalanced structure</td></tr>
+      <tr><td><b>In this module</b></td>
+        <td>Portfolio sorts, firm characteristics</td>
+        <td>Weeks 6 to 9: factors, FX, crypto, stock returns</td>
+        <td>Week 10: county-level lending panel</td></tr>
+    </table>
+    <p class="tiny muted">Time series data are essential for understanding how variables evolve in response to
+      shocks or policy changes; panel data combine that with cross-entity comparison.</p>
+  </section>
+  <section>
+    <h3>Quick check: which data structure?</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">You observe annual lending volumes for 3,000 US counties from 2006 to 2016 and want to control
+        for fixed differences between counties. Which data structure and why?</div>
+      <div class="opt">Cross-sectional: one number per county is enough</div>
+      <div class="opt">Time series: lending evolves over time, so only the time dimension matters</div>
+      <div class="opt" data-ok>Panel: entities tracked over time, so entity fixed effects can absorb unobserved county heterogeneity</div>
+      <div class="opt">None: this requires survey data</div>
+      <div class="explain">Counties (entities) times years (periods) is a classic panel. Fixed effects control for
+        unobserved, time-invariant county differences: exactly the design of the Week 10 paper on FinTech lending.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Sampling and data collection</h3>
+    <div class="panel small"><b class="accent">Define your population.</b> Clearly specify the target population and
+      adopt random sampling techniques to minimise selection bias and ensure representativeness.</div>
+    <div class="panel small"><b class="accent">Choose appropriate sources.</b> Cross-sectional studies often rely on
+      surveys, financial statements or regulatory filings collected at a single point in time. Ensure data quality
+      and consistency.</div>
+    <div class="panel small"><b class="accent">Leverage databases.</b> High-frequency trading and macro-finance
+      research require large-scale databases such as CRSP, TAQ, Compustat, or central bank datasets.</div>
+    <div class="panel small"><b class="accent">Ethical considerations.</b> Data privacy, informed consent and ethical
+      treatment of sensitive information are paramount. Always obtain proper permissions and anonymise data when
+      necessary.</div>
+  </section>
+</section>
+
+<!-- ======================= ECONOMETRIC TOOLKIT ======================= -->
+<section>
+  <section>
+    <h2>Financial econometrics</h2>
+    <p class="small">Financial econometrics provides the analytical toolkit for understanding asset prices, risk
+      dynamics and market behaviour. These techniques form the foundation of empirical finance research.</p>
+    <div class="panel small"><b class="accent">1 · Ordinary Least Squares (OLS) and Instrumental Variables (IV)</b><br>
+      Baseline techniques for estimating linear relationships. OLS provides efficient estimates under classical
+      assumptions, while IV methods address <strong>endogeneity</strong> when regressors are correlated with the
+      error terms.</div>
+    <div class="panel small"><b class="accent">2 · ARCH and GARCH models</b><br>
+      Capture conditional heteroscedasticity and <strong>volatility clustering</strong> in asset returns: volatility
+      varies over time and clusters in periods of high and low volatility.</div>
+    <div class="panel small"><b class="accent">3 · Advanced econometric methods</b><br>
+      Techniques for structural breaks, nonlinear relationships and regime changes; machine learning methods
+      increasingly complement traditional approaches for improved forecasting accuracy.</div>
+  </section>
+  <section>
+    <h3>Event study example: FinTech and banks</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Research question</b><br>How do FinTech funding announcements affect
+        traditional European banks' stock prices?</div>
+      <div class="panel small"><b class="accent">Methodology</b><br>A market model event study, using both parametric
+        t-tests and non-parametric rank tests to assess significance. The focus is competitive threats signalled by
+        FinTech funding rounds.</div>
+    </div>
+    <div class="cols">
+      <div class="panel small"><b class="accent2">Key findings</b>
+        <ul class="tiny">
+          <li>Significant negative abnormal returns around announcement dates</li>
+          <li>Stronger effects for digital lending FinTechs</li>
+          <li>Results support signalling theory: funding conveys competitive threats</li>
+          <li>Banks with less digital transformation show larger negative reactions</li>
+        </ul></div>
+      <div class="panel small"><b class="accent2">Implications</b><br>Traditional banks must accelerate digital
+        transformation to remain competitive. The market perceives well-funded FinTechs as credible threats,
+        particularly in lending and payments; innovation investment and strategic partnerships matter.</div>
+    </div>
+    <p class="small muted">&#9660; build the cumulative abnormal return picture yourself below</p>
+  </section>
+  <section>
+    <h3>&#127899;&#65039; Event study machine: average CAR around an announcement</h3>
+    <div class="sim" id="sim-car">
+      <canvas id="cv-car" width="880" height="260"></canvas>
+      <div class="controls-row" id="ctl-car"></div>
+      <div class="note">Simulated market-model abnormal returns for N bank stocks around an announcement at day 0
+        (fixed seed). The <b style="color:#38bdf8">average CAR</b> cumulates the cross-sectional mean abnormal return;
+        the <b style="color:#fbbf24">dashed band</b> is a 95% no-effect confidence band. A negative event-day effect
+        (the FinTech-threat case) drops the CAR through the band; post-event drift mimics slow price adjustment.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> With the effect at zero the CAR
+      wanders inside the band: announcements carry no information. A one-off event-day effect shifts the CAR once and
+      it stays flat afterwards, which is exactly what an efficient market implies. If the t statistic on the event-window
+      CAR from day 0 to +10 exceeds 1.96 in absolute value, a researcher would report a significant market reaction;
+      sustained post-event drift instead points to delayed incorporation of news. More events N tighten the band: power grows
+      with the square root of the sample size.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it simulates abnormal returns for N
+      stocks around an event day with sliders for the event-day effect, post-event drift, noise and N, plots the
+      average cumulative abnormal return with a 95% no-effect band, and reports the day +10 CAR and its t statistic.</div></noscript>
+  </section>
+  <section>
+    <h3>Macro-finance methods</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Capturing volatility spillovers</b><br>
+        BEKK-GARCH models extend univariate GARCH to multivariate settings, capturing how volatility spills over
+        between financial markets and macroeconomic variables. Dynamic conditional correlation models reveal how
+        shocks in one market propagate to others.</div>
+      <div class="panel small"><b class="accent">Macroeconomic determinants of risk</b>
+        <ul class="tiny">
+          <li><b>Inflation:</b> erodes real returns and creates uncertainty</li>
+          <li><b>Exchange rates:</b> affect multinational earnings and competitiveness</li>
+          <li><b>GDP growth:</b> reflects economic health and corporate profitability</li>
+          <li><b>Money supply:</b> influences liquidity and interest rates</li>
+          <li><b>Interest rates:</b> affect discount rates and borrowing costs</li>
+        </ul></div>
+    </div>
+    <div class="panel def small"><b>Analytical techniques.</b> Combine Vector Autoregression (VAR), Granger causality
+      tests and structural break detection (the ICSS algorithm) to identify economic shocks, regime changes and causal
+      relationships between macro and financial variables. Weeks 7 and 8 build directly on the VAR toolkit.</div>
+  </section>
+</section>
+
+<!-- ======================= RESOURCES AND PITFALLS ======================= -->
+<section>
+  <section>
+    <h2>Academic journals and resources</h2>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Top-tier journals (ABS 4* / 4)</b>
+        <ul class="tiny">
+          <li><b>Journal of Finance:</b> premier general-interest finance journal, groundbreaking theoretical and empirical research</li>
+          <li><b>Journal of Financial Economics:</b> leading journal for asset pricing, corporate finance and intermediation</li>
+          <li><b>Review of Financial Studies:</b> broad coverage with rigorous empirical and theoretical work</li>
+          <li><b>Review of Finance:</b> the European Finance Association's journal, international perspective</li>
+        </ul></div>
+      <div class="panel small"><b class="accent">High-quality journals (ABS 3)</b>
+        <ul class="tiny">
+          <li><b>Journal of Banking &amp; Finance:</b> institutions, markets and intermediation</li>
+          <li><b>Journal of Corporate Finance:</b> corporate financial policy and governance</li>
+          <li><b>Journal of Empirical Finance:</b> empirical methods and applications</li>
+        </ul></div>
+    </div>
+    <div class="cols">
+      <div class="panel small"><b class="accent2">Working papers and databases</b>
+        <ul class="tiny">
+          <li><b>NBER:</b> influential pre-publication research</li>
+          <li><b>SSRN:</b> broad coverage of finance and economics preprints</li>
+          <li><b>arXiv:</b> open access, increasingly used for machine learning and crypto research</li>
+        </ul></div>
+      <div class="panel small"><b class="accent2">Citation tracking</b><br>Use Scopus, Web of Science and Google
+        Scholar to track citations, identify influential papers and discover research trends: monitor which papers
+        are shaping the field.</div>
+    </div>
+    <p class="tiny muted">Last week's ABS ranking explorer (Lecture 4) lets you check any of these ratings interactively.</p>
+  </section>
+  <section>
+    <h3>Common pitfalls and biases</h3>
+    <div class="cols">
+      <div class="panel warn small"><b>Data snooping and multiple testing</b><br>Testing many specifications and
+        reporting only significant results inflates false discovery rates. Use out-of-sample validation, adjust
+        p-values for multiple comparisons (Bonferroni, FDR), and pre-register research designs when possible.</div>
+      <div class="panel warn small"><b>Omitted variable bias and endogeneity</b><br>Omitting correlated variables or
+        reverse causality distorts coefficient estimates and produces spurious conclusions. Address through
+        instrumental variables, fixed effects, control variables, or experimental and quasi-experimental designs.</div>
+    </div>
+    <div class="cols">
+      <div class="panel warn small"><b>Overfitting in machine learning</b><br>Complex models may fit training data
+        perfectly but perform poorly out-of-sample. Employ k-fold cross-validation, hold-out test sets,
+        regularisation (LASSO, Ridge, dropout) and early stopping.</div>
+      <div class="panel warn small"><b>Survivorship and look-ahead bias</b><br>Survivorship bias arises when failed
+        firms drop from databases, artificially inflating performance. Look-ahead bias uses information not available
+        at decision time. Construct unbiased samples and align information timing carefully in backtests.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Quick check: spot the bias</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">A student backtests a trading rule on the current FTSE 100 constituents over 2000 to 2024 and
+        reports remarkable returns. What is the most fundamental problem?</div>
+      <div class="opt">Overfitting: the model has too many parameters</div>
+      <div class="opt" data-ok>Survivorship bias: today's constituents exclude firms that failed or were relegated during the sample</div>
+      <div class="opt">Endogeneity: returns cause the trading rule</div>
+      <div class="opt">Multiple testing: too many p-values were computed</div>
+      <div class="explain">Conditioning the sample on being in the index today means every firm in the backtest
+        "survived" to 2024, inflating measured performance. The fix is a point-in-time constituent list. The other
+        pitfalls may also apply, but the sample itself is biased before any model is estimated.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Future directions</h3>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Big data and alternative data</b><br>Social media sentiment, satellite
+        imagery, credit card transactions and web scraping create new prediction opportunities but require specialised
+        processing and ethical care.</div>
+      <div class="panel small"><b class="accent">Advanced AI methods</b><br>Deep learning architectures (LSTMs,
+        Transformers), reinforcement learning for trading, and explainable AI (SHAP, LIME) to open black-box
+        predictions.</div>
+    </div>
+    <div class="cols">
+      <div class="panel small"><b class="accent2">Sustainability and ESG</b><br>Impact investing, climate risk
+        modelling, carbon pricing, and the integration of sustainable finance into mainstream portfolios.</div>
+      <div class="panel small"><b class="accent2">DeFi and blockchain</b><br>Smart contracts, automated market makers,
+        yield farming and tokenomics; network models are essential for understanding crypto market structure and
+        contagion.</div>
+    </div>
+  </section>
+  <section>
+    <h3>Conclusion and takeaways</h3>
+    <p class="small"><b>Robust methodology matters.</b> Rigorous research design links economic theory with empirical
+      data, enabling credible insights that advance knowledge and inform policy. Your methodological choices
+      fundamentally shape your findings and their impact.</p>
+    <div class="cols">
+      <div class="panel small"><b class="accent">Choose wisely</b><br>Select data structures and econometric models
+        that align with your research question. Understand the assumptions underlying each method and verify they are
+        satisfied in your application.</div>
+      <div class="panel small"><b class="accent">Embrace diversity</b><br>Employ diverse techniques: traditional
+        econometrics, event studies, machine learning and network analysis, to capture different dimensions of
+        financial phenomena and ensure robust conclusions.</div>
+      <div class="panel small"><b class="accent">Maintain standards</b><br>Uphold ethical standards in data collection
+        and analysis. Document all procedures for reproducibility. Continue learning as methods and markets evolve.</div>
+    </div>
+  </section>
+</section>
+
+<!-- ======================= THE FIVE PAPERS AHEAD ======================= -->
+<section>
+  <section>
+    <h2>The five papers ahead</h2>
+    <p class="small">Everything so far - questions, literature, proposals, methodology - now gets applied. Each of the
+      next five weeks rebuilds one landmark paper end to end: the paper, the data, the method, full interactive
+      simulations, code in four languages, and robustness checks.</p>
+    <table class="data" style="font-size:.52em">
+      <tr><th>Week</th><th>Paper</th><th>Method family</th><th>Data</th></tr>
+      <tr><td>6</td><td>Fama and French (2015)</td><td>Factor models, spanning regressions, GRS</td><td>Ken French five factors</td></tr>
+      <tr><td>7</td><td>Diebold and Yilmaz (2012)</td><td>VAR, generalised FEVD, spillover indices</td><td>Volatility series</td></tr>
+      <tr><td>8</td><td>Antonakakis, Chatziantoniou and Gabauer (2020)</td><td>TVP-VAR dynamic connectedness</td><td>FX returns</td></tr>
+      <tr><td>9</td><td>Laurent, Rombouts and Violante (2012)</td><td>Multivariate GARCH forecast comparison</td><td>Original 10-stock returns</td></tr>
+      <tr><td>10</td><td>Gopal and Schnabl (2022)</td><td>Panel fixed effects, replication package</td><td>County lending panel</td></tr>
+    </table>
+    <p class="small muted">&#9660; one slide per paper, then a hands-on warm-up</p>
+  </section>
+  <section>
+    <h3>Week 6 · The five-factor asset pricing model</h3>
+    <div class="panel small"><b class="accent">Fama and French (2015)</b>, 'A five-factor asset pricing model',
+      <i>Journal of Financial Economics</i>.</div>
+    <p class="small"><b>Method.</b> Time-series regressions of portfolio returns on five factors (market, size, value,
+      profitability, investment), factor-spanning regressions, and the GRS test of whether intercepts are jointly zero.</p>
+    <p class="small"><b>Why it matters.</b> The workhorse model of modern empirical asset pricing: any anomaly or fund
+      manager you ever evaluate is judged against these factors. You will run the regressions on the real Ken French
+      data and see why the value factor becomes redundant once profitability and investment enter.</p>
+    <div class="files"><a href="../lecture06/">&#128202; Go to Week 6</a></div>
+  </section>
+  <section>
+    <h3>Week 7 · Volatility spillovers</h3>
+    <div class="panel small"><b class="accent">Diebold and Yilmaz (2012)</b>, 'Better to give than to receive:
+      predictive directional measurement of volatility spillovers', <i>International Journal of Forecasting</i>.</div>
+    <p class="small"><b>Method.</b> A VAR on volatilities, generalised forecast error variance decompositions
+      (order-invariant), and total, directional and net spillover indices built from the decomposition table.</p>
+    <p class="small"><b>Why it matters.</b> The standard way to quantify how shocks travel across markets: who
+      transmits, who receives, and how connectedness explodes in crises. The same framework powers hundreds of
+      applications from equities to crypto.</p>
+    <div class="files"><a href="../lecture07/">&#128279; Go to Week 7</a></div>
+  </section>
+  <section>
+    <h3>Week 8 · TVP-VAR dynamic connectedness</h3>
+    <div class="panel small"><b class="accent">Antonakakis, Chatziantoniou and Gabauer (2020)</b>, 'Refined measures of
+      dynamic connectedness based on time-varying parameter vector autoregressions', <i>Journal of Risk and Financial
+      Management</i>.</div>
+    <p class="small"><b>Method.</b> A time-varying parameter VAR estimated with forgetting-factor Kalman filtering, so
+      spillover measures update every day instead of relying on rolling windows.</p>
+    <p class="small"><b>Why it matters.</b> Fixes the rolling-window dilemma (window length is arbitrary, observations
+      are lost, crises are smoothed). You will watch connectedness move through calm and crisis periods on real FX
+      returns.</p>
+    <div class="files"><a href="../lecture08/">&#127754; Go to Week 8</a></div>
+  </section>
+  <section>
+    <h3>Week 9 · Multivariate GARCH forecasting</h3>
+    <div class="panel small"><b class="accent">Laurent, Rombouts and Violante (2012)</b>, 'On the forecasting accuracy
+      of multivariate GARCH models', <i>Journal of Applied Econometrics</i>.</div>
+    <p class="small"><b>Method.</b> A horse race of multivariate GARCH covariance forecasts (DCC and relatives),
+      evaluated with robust loss functions and the model confidence set.</p>
+    <p class="small"><b>Why it matters.</b> Portfolio risk, hedging and VaR all need a covariance <em>forecast</em>;
+      this paper shows how to compare forecasts honestly when the true covariance is unobservable. You will work with
+      the original 10-stock daily dataset used in the paper.</p>
+    <div class="files"><a href="../lecture09/">&#129518; Go to Week 9</a></div>
+  </section>
+  <section>
+    <h3>Week 10 · FinTech lenders and small business lending</h3>
+    <div class="panel small"><b class="accent">Gopal and Schnabl (2022)</b>, 'The rise of finance companies and FinTech
+      lenders in small business lending', <i>Review of Financial Studies</i>.</div>
+    <p class="small"><b>Method.</b> A county-level panel with fixed effects and exposure-based identification: counties
+      where banks had a larger pre-crisis market share saw finance companies and FinTech lenders expand more after 2008.</p>
+    <p class="small"><b>Why it matters.</b> A real published replication package, dissected: how professional empirical
+      work organises raw data, cleaning code and output tables, and how panel identification and robustness are done in
+      practice. This is the template for your own dissertation workflow.</p>
+    <div class="files"><a href="../lecture10/">&#127974; Go to Week 10</a></div>
+  </section>
+  <section>
+    <h3>&#128187; Warm-up: preparing data like a paper week</h3>
+    <p class="small">Every paper week starts the same way: load real data, look at it, and check stationarity.
+      Here are the daily FX log returns used in Week 8; the ADF test asks whether the series has a unit root
+      (H<sub>0</sub>: unit root, i.e. non-stationary).</p>
+    <div class="pyrun">
+<textarea class="pyrun-code" spellcheck="false">
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.stattools import adfuller
+df = load("fx_returns")                 # daily EUR/GBP/JPY % log returns
+r = df["EUR"].dropna()
+print(f"{len(r)} daily EUR log returns (%), mean {r.mean():.4f}, sd {r.std():.4f}")
+fig, ax = plt.subplots(figsize=(7.6, 3.0))
+ax.plot(r.values, lw=0.4)
+ax.set_title("EUR daily % log returns: volatility clusters, but the level is stable")
+stat, p, lags, nobs, crit, _ = adfuller(r, autolag="AIC")
+print(f"ADF statistic = {stat:.2f} (lags chosen by AIC: {lags})")
+print(f"5% critical value = {crit['5%']:.2f}, p-value = {p:.3g}")
+print("reject H0: the return series is stationary" if p < 0.05 else "cannot reject H0: unit root")
+plt.tight_layout()
+</textarea>
+    </div>
+    <p class="tiny muted">Expect an ADF statistic near -42 against a 5% critical value of -2.86: returns are
+      emphatically stationary (price <em>levels</em> would not be). Try "GBP" or "JPY". The first run downloads
+      Python into your browser (~15 MB), so it takes a little while; later runs are quick.</p>
+  </section>
+</section>
+
+<!-- ======================= SUMMARY ======================= -->
+<section>
+  <h2>Summary - what you can now do</h2>
+  <ul class="small">
+    <li>Explain why rigorous methodology bridges theory and data, and shapes what your findings can claim</li>
+    <li>Choose between cross-sectional, time series and panel structures, and know what each demands</li>
+    <li>Plan sampling, data sources (CRSP, TAQ, Compustat) and the ethics of data collection</li>
+    <li>Map the toolkit: OLS and IV, ARCH/GARCH, event studies, VAR and Granger causality, BEKK spillovers, ICSS breaks</li>
+    <li>Name and avoid the classic pitfalls: data snooping, endogeneity, overfitting, survivorship and look-ahead bias</li>
+    <li>Say precisely what each of the five papers in Weeks 6 to 10 does, and run the standard data-preparation warm-up</li>
+  </ul>
+  <div class="panel def small">
+    <b>Next week:</b> the paper weeks begin with <a href="../lecture06/">Fama and French (2015)</a> on the real
+    Ken French factor data.
+  </div>
+  <div class="files" style="justify-content:center;margin-top:.6em">
+    <a href="../../">&#127968; Hub</a>
+    <a href="../lecture04/">&larr; Lecture 4</a>
+    <a href="../lecture06/">Lecture 6 &rarr;</a>
+  </div>
+</section>
+
+<!-- ======================= REFERENCES ======================= -->
+<section>
+  <h2>References</h2>
+  <ul class="refs">
+    <li>Antonakakis, N., Chatziantoniou, I. and Gabauer, D. (2020) 'Refined measures of dynamic connectedness based on time-varying parameter vector autoregressions', <i>Journal of Risk and Financial Management</i>, 13(4), 84.</li>
+    <li>Bollerslev, T. (1986) 'Generalized autoregressive conditional heteroskedasticity', <i>Journal of Econometrics</i>, 31(3), pp. 307-327.</li>
+    <li>Dickey, D.A. and Fuller, W.A. (1979) 'Distribution of the estimators for autoregressive time series with a unit root', <i>Journal of the American Statistical Association</i>, 74(366), pp. 427-431.</li>
+    <li>Diebold, F.X. and Yilmaz, K. (2012) 'Better to give than to receive: predictive directional measurement of volatility spillovers', <i>International Journal of Forecasting</i>, 28(1), pp. 57-66.</li>
+    <li>Engle, R.F. (1982) 'Autoregressive conditional heteroscedasticity with estimates of the variance of United Kingdom inflation', <i>Econometrica</i>, 50(4), pp. 987-1007.</li>
+    <li>Engle, R.F. and Kroner, K.F. (1995) 'Multivariate simultaneous generalized ARCH', <i>Econometric Theory</i>, 11(1), pp. 122-150.</li>
+    <li>Fama, E.F. and French, K.R. (2015) 'A five-factor asset pricing model', <i>Journal of Financial Economics</i>, 116(1), pp. 1-22.</li>
+    <li>Gopal, M. and Schnabl, P. (2022) 'The rise of finance companies and FinTech lenders in small business lending', <i>Review of Financial Studies</i>, 35(11), pp. 4859-4901.</li>
+    <li>Granger, C.W.J. (1969) 'Investigating causal relations by econometric models and cross-spectral methods', <i>Econometrica</i>, 37(3), pp. 424-438.</li>
+    <li>Inclan, C. and Tiao, G.C. (1994) 'Use of cumulative sums of squares for retrospective detection of changes of variance', <i>Journal of the American Statistical Association</i>, 89(427), pp. 913-923.</li>
+    <li>Laurent, S., Rombouts, J.V.K. and Violante, F. (2012) 'On the forecasting accuracy of multivariate GARCH models', <i>Journal of Applied Econometrics</i>, 27(6), pp. 934-955.</li>
+    <li>MacKinlay, A.C. (1997) 'Event studies in economics and finance', <i>Journal of Economic Literature</i>, 35(1), pp. 13-39.</li>
+    <li>Sims, C.A. (1980) 'Macroeconomics and reality', <i>Econometrica</i>, 48(1), pp. 1-48.</li>
+  </ul>
+</section>
+
+</div>
+</div>
+
+<script src="../../assets/vendor/reveal/dist/reveal.js"></script>
+<script src="../../assets/vendor/reveal/plugin/highlight/highlight.js"></script>
+<script src="../../assets/vendor/katex/katex.min.js"></script>
+<script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
+<script src="../../assets/js/stats.js"></script>
+<script src="../../assets/js/sim-core.js"></script>
+<script>
+'use strict';
+Reveal.initialize({
+  hash: true, slideNumber: 'c/t', width: 1050, height: 700, margin: 0.06,
+  plugins: [RevealHighlight]
+});
+Reveal.on('ready', function () {
+  document.querySelectorAll('.slides section').forEach(function (s) {
+    renderMathInElement(s, {
+      delimiters: [
+        { left: '$$', right: '$$', display: true },
+        { left: '\\(', right: '\\)', display: false }
+      ]
+    });
+  });
+});
+SIM.initQuiz();
+
+/* ---------- SIM: event-study average CAR with a no-effect confidence band ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-car');
+  var P = { effect: -1.5, drift: 0.0, sd: 1.5, N: 100, seed: 6 };
+  var W = 10;                                   // event window: -W .. +W days
+  function draw() {
+    var rng = ST.rng(P.seed);
+    var T = 2 * W + 1;
+    var meanAR = new Array(T).fill(0);
+    var carEnd = [];                            // per-event CAR over days 0..+W (for the t-stat)
+    for (var i = 0; i < P.N; i++) {
+      var car = 0;
+      for (var t = 0; t < T; t++) {
+        var day = t - W;
+        var ar = P.sd * ST.randn(rng);
+        if (day === 0) ar += P.effect;
+        if (day > 0) ar += P.drift;
+        meanAR[t] += ar / P.N;
+        if (day >= 0) car += ar;
+      }
+      carEnd.push(car);
+    }
+    var carPath = [], c = 0;
+    for (t = 0; t < T; t++) { c += meanAR[t]; carPath.push(c); }
+    // 95% band for the average CAR under H0 (no effect): sd of a mean of N sums of k normals
+    var hi = [], lo = [], xs = [];
+    for (t = 0; t < T; t++) {
+      var s = 1.96 * P.sd * Math.sqrt(t + 1) / Math.sqrt(P.N);
+      xs.push(t - W); hi.push(s); lo.push(-s);
+    }
+    var L = Math.max(2, Math.abs(carPath[T - 1]) * 1.3, hi[T - 1] * 1.3);
+    var p = new SIM.Plot('cv-car', {
+      xmin: -W, xmax: W, ymin: -L, ymax: L,
+      xlabel: 'event time (days relative to announcement)', ylabel: 'average CAR (%)',
+      title: 'Average cumulative abnormal return across ' + P.N + ' events'
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim }); p.vline(0, { color: SIM.colors.dim });
+    p.line(xs, hi, { color: SIM.colors.accent2, width: 1.4, dash: [6, 5] });
+    p.line(xs, lo, { color: SIM.colors.accent2, width: 1.4, dash: [6, 5] });
+    p.line(xs, carPath, { color: SIM.colors.accent, width: 2.4 });
+    p.legend([
+      { label: 'average CAR', color: SIM.colors.accent },
+      { label: '95% band under no effect', color: SIM.colors.accent2 }
+    ]);
+    // t-stat of the mean CAR at day +W across events
+    var m = 0, v = 0;
+    for (i = 0; i < P.N; i++) m += carEnd[i] / P.N;
+    for (i = 0; i < P.N; i++) v += (carEnd[i] - m) * (carEnd[i] - m) / (P.N - 1);
+    var tstat = m / Math.sqrt(v / P.N);
+    document.getElementById('ro-car').innerHTML =
+      'event-window CAR(0, +' + W + ') = <b>' + m.toFixed(2) + '%</b> · t = <b>' + tstat.toFixed(2) + '</b> ' +
+      (Math.abs(tstat) > 1.96
+        ? '<span style="color:#34d399">|t| &gt; 1.96: significant market reaction</span>'
+        : '<span style="color:#94a3b8">|t| &le; 1.96: no significant reaction</span>');
+  }
+  function upd(k) { return function (v) { P[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'event-day effect (%)', min: -3, max: 3, step: 0.1, value: P.effect, fmt: function (v) { return v.toFixed(1); } }, upd('effect'));
+  SIM.slider(ctl, { label: 'post-event drift (%/day)', min: -0.5, max: 0.5, step: 0.05, value: P.drift, fmt: function (v) { return v.toFixed(2); } }, upd('drift'));
+  SIM.slider(ctl, { label: 'noise sd (%/day)', min: 0.5, max: 3, step: 0.1, value: P.sd, fmt: function (v) { return v.toFixed(1); } }, upd('sd'));
+  SIM.slider(ctl, { label: 'N (events)', min: 10, max: 200, step: 10, value: P.N, fmt: function (v) { return v.toFixed(0); } }, upd('N'));
+  SIM.button(ctl, 'new draw', function () { P.seed += 1; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-car'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+</script>
+<script src="../../assets/js/pyrun.js"></script>
+<!-- editorial: source PDF page 1 carries the date "7 October 2025"; the deck is dated automatically by the site's academic-year stamp instead. -->
+<!-- editorial: the closing section "The five papers ahead" and the warm-up cell are module additions bridging into Weeks 6 to 10; all twelve source pages are represented above. -->
+</body>
+</html>
