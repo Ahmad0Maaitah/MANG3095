@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MANG3095 · Advanced Financial Econometrics - Module Hub</title>
+<link rel="stylesheet" href="assets/css/theme.css">
+<style>
+.phase { margin: 26px 0 4px; }
+.paperbadge { font-size: .72rem; border-radius: 6px; padding: 2px 8px; font-weight: 600;
+  background: rgba(52, 211, 153, .15); color: var(--good); margin-left: 8px; }
+</style>
+</head>
+<body class="page">
+<header class="top">
+  <div>
+    <div class="brand">MANG3095 · Advanced Financial Econometrics</div>
+    <div class="sub">Research methods, paper replications &amp; code: EViews · Stata · R · Python</div>
+  </div>
+  <div class="sub">University of Southampton</div>
+</header>
+<main>
+  <div class="hero">
+    <h1>🔬 Advanced Financial Econometrics</h1>
+    <div class="yr">MANG3095 · <span class="acyear"></span></div>
+    <p>Learn econometrics the way researchers use it: five weeks of research and writing skills,
+       then five landmark papers rebuilt as interactive simulations with runnable code in four languages.</p>
+  </div>
+
+  <h2 class="section-title phase">Part 1 · Research and writing skills <span class="hint">weeks 1 to 5</span></h2>
+  <div class="grid" id="part1"></div>
+
+  <h2 class="section-title phase">Part 2 · Papers in practice <span class="hint">weeks 6 to 10 · full replication-style interactive units</span></h2>
+  <div class="grid" id="part2"></div>
+</main>
+<footer>
+  MANG3095 Advanced Financial Econometrics · University of Southampton · Ahmad Maaitah<br>
+  <a href="https://github.com/Ahmad0Maaitah/MANG3095">Source &amp; data on GitHub</a>
+</footer>
+<script src="assets/js/sim-core.js"></script>
+<script>
+'use strict';
+(function () {
+  var UNITS = [
+    { n: 1,  part: 1, emoji: '🧭', title: 'Introduction to the Module', desc: 'What the module covers, how the project works, and the learner journey ahead.', ready: false },
+    { n: 2,  part: 1, emoji: '🧱', title: 'Foundations for Your Project', desc: 'Building blocks for empirical research: questions, data and methods.', ready: false },
+    { n: 3,  part: 1, emoji: '📝', title: 'The Research Proposal', desc: 'Scoping a project and writing a convincing proposal, with a worked example.', ready: false },
+    { n: 4,  part: 1, emoji: '📚', title: 'Literature Review in Finance', desc: 'Finding, ranking and evaluating sources; using the ABS journal guide.', ready: false },
+    { n: 5,  part: 1, emoji: '🌉', title: 'From Skills to Applications', desc: 'The bridge into the paper weeks: preparing data and models for real research.', ready: false },
+    { n: 6,  part: 2, emoji: '📊', title: 'Fama-French Five-Factor Model', paper: 'Fama and French (2015), JFE', desc: 'Factor construction, spanning regressions and the GRS logic, on the real Ken French factors.', ready: false },
+    { n: 7,  part: 2, emoji: '🔗', title: 'Volatility Spillovers', paper: 'Diebold and Yilmaz (2012)', desc: 'VAR-based connectedness: variance decompositions, total and directional spillover indices.', ready: false },
+    { n: 8,  part: 2, emoji: '🌊', title: 'TVP-VAR Connectedness', paper: 'Antonakakis, Chatziantoniou and Gabauer (2020)', desc: 'Time-varying parameter VAR spillovers: how connectedness moves through crises.', ready: false },
+    { n: 9,  part: 2, emoji: '🧮', title: 'Multivariate GARCH Forecasting', paper: 'Laurent, Rombouts and Violante (2012), JAE', desc: 'DCC and friends on the original 10-stock dataset: which covariance forecasts win?', ready: false },
+    { n: 10, part: 2, emoji: '🏦', title: 'Banking Panel Replication', paper: 'Review of Financial Studies (Stata package)', desc: 'A real Stata replication package dissected: panel identification, fixed effects and robustness.', ready: false }
+  ];
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function card(u) {
+    var div = document.createElement('div');
+    div.className = 'card';
+    var dir = 'lectures/lecture' + pad(u.n) + '/';
+    var links = u.ready
+      ? '<a class="btn" href="' + dir + '">Open →</a><a class="btn ghost" href="https://github.com/Ahmad0Maaitah/MANG3095/tree/main/' + dir + 'code">Code</a>'
+      : '<span class="soon">🔧 In production</span>';
+    div.innerHTML =
+      '<div class="emoji">' + u.emoji + '</div>' +
+      '<div class="kicker"><span class="badge lecture">Week ' + u.n + '</span>' +
+        (u.paper ? '<span class="paperbadge">' + u.paper + '</span>' : '') + '</div>' +
+      '<h3>' + u.title + '</h3>' +
+      '<div class="desc">' + u.desc + '</div>' +
+      '<div class="meta"><div class="links">' + links + '</div></div>';
+    return div;
+  }
+  UNITS.forEach(function (u) {
+    document.getElementById('part' + u.part).appendChild(card(u));
+  });
+})();
+</script>
+</body>
+</html>

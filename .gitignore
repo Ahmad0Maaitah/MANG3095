@@ -1,0 +1,26 @@
+# OneDrive / Windows noise
+Thumbs.db
+desktop.ini
+~$*
+*.tmp
+*.laccdb
+
+# Office lock/backup files
+*.wbk
+*.asd
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Copyright guard — publisher material must never enter this repo
+*solutions*
+*Solutions*
+*test bank*
+*Test_bank*
+*test_bank*
+*libgen*
+*Instructor*
+*instructor*
+*.crdownload

@@ -1,0 +1,18 @@
+* text=auto eol=lf
+*.do text eol=lf
+*.R text eol=lf
+*.py text eol=lf
+*.prg text eol=crlf
+
+*.xls binary
+*.xlsx binary
+*.dta binary
+*.wf1 binary
+*.WF1 binary
+*.pickle binary
+*.png binary
+*.jpg binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.ipynb text eol=lf
