@@ -1,5 +1,7 @@
 # Lecture 5 · Building a Research Methodology in Finance
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture05/)
+
 Faithful rebuild of the Week 5 lecture "Building a Research Methodology in Finance:
 Empirical and Theoretical Foundations", plus a closing bridge section into the five
 paper-replication weeks.

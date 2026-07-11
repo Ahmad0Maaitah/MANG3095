@@ -1,5 +1,7 @@
 # Week 6 · Fama and French (2015): A Five-Factor Asset Pricing Model
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture06/)
+
 **The paper:** Fama, E.F. and French, K.R. (2015) 'A five-factor asset pricing model',
 *Journal of Financial Economics*, 116(1), pp. 1-22.
 **Data:** `data/csv/ff5_monthly.csv` (Ken French five factors, % per month, July 1963 - August 2022,

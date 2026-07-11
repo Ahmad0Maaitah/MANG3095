@@ -1,5 +1,7 @@
 # Lecture 4 · Literature Review in Finance
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture04/)
+
 Faithful rebuild of the Week 4 lecture "Literature Review in Finance" plus the two Week 4
 handouts: the evaluating-sources template and the abstracts worksheet.
 

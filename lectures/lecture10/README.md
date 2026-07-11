@@ -1,5 +1,7 @@
 # Lecture 10 - Replicating a Banking Panel (panel methods week)
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture10/)
+
 Interactive deck for Week 10 of MANG3095: the paper-replication unit built around
 Gopal, M. and Schnabl, P. (2022) 'The rise of finance companies and FinTech lenders
 in small business lending', *The Review of Financial Studies*, 35(11), pp. 4859-4901,

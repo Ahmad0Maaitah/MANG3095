@@ -1,5 +1,7 @@
 # Lecture 8 - TVP-VAR dynamic connectedness (paper week)
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture08/)
+
 Interactive unit for **Antonakakis, N., Chatziantoniou, I. and Gabauer, D. (2020) 'Refined
 measures of dynamic connectedness based on time-varying parameter vector autoregressions',
 *Journal of Risk and Financial Management*, 13(4), 84.**

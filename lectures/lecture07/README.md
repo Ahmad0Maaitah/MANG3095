@@ -1,5 +1,7 @@
 # Week 7 · Volatility Spillovers: Diebold and Yilmaz (2012)
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture07/)
+
 **Paper:** Diebold, F.X. and Yilmaz, K. (2012) 'Better to give than to receive: predictive
 directional measurement of volatility spillovers', *International Journal of Forecasting*,
 28(1), pp. 57-66.

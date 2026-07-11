@@ -1,5 +1,7 @@
 # Lecture 9 · Forecasting with Multivariate GARCH
 
+**Slides:** [interactive deck](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture09/)
+
 **Deck:** `index.html` (reveal.js) ·
 **Paper:** Laurent, S., Rombouts, J.V.K. and Violante, F. (2012) 'On the forecasting accuracy of
 multivariate GARCH models', *Journal of Applied Econometrics*, 27(6), pp. 934-955.
