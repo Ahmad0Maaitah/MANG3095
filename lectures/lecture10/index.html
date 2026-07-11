@@ -38,9 +38,10 @@
     <li><b>Simulations</b>: watch fixed effects remove bias, clustering repair inference, and an event study test parallel trends</li>
     <li><b>Code environment and robustness</b>: reproduce every step in your browser and in Stata, R and Python</li>
   </ul>
-  <div class="panel warn small"><b>Honesty note.</b> The paper's 171 MB replication dataset did not download for this unit
-    (only a <code>.crdownload</code> stub arrived), so this week teaches the replication <em>architecture</em> and the panel
-    <em>methods</em> on a synthetic teaching panel. Every number quoted from the paper comes from the published article itself.</div>
+  <div class="panel tip small"><b>Real data.</b> This unit ships the paper's own county-level replication data
+    (the published analysis files from the package at <code>doi.org/10.1093/rfs/hhac034</code>). Everything you run
+    below runs on the real data, and the preferred specification reproduces Table 4 <em>exactly</em>:
+    0.212 / 0.534 / 0.016. Only the proprietary loan-level UCC records stay outside the unit.</div>
 </section>
 
 <!-- ======================= 1. THE PAPER ======================= -->
@@ -115,6 +116,20 @@
     </ul>
   </section>
   <section>
+    <h3>The real Table 4 picture (the paper's own data)</h3>
+    <p class="tiny">Every dot is one of the 3,021 US counties in the shipped replication data. Choose the outcome; the line is the raw OLS fit.</p>
+    <div class="sim">
+      <div class="sim-controls" id="ctl-real"></div>
+      <canvas id="cv-real" width="920" height="380"></canvas>
+      <div class="sim-read tiny" id="rd-real"></div>
+    </div>
+    <div class="panel tip small"><b>Reading the results.</b> The upward slope in the first two panels is the whole paper:
+      counties that depended more on banks in 2006 saw nonbanks take a visibly larger share of lending by 2016. The third
+      panel is just as important: total lending growth is flat in the bank share. Adding the paper's controls and state
+      fixed effects moves the raw slopes (0.215 / 0.788 / 0.240) to the published 0.212 / 0.534 / 0.016; run the code
+      cells in section 6 to see that happen on this same data.</div>
+  </section>
+  <section>
     <h3>Could it just be demand? Four defences</h3>
     <ul class="small">
       <li><b>Industry and collateral fixed effects</b> (Table 5): within two-digit SIC industry the coefficient is 0.111*** (double-clustered by county and industry); within collateral type 0.201***. The story survives comparing similar firms pledging similar collateral</li>
@@ -169,8 +184,8 @@
   <section>
     <h3>Balanced vs unbalanced panels</h3>
     <div class="cols">
-      <div class="panel small"><b class="accent">Balanced</b>: every entity observed in every period (200 counties × 10 years = 2,000 rows).
-        Simple, symmetric, and what our teaching panel is.</div>
+      <div class="panel small"><b class="accent">Balanced</b>: every entity observed in every period. The shipped county × year
+        filing panel is 98.7% balanced: 3,092 of its 3,133 counties appear in all 11 years, 2006 to 2016.</div>
       <div class="panel small"><b class="accent2">Unbalanced</b>: entities enter and exit. The raw UCC loan panel is heavily unbalanced:
         counties can have zero loans of a type in a year, firms borrow in some years only.</div>
     </div>
@@ -181,29 +196,30 @@
     </ul>
   </section>
   <section>
-    <h3>💻 Run it yourself: build a county × year panel</h3>
-    <p class="tiny">A seeded synthetic panel with proper entity/time ids, an <code>xtset</code>-style structure check, and the package's m:1 merge pattern:</p>
+    <h3>💻 Run it yourself: the real county × year panel</h3>
+    <p class="tiny">Load the paper's actual filing panel, check its structure the <code>xtset</code> way, and run the package's m:1 merge pattern:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
-import numpy as np, pandas as pd
-rng = np.random.default_rng(42)
-G, YEARS = 200, np.arange(2007, 2017)
-county = pd.DataFrame({"county": np.arange(1001, 1201),    # FIPS-style entity id
-                       "state": np.repeat(np.arange(1, 26), 8)})
-county["bank_share_06"] = np.clip(rng.normal(0.476, 0.130, G), 0.05, 0.95)
-panel = county.loc[county.index.repeat(len(YEARS))].reset_index(drop=True)
-panel["year"] = np.tile(YEARS, G)                          # time id
-counts = panel.groupby("county").size()
-print(f"{G} counties x {len(YEARS)} years = {len(panel)} rows; "
-      f"balanced: {counts.min() == counts.max()}   (Stata: xtset county year)")
-print(panel.head(2).to_string(index=False))
-controls = pd.DataFrame({"county": county.county, "unemp05": 5.4 + rng.normal(0, 1.8, G)})
-merged = panel.merge(controls, on="county", how="inner", validate="m:1")
-print(f"m:1 merge on county: {len(merged)} rows matched "
-      f"(county controls copied to every year, like merge m:1 in Stata)")
+import pandas as pd
+cy = load("gopal_county_year")      # real county x year UCC filing counts
+cs = load("gopal_county")           # real county cross-section (2006 bank share...)
+print(f"panel: {len(cy)} rows, {cy.county.nunique()} counties, "
+      f"{cy.year.min()}-{cy.year.max()}   (Stata: xtset county year)")
+counts = cy.groupby("county")["year"].size()
+ny = cy.year.nunique()
+print(f"balanced counties: {(counts == ny).sum()} of {counts.size} "
+      f"({100*(counts == ny).mean():.1f}%) -> mildly unbalanced, keep all")
+# the package's m:1 merge: many county-years to one county record
+cy = cy.merge(cs[["county", "state", "bank_share_06"]],
+              on="county", how="inner", validate="m:1")
+cy["nonbank_share"] = cy.nonbank_loans/(cy.nonbank_loans + cy.bank_loans)
+print(f"after m:1 merge: {len(cy)} rows carry their county's 2006 bank share")
+print(cy.head(3).to_string(index=False))
+print(f"bank share 2006: mean {cs.bank_share_06.mean():.3f}, "
+      f"sd {cs.bank_share_06.std():.3f}   (paper Table 3: 0.476, 0.130)")
 </textarea>
     </div>
-    <p class="tiny muted">The bank share is calibrated to the paper's Table 3 (mean 0.476, sd 0.130). First run downloads Python into your browser (~15 MB); later runs are quick.</p>
+    <p class="tiny muted">These are the paper's published analysis files (replication package, RFS). First run downloads Python into your browser (~15 MB); later runs are quick.</p>
   </section>
 </section>
 
@@ -352,7 +368,7 @@ m = (smf.ols(f"share_07_16 ~ pre_crisis_bank_share + {controls} + C(state)",
 <section>
   <section>
     <h2>5 · Simulation 1: the fixed-effects machine</h2>
-    <p class="tiny">A synthetic county panel (10 years). Branch closures target permanently weak counties: the confounding slider controls how strongly. Compare the three estimators against the true effect.</p>
+    <p class="tiny">A simulated county panel (10 years), a pure method demo: because here we <em>know</em> the true effect, you can watch each estimator hit or miss it. Branch closures target permanently weak counties: the confounding slider controls how strongly.</p>
     <div class="sim" id="sim-fe">
       <canvas id="cv-fe" width="880" height="192"></canvas>
       <div class="controls-row" id="ctl-fe"></div>
@@ -413,103 +429,111 @@ m = (smf.ols(f"share_07_16 ~ pre_crisis_bank_share + {controls} + C(state)",
       <div class="tabbar">
         <button>Stata</button><button>EViews</button><button>R</button><button>Python</button>
       </div>
-      <div class="tabpane"><pre style="font-size:.48em"><code>* synthetic county panel + the three estimators (code/lecture10.do)
-set seed 42
-xtset county year                             // declare entity + time ids
-* pooled OLS: biased when closures target weak counties
-reg ln_loans closure, cluster(county)
-* county FE: the within estimator
-xtreg ln_loans closure, fe cluster(county)
-* two-way FE, exactly as the replication package does it:
-reghdfe ln_loans closure, absorb(county year) cluster(county)
-* long difference (paper's Table 4):
-reghdfe d_nonbank_share bank_share_06, absorb(state) cluster(county)</code></pre></div>
-      <div class="tabpane"><pre style="font-size:.48em"><code>' panel workfile + FE in EViews (code/lecture10.prg)
-wfcreate(wf=week10, page=panel) a(2007, 2016) 200
-' pooled OLS with cluster-robust (White cross-section) SEs
-equation eq_pooled.ls(cov=cxwhite) ln_loans c closure
-' county (cross-section) fixed effects
-equation eq_fe.ls(cx=f, cov=cxwhite) ln_loans c closure
-' two-way: cross-section AND period fixed effects
-equation eq_2wfe.ls(cx=f, per=f, cov=cxwhite) ln_loans c closure
-' the paper's full merge + multi-way clustering pipeline is not
-' feasible in EViews: use the Stata/R/Python versions for that.</code></pre></div>
+      <div class="tabpane"><pre style="font-size:.48em"><code>* the REAL data: Table 4 exactly (code/lecture10.do)
+import delimited "../../../data/csv/gopal_county.csv", clear
+global controls "unemp_rate_2002_2006 lfp_rate_2002_2006 est_2002_2006 wage_2002_2006 log_pop unemp_rate2005 lfp_rate2005 wage2005"
+* preferred spec, the package's own reghdfe line:
+reghdfe d_nb_share_07_16 bank_share_06 $controls, absorb(state) cluster(county)
+* expected: 0.212 (0.024); nb_growth_07_16 gives 0.534, total 0.016
+* the real county x year panel + event study:
+import delimited "../../../data/csv/gopal_county_year.csv", clear
+xtset county year
+* (gen nonbank_share + the bank_share_06 x year terms as in the full file)
+reghdfe nonbank_share bsX2008-bsX2016, absorb(county year) cluster(county)</code></pre></div>
+      <div class="tabpane"><pre style="font-size:.48em"><code>' the REAL cross-section in EViews (code/lecture10.prg)
+wfcreate(wf=week10, page=cross) u 3056
+import(page=cross) "..\..\..\data\csv\gopal_county.csv" colhead=1 namepos=first
+' Table 4 preferred spec: state dummies via @expand, HC robust SEs
+' (county clustering with one obs per county = White robust)
+equation eq_share.ls(cov=white) d_nb_share_07_16 c bank_share_06 _
+    unemp_rate_2002_2006 lfp_rate_2002_2006 est_2002_2006 wage_2002_2006 _
+    log_pop unemp_rate2005 lfp_rate2005 wage2005 @expand(state, @dropfirst)
+' expected: 0.212; the paper's full merge + multi-way clustering
+' pipeline is not feasible in EViews: use Stata/R/Python for that.</code></pre></div>
       <div class="tabpane"><pre style="font-size:.48em"><code># fixest is R's reghdfe (code/lecture10.R)
 library(fixest)
-m_pool &lt;- feols(ln_loans ~ closure,                 panel, cluster = ~county)
-m_fe   &lt;- feols(ln_loans ~ closure | county,        panel, cluster = ~county)
-m_2w   &lt;- feols(ln_loans ~ closure | county + year, panel, cluster = ~county)
-etable(m_pool, m_fe, m_2w)
-# long difference with state FE (paper's Table 4):
-m_ld &lt;- feols(d_nonbank_share ~ bank_share_06 | state, county, cluster = ~county)
-# event study: feols(y ~ i(etime, ref = -1) | county + year, ...) + iplot()</code></pre></div>
-      <div class="tabpane"><pre style="font-size:.48em"><code># within-demeaning + statsmodels (code/lecture10.py)
-def dm(v, by):   # the fixed-effects transformation
-    return v - pd.Series(v).groupby(by).transform("mean").to_numpy()
-
-fit = sm.OLS(dm(y, county), sm.add_constant(dm(D, county))).fit()
-fit = fit.get_robustcov_results(cov_type="cluster", groups=county)
-# two-way FE: dm(dm(y, county), year) on dm(dm(D, county), year)
-# (locally you can also use linearmodels.PanelOLS with entity_effects=True,
-#  time_effects=True and cov_type="clustered"; the browser uses statsmodels)</code></pre></div>
+cs &lt;- read.csv("../../../data/csv/gopal_county.csv")
+m &lt;- feols(d_nb_share_07_16 ~ bank_share_06 + unemp_rate_2002_2006 +
+  lfp_rate_2002_2006 + est_2002_2006 + wage_2002_2006 + log_pop +
+  unemp_rate2005 + lfp_rate2005 + wage2005 | state, cs, cluster = ~county)
+# expected: 0.212 (0.024); Table 4 exactly
+# real event study on the county x year panel:
+cy &lt;- read.csv("../../../data/csv/gopal_county_year.csv")
+m_ev &lt;- feols(nonbank_share ~ i(year, bank_share_06, ref = 2007)
+              | county + year, cy, cluster = ~county)   # + iplot(m_ev)</code></pre></div>
+      <div class="tabpane"><pre style="font-size:.48em"><code># statsmodels on the real data (code/lecture10.py)
+cs = pd.read_csv("../../../data/csv/gopal_county.csv")
+CTRL = " + ".join(["unemp_rate_2002_2006", "lfp_rate_2002_2006",
+    "est_2002_2006", "wage_2002_2006", "log_pop", "unemp_rate2005",
+    "lfp_rate2005", "wage2005"])
+m = smf.ols(f"d_nb_share_07_16 ~ bank_share_06 + {CTRL} + C(state)",
+            data=cs).fit(cov_type="cluster",
+                         cov_kwds={"groups": cs["county"]})
+# expected: 0.212 (0.024). County FE for the panel event study is
+# within-demeaning; the browser cells below run this same code.</code></pre></div>
     </div>
     <p class="tiny muted">Full scripts: <a href="code/lecture10.do">Stata</a> · <a href="code/lecture10.prg">EViews</a> ·
-      <a href="code/lecture10.R">R</a> · <a href="code/lecture10.py">Python</a>. The Python file runs end to end and prints every number used on these slides.</p>
+      <a href="code/lecture10.R">R</a> · <a href="code/lecture10.py">Python</a>. The Python file runs end to end on the shipped real data and prints every number used on these slides.</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: pooled vs FE vs two-way FE</h3>
-    <p class="tiny">The same seeded panel as <code>code/lecture10.py</code>: closures hit weak counties, true effect <b>-1.50</b>. FE implemented as within-demeaning (<code>dm</code>), then OLS with county-clustered SEs:</p>
+    <h3>💻 Run it yourself: Table 4, for real</h3>
+    <p class="tiny">The paper's headline table on the paper's own data: three specifications per outcome, county-clustered SEs. The preferred column reproduces the published 0.212 / 0.534 / 0.016 exactly:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
-import numpy as np, pandas as pd, statsmodels.api as sm
-rng = np.random.default_rng(42)
-G, T, YEARS = 200, 10, np.arange(2007, 2017)
-bs = np.clip(rng.normal(0.476, 0.130, G), 0.05, 0.95)
-alpha = -2.5 * (bs - bs.mean()) + rng.normal(0, 0.60, G)   # the confounder
-prob = 0.15 + 0.55 * (bs - 0.2) / 0.6
-tfrom = np.array([rng.choice(np.arange(2010, 2014)) if rng.random() < p else 9999
-                  for p in prob])
-county = np.repeat(np.arange(G), T); year = np.tile(YEARS, G)
-D = (year >= tfrom[county]).astype(float)                  # branch closure
-delta = np.cumsum(rng.normal(0.02, 0.05, T))
-y = 6.0 - 1.50*D + alpha[county] + delta[year - 2007] + rng.normal(0, 0.35, G*T)
-dm = lambda v, by: v - pd.Series(v).groupby(by).transform("mean").to_numpy()
-for name, yy, dd in [("pooled OLS", y, D), ("county FE ", dm(y, county), dm(D, county)),
-                     ("two-way FE", dm(dm(y, county), year), dm(dm(D, county), year))]:
-    f = sm.OLS(yy, sm.add_constant(dd)).fit()
-    f = f.get_robustcov_results(cov_type="cluster", groups=county)
-    print(f"{name}: b = {f.params[1]:+.3f}   cluster se = {f.bse[1]:.3f}   (truth -1.50)")
+import pandas as pd, statsmodels.formula.api as smf
+cs = load("gopal_county")
+ctrls = ["unemp_rate_2002_2006", "lfp_rate_2002_2006", "est_2002_2006",
+         "wage_2002_2006", "log_pop", "unemp_rate2005", "lfp_rate2005", "wage2005"]
+an = cs.dropna(subset=ctrls + ["d_nb_share_07_16", "nb_growth_07_16",
+                               "total_growth_07_16", "bank_share_06"])
+print(f"analysis sample: {len(an)} counties (paper: 3,021)")
+CTRL = " + ".join(ctrls)
+for y, lab in [("d_nb_share_07_16", "nonbank share "),
+               ("nb_growth_07_16",  "nonbank growth"),
+               ("total_growth_07_16", "total growth  ")]:
+    out = []
+    for rhs in (f"{y} ~ bank_share_06", f"{y} ~ bank_share_06 + {CTRL}",
+                f"{y} ~ bank_share_06 + {CTRL} + C(state)"):
+        m = smf.ols(rhs, data=an).fit(cov_type="cluster",
+                                      cov_kwds={"groups": an["county"]})
+        out.append(f"{m.params['bank_share_06']: .3f} ({m.bse['bank_share_06']:.3f})")
+    print(f"{lab}: raw {out[0]}  controls {out[1]}  +state FE {out[2]}")
+print("paper (Table 4, preferred):  0.212 (0.024)  0.534 (0.080)  0.016 (0.060)")
 </textarea>
     </div>
-    <p class="tiny muted">Expect pooled -1.684, county FE -1.470, two-way FE -1.532: the numbers on the robustness slide and in <code>code/lecture10.py</code>.</p>
+    <p class="tiny muted">Expect the +state FE column to read 0.212 (0.024), 0.534 (0.080), 0.016 (0.060): an exact replication in your browser. The Monte Carlo pooled-vs-FE method demo lives in simulation 1 and <code>code/lecture10.py</code>.</p>
   </section>
   <section>
     <h3>💻 Run it yourself: naive vs clustered inference</h3>
-    <p class="tiny">One draw for the SE ratio, then 1,000 placebo panels for the false-rejection rates (pure numpy, fast even in the browser):</p>
+    <p class="tiny">First on the real regression (iid vs county vs state SEs for the published gamma), then 1,000 placebo panels for the false-rejection rates. The placebo part is a statistics demonstration by construction: only simulation can show rejection rates for a null you <em>know</em> is true:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
-import numpy as np, statsmodels.api as sm
-def draw(rg, G=40, T=8, icc=0.5):    # county-level regressor, within-county error corr
-    x = np.repeat(rg.normal(0, 1, G), T)
-    u = np.sqrt(icc)*np.repeat(rg.normal(0, 1, G), T) + np.sqrt(1-icc)*rg.normal(0, 1, G*T)
-    return 0*x + u, x, np.repeat(np.arange(G), T)          # true beta = 0
-y, x, ids = draw(np.random.default_rng(7))
-f = sm.OLS(y, sm.add_constant(x)).fit()
-fc = f.get_robustcov_results(cov_type="cluster", groups=ids)
-print(f"naive se {f.bse[1]:.4f}   cluster se {fc.bse[1]:.4f}   ratio {fc.bse[1]/f.bse[1]:.2f}")
+import numpy as np, pandas as pd, statsmodels.formula.api as smf
+cs = load("gopal_county")
+CTRL = " + ".join(["unemp_rate_2002_2006", "lfp_rate_2002_2006", "est_2002_2006",
+     "wage_2002_2006", "log_pop", "unemp_rate2005", "lfp_rate2005", "wage2005"])
+an = cs.dropna(subset=["d_nb_share_07_16", "bank_share_06"] + CTRL.split(" + "))
+f = smf.ols(f"d_nb_share_07_16 ~ bank_share_06 + {CTRL} + C(state)", data=an).fit()
+i = list(f.params.index).index("bank_share_06")
+se_cty = f.get_robustcov_results(cov_type="cluster", groups=an["county"]).bse[i]
+se_st = f.get_robustcov_results(cov_type="cluster", groups=an["state"]).bse[i]
+print(f"REAL gamma = {f.params['bank_share_06']:.3f}; se iid {f.bse['bank_share_06']:.4f}"
+      f" | county {se_cty:.4f} | state {se_st:.4f} ({an.state.nunique()} clusters)")
 rej_n = rej_c = 0; mc = np.random.default_rng(2024)
-for _ in range(1000):                                      # 1,000 placebo panels
-    y, x, ids = draw(mc); xd = x - x.mean()
-    b = xd @ (y - y.mean()) / (xd @ xd); e = y - y.mean() - b*xd
+for _ in range(1000):                       # placebo panels: true effect ZERO
+    G, T, icc = 40, 8, 0.5
+    x = np.repeat(mc.normal(0, 1, G), T); ids = np.repeat(np.arange(G), T)
+    y = np.sqrt(icc)*np.repeat(mc.normal(0, 1, G), T) + np.sqrt(1-icc)*mc.normal(0, 1, G*T)
+    xd = x - x.mean(); b = xd @ (y - y.mean()) / (xd @ xd); e = y - y.mean() - b*xd
     se_n = np.sqrt(e @ e / (len(y) - 2) / (xd @ xd))
-    s = np.array([xd[ids == g] @ e[ids == g] for g in range(40)])
-    se_c = np.sqrt(s @ s / (xd @ xd)**2 * 40/39)
+    s = np.array([xd[ids == g] @ e[ids == g] for g in range(G)])
+    se_c = np.sqrt(s @ s / (xd @ xd)**2 * G/(G-1))
     rej_n += abs(b/se_n) > 1.96; rej_c += abs(b/se_c) > 2.02
 print(f"false rejections of a TRUE null: naive {rej_n/10:.1f}%   "
       f"clustered {rej_c/10:.1f}%   (nominal 5%)")
 </textarea>
     </div>
-    <p class="tiny muted">Expect a ratio of about 1.84 on the single draw, then 35.5% vs 6.9% false rejections: naive inference is not a little wrong, it is seven times too eager.</p>
+    <p class="tiny muted">Expect real SEs 0.0190 / 0.0242 / 0.0269 (clustering matters even in a cross-section), then 35.5% vs 6.9% false rejections: naive inference is not a little wrong, it is seven times too eager.</p>
   </section>
 </section>
 
@@ -522,53 +546,71 @@ print(f"false rejections of a TRUE null: naive {rej_n/10:.1f}%   "
       <tr><th>The paper's check</th><th>Where</th><th>This deck's teaching version</th></tr>
       <tr><td>State FE on vs off: gamma 0.212 vs 0.197, conclusions unchanged</td><td>Table 4, Panels A/B</td><td>Alternative FE structures (below and simulation 1)</td></tr>
       <tr><td>Within industry and within collateral: 0.111 and 0.201, double-clustered</td><td>Table 5</td><td>Alternative clustering levels (below)</td></tr>
-      <tr><td>Crisis (2007-10) vs recovery (2010-16) split: substitution happens in the recovery</td><td>Appendix Fig. I.2</td><td>Event-study timing (simulation 3)</td></tr>
+      <tr><td>Crisis (2007-10) vs recovery (2010-16) split: substitution happens in the recovery</td><td>Appendix Fig. I.2</td><td>Real subperiod estimates 0.073 vs 0.138 (below); timing logic in simulation 3</td></tr>
       <tr><td>IV: bank share as instrument for the bank lending decline (first-stage F = 26.6)</td><td>Table I.3</td><td>Discussed: same variation, different packaging</td></tr>
-      <tr><td>Weighting by county lending or population; 100 largest counties (6.9 → 9.2 pp)</td><td>Table I.5</td><td>Leave-one-state-out sensitivity (below)</td></tr>
+      <tr><td>Weighting by county lending or population; 100 largest counties (6.9 → 9.2 pp)</td><td>Table I.5</td><td>Leave-one-state-out on the real data (below)</td></tr>
       <tr><td>Per-capita scaling, top-4 share control, retail mortgage share control</td><td>Tables I.4, I.6, I.7</td><td>Signs and magnitudes stable throughout</td></tr>
     </table>
     <div class="panel def small">The pattern to copy: change <b>one</b> thing at a time (FE structure, clustering level, sample,
       weighting, scaling), report the coefficient each time, and let the reader see the result is not an artefact of any single choice.</div>
   </section>
   <section>
-    <h3>💻 Run it yourself: gamma, clustering level, leave-one-state-out</h3>
+    <h3>💻 Run it yourself: subperiods and leave-one-state-out, on the real data</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
-import numpy as np, pandas as pd, statsmodels.api as sm
-rng = np.random.default_rng(42)                  # same county frame as before
-bs = np.clip(rng.normal(0.476, 0.130, 200), 0.05, 0.95)
-state = np.repeat(np.arange(1, 26), 8)
-r3 = np.random.default_rng(300)                  # the long-difference sample
-d_share = 0.212*bs + r3.normal(0, 0.02, 25)[state - 1] + r3.normal(0, 0.05, 200)
-dm = lambda v, by: v - pd.Series(v).groupby(by).transform("mean").to_numpy()
-fit = sm.OLS(dm(d_share, state), sm.add_constant(dm(bs, state))).fit()
-se_cty = fit.get_robustcov_results(cov_type="cluster", groups=np.arange(200)).bse[1]
-se_st = fit.get_robustcov_results(cov_type="cluster", groups=state).bse[1]
-print(f"gamma = {fit.params[1]:.3f}   (paper Table 4, col 1: 0.212)")
-print(f"se: iid {fit.bse[1]:.4f} | county {se_cty:.4f} | state {se_st:.4f} (25 clusters)")
-g = [sm.OLS(dm(d_share[state != s], state[state != s]),
-            sm.add_constant(dm(bs[state != s], state[state != s]))).fit().params[1]
-     for s in range(1, 26)]
-print(f"leave-one-state-out gamma: min {min(g):.3f}  max {max(g):.3f} -> stable")
+import pandas as pd, statsmodels.formula.api as smf
+cs = load("gopal_county")
+CTRL = " + ".join(["unemp_rate_2002_2006", "lfp_rate_2002_2006", "est_2002_2006",
+     "wage_2002_2006", "log_pop", "unemp_rate2005", "lfp_rate2005", "wage2005"])
+an = cs.dropna(subset=["d_nb_share_07_16", "d_nb_share_07_10", "d_nb_share_10_16",
+                       "bank_share_06"] + CTRL.split(" + "))
+# (a) subperiods: does the effect fade after the crisis, or build?
+for y, lab in [("d_nb_share_07_10", "2007-2010 (crisis)  "),
+               ("d_nb_share_10_16", "2010-2016 (recovery)"),
+               ("d_nb_share_07_16", "2007-2016 (full)    ")]:
+    m = smf.ols(f"{y} ~ bank_share_06 + {CTRL} + C(state)", data=an).fit(
+        cov_type="cluster", cov_kwds={"groups": an["county"]})
+    print(f"{lab}: gamma = {m.params['bank_share_06']:.3f}"
+          f" (se {m.bse['bank_share_06']:.3f})")
+# (b) leave-one-state-out: is any single state driving gamma?
+g = []
+for s in sorted(an["state"].unique()):
+    sub = an[an["state"] != s]
+    g.append(smf.ols(f"d_nb_share_07_16 ~ bank_share_06 + {CTRL} + C(state)",
+                     data=sub).fit().params["bank_share_06"])
+print(f"leave-one-state-out gamma: min {min(g):.3f}  max {max(g):.3f}"
+      f"  (full sample 0.212) -> stable")
 </textarea>
     </div>
-    <p class="tiny muted">Expect gamma = 0.212 with SEs 0.0280 / 0.0282 / 0.0329 and a leave-one-state-out range of 0.197 to 0.226.</p>
+    <p class="tiny muted">Expect 0.073 then 0.138 then 0.212 (the substitution <em>builds</em> through the recovery, the paper's Figure 4 message) and a leave-one-state-out range of 0.199 to 0.229. The 50-state loop takes a few seconds in the browser.</p>
   </section>
   <section>
     <h3>Reading the robustness comparison</h3>
     <table class="data" style="font-size:.55em">
-      <tr><th>Specification (synthetic panel)</th><th>Estimate</th><th>Lesson</th></tr>
-      <tr><td>Closure effect, no FE (pooled)</td><td>-1.684</td><td rowspan="3">FE structure matters when treatment is selected;
-        two-way FE is the default for county × year panels (truth -1.50)</td></tr>
-      <tr><td>Closure effect, county FE</td><td>-1.470</td></tr>
-      <tr><td>Closure effect, county + year FE</td><td>-1.532</td></tr>
-      <tr><td>Long-difference gamma, se by clustering: iid / county / state</td><td>0.0280 / 0.0282 / 0.0329</td><td>With one observation per county, county clustering ≈ HC robust; state clustering is coarser and has only 25 clusters, so treat it with caution</td></tr>
-      <tr><td>Leave-one-state-out gamma range</td><td>0.197 to 0.226</td><td>No single state drives the result: the synthetic twin of the paper's weighting and largest-counties checks</td></tr>
+      <tr><th>Specification (real replication data)</th><th>Estimate</th><th>Lesson</th></tr>
+      <tr><td>Gamma, no controls</td><td>0.215 (0.019)</td><td rowspan="3">The specification ladder barely moves the coefficient:
+        selection on observables is not driving the result (Table 4, Panels A to C)</td></tr>
+      <tr><td>Gamma, controls</td><td>0.197 (0.019)</td></tr>
+      <tr><td>Gamma, controls + state FE (preferred)</td><td><b>0.212 (0.024)</b></td></tr>
+      <tr><td>Subperiods: 2007-2010 vs 2010-2016</td><td>0.073 vs 0.138</td><td>The substitution keeps building through the recovery: a permanent reallocation, not a crisis dip</td></tr>
+      <tr><td>SE by clustering: iid / county / state</td><td>0.019 / 0.024 / 0.027</td><td>Clustering moves the standard error, not the estimate; 50 state clusters is coarser and noisier</td></tr>
+      <tr><td>Leave-one-state-out gamma range</td><td>0.199 to 0.229</td><td>No single state drives the result: the same spirit as the paper's weighting and largest-counties checks</td></tr>
     </table>
     <div class="panel tip small"><b>Reading the results.</b> The point of a robustness section is not to produce twenty
-      identical numbers: it is to show <em>which</em> choices move the estimate and explain why. Here the FE structure moves
-      the closure effect (selection into treatment), while the clustering level only moves the standard error (inference,
-      not identification): precisely the distinction the paper's Tables 4, 5 and I.4 to I.7 are organised around.</div>
+      identical numbers: it is to show <em>which</em> choices move the estimate and explain why. Here the specification
+      ladder barely moves gamma (identification), while the clustering level only moves the standard error (inference):
+      precisely the distinction the paper's Tables 4, 5 and I.4 to I.7 are organised around.</div>
+  </section>
+  <section>
+    <h3>The real event study: timing is everything</h3>
+    <p class="tiny">Estimated on the shipped county × year panel: nonbank share on BankShare<sub>06</sub> × year (base 2007), county + year fixed effects, county-clustered SEs. 2006 is excluded because the exposure measure is built from the 2006 counts.</p>
+    <div class="sim">
+      <canvas id="cv-realev" width="920" height="330"></canvas>
+    </div>
+    <div class="panel tip small"><b>Reading the results.</b> The path is flat through 2009, then climbs every single year
+      to +0.217 by 2016 and never turns back. Two lessons: the timing lines up with the bank shock (identification), and
+      the reallocation is permanent rather than a crisis dip (economics). This is the real-data version of what
+      simulation 3 teaches with a known truth: flat pre-event coefficients are what make the post-event path believable.</div>
   </section>
 </section>
 
@@ -578,9 +620,10 @@ print(f"leave-one-state-out gamma: min {min(g):.3f}  max {max(g):.3f} -> stable"
     <h2>8 · Results and discussion</h2>
     <h3>Connecting the dots</h3>
     <ul class="small">
+      <li><b>The replication:</b> on the paper's own county data, this unit reproduces Table 4 exactly (0.212 / 0.534 / 0.016) and the crisis event study (flat to 2009, +0.217 by 2016), in your browser and in all four code files</li>
       <li><b>Simulation 1 → Table 6:</b> when treatment targets permanently different units, only FE (or a within-firm design) recovers the truth. The paper's firm-FE estimate (3.4 pp) is its cleanest supply-side evidence</li>
-      <li><b>Simulation 2 → every table:</b> a county-level regressor plus county-level shocks means naive SEs are fiction; the paper clusters by county throughout and double-clusters when industry or collateral shocks enter</li>
-      <li><b>Simulation 3 → the dynamics:</b> substitution took time; the firm-level lending gap peaks in 2012 and disappears by 2014, and flat pretrends (Table 3) support the design</li>
+      <li><b>Simulation 2 → every table:</b> a county-level regressor plus county-level shocks means naive SEs are fiction; on the real regression the county-clustered SE is 27% larger than the naive one, and the paper double-clusters when industry or collateral shocks enter</li>
+      <li><b>Simulation 3 → the real event study:</b> substitution took time and never reverted; flat pretrends (Table 3 and the 2008-09 coefficients) support the design</li>
       <li><b>The economics:</b> a permanent decline in bank lending (26% drop, never back to trend) with <em>no</em> real effects, because finance companies and FinTech lenders replaced the missing credit: by 2016 they made 59% of new small business loans</li>
     </ul>
   </section>
@@ -616,7 +659,7 @@ print(f"leave-one-state-out gamma: min {min(g):.3f}  max {max(g):.3f} -> stable"
     <li>Correia, S. (2017) 'reghdfe: Stata module for linear models with multi-way fixed effects and multi-way clustering'. Statistical Software Components, Boston College.</li>
     <li>Buchak, G., Matvos, G., Piskorski, T. and Seru, A. (2018) 'Fintech, regulatory arbitrage, and the rise of shadow banks', <i>Journal of Financial Economics</i>, 130(3), pp. 453-483.</li>
     <li>Chen, B.S., Hanson, S.G. and Stein, J.C. (2017) 'The decline of big-bank lending to small business: dynamic impacts on local credit and labor markets'. NBER Working Paper 23843.</li>
-    <li>Data sources: US Census Bureau, <i>County Business Patterns</i> and <i>Statistics of US Businesses</i>; US Bureau of Labor Statistics, <i>Local Area Unemployment Statistics</i>; FFIEC, <i>CRA disclosure flat files</i> and <i>HMDA data</i>; FDIC, <i>Summary of Deposits</i>; state UCC registries (via commercial vendor).</li>
+    <li>Data: county-level analysis files from Gopal, M. and Schnabl, P. (2022) replication package, <i>The Review of Financial Studies</i> supplementary material (doi: 10.1093/rfs/hhac034), shipped with this unit for teaching with attribution. Underlying sources: US Census Bureau, <i>County Business Patterns</i> and <i>Statistics of US Businesses</i>; US Bureau of Labor Statistics, <i>Local Area Unemployment Statistics</i>; FFIEC, <i>CRA disclosure flat files</i> and <i>HMDA data</i>; FDIC, <i>Summary of Deposits</i>; state UCC registries (proprietary, not shipped).</li>
     <li>Software: StataCorp Stata; EViews; R (fixest, dplyr); Python (pandas, statsmodels, linearmodels).</li>
   </ul>
 </section>
@@ -630,6 +673,7 @@ print(f"leave-one-state-out gamma: min {min(g):.3f}  max {max(g):.3f} -> stable"
 <script src="../../assets/vendor/katex/contrib/auto-render.min.js"></script>
 <script src="../../assets/js/stats.js"></script>
 <script src="../../assets/js/sim-core.js"></script>
+<script src="data_gopal.js"></script>
 <script>
 'use strict';
 Reveal.initialize({
@@ -659,6 +703,91 @@ function demeanBy(v, ids, nG) {
   for (var i = 0; i < v.length; i++) out[i] = v[i] - m[ids[i]];
   return out;
 }
+
+/* ---------- REAL DATA 1: the Table 4 scatter (paper's replication data) ---------- */
+(function () {
+  if (!window.DATA_GOPAL || !document.getElementById('cv-real')) return;
+  var D = window.DATA_GOPAL;
+  var ctl = document.getElementById('ctl-real');
+  var rd = document.getElementById('rd-real');
+  var MODES = [
+    { key: 'dshare', y: D.dshare, title: 'Change in nonbank market share, 2007 to 2016',
+      pref: 'with controls + state FE: 0.212 (Table 4, col 1)' },
+    { key: 'nbgrowth', y: D.nbgrowth, title: 'Nonbank lending growth, 2007 to 2016',
+      pref: 'with controls + state FE: 0.534 (Table 4, col 2)' },
+    { key: 'totgrowth', y: D.totgrowth, title: 'Total lending growth, 2007 to 2016',
+      pref: 'with controls + state FE: 0.016, a precise null (Table 4, col 3)' }
+  ];
+  var mode = 0;
+  function quant(arr, q) {
+    var a = arr.slice().sort(function (u, v) { return u - v; });
+    return a[Math.min(a.length - 1, Math.max(0, Math.round(q * (a.length - 1))))];
+  }
+  function draw() {
+    var M = MODES[mode], x = D.x, y = M.y, i, n = x.length;
+    var xb = 0, yb = 0;
+    for (i = 0; i < n; i++) { xb += x[i]; yb += y[i]; }
+    xb /= n; yb /= n;
+    var sxy = 0, sxx = 0;
+    for (i = 0; i < n; i++) { sxy += (x[i] - xb) * (y[i] - yb); sxx += (x[i] - xb) * (x[i] - xb); }
+    var b = sxy / sxx, a = yb - b * xb;
+    var ylo = quant(y, 0.01), yhi = quant(y, 0.99);
+    var pad = 0.12 * (yhi - ylo);
+    var p = new SIM.Plot('cv-real', {
+      xmin: 0.05, xmax: 0.95, ymin: ylo - pad, ymax: yhi + pad,
+      xlabel: 'bank share of county lending, 2006', ylabel: 'outcome',
+      title: M.title + '  (n = ' + n + ' US counties)'
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+    p.scatter(x, y, { color: 'rgba(56,189,248,0.28)', size: 2.2 });
+    // 20 equal-count bin means, binscatter style
+    var idx = [];
+    for (i = 0; i < n; i++) idx.push(i);
+    idx.sort(function (u, v) { return x[u] - x[v]; });
+    var bx = [], by = [], k, per = Math.floor(n / 20);
+    for (k = 0; k < 20; k++) {
+      var mx = 0, my = 0, c = 0;
+      for (i = k * per; i < (k === 19 ? n : (k + 1) * per); i++) { mx += x[idx[i]]; my += y[idx[i]]; c++; }
+      bx.push(mx / c); by.push(my / c);
+    }
+    p.scatter(bx, by, { color: SIM.colors.accent2, size: 5 });
+    p.line([0.06, 0.94], [a + 0.06 * b, a + 0.94 * b], { color: SIM.colors.good, width: 2.2 });
+    p.legend([{ label: 'county', color: 'rgba(56,189,248,0.7)' },
+              { label: 'bin mean (binscatter)', color: SIM.colors.accent2 },
+              { label: 'raw OLS fit', color: SIM.colors.good }]);
+    rd.innerHTML = 'raw OLS slope = <b>' + b.toFixed(3) + '</b>; ' + M.pref + '.';
+  }
+  MODES.forEach(function (M, k) {
+    SIM.button(ctl, ['nonbank share', 'nonbank growth', 'total lending'][k],
+      function () { mode = k; draw(); }, k === 0);
+  });
+  draw();
+})();
+
+/* ---------- REAL DATA 2: the crisis event study path ---------- */
+(function () {
+  if (!document.getElementById('cv-realev')) return;
+  // estimated by code/lecture10.py on the shipped county x year panel:
+  // nonbank share on BankShare06 x year, county + year FE, county-clustered SEs
+  var years = [2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016];
+  var coef = [0, 0.038, 0.016, 0.056, 0.070, 0.112, 0.145, 0.171, 0.207, 0.217];
+  var se = [0, 0.013, 0.012, 0.012, 0.011, 0.010, 0.012, 0.011, 0.013, 0.013];
+  var p = new SIM.Plot('cv-realev', {
+    xmin: 2006.5, xmax: 2016.5, ymin: -0.06, ymax: 0.27,
+    xlabel: 'year', ylabel: 'coefficient on BankShare06 x year',
+    title: 'Nonbank share vs 2006 bank exposure, relative to 2007 (real data)'
+  });
+  p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+  p.shade(2007.5, 2009.5, { color: 'rgba(248,113,113,0.10)' });
+  p.label(2007.7, 0.245, 'crisis', { color: SIM.colors.bad, size: 12 });
+  p.line(years, coef, { color: SIM.colors.accent, width: 2 });
+  for (var i = 0; i < years.length; i++) {
+    if (se[i] > 0) p.line([years[i], years[i]],
+      [coef[i] - 2 * se[i], coef[i] + 2 * se[i]], { color: 'rgba(56,189,248,0.5)', width: 2 });
+  }
+  p.scatter(years, coef, { color: SIM.colors.accent2, size: 4.5 });
+  p.label(2013.1, 0.10, 'never turns back', { color: SIM.colors.accent2, size: 13 });
+})();
 
 /* ---------- SIM 1: the fixed-effects machine ---------- */
 (function () {
@@ -876,6 +1005,6 @@ function demeanBy(v, ids, nG) {
 })();
 </script>
 <script src="../../assets/js/pyrun.js"></script>
-<!-- editorial: the paper's binscatter figures (Figures 4 to 7) and maps (Figure 3) are summarised in the findings tables and reproduced conceptually by the simulations; the 171 MB replication dataset needed to redraw them did not download (a .crdownload stub only), as stated on the agenda slide. -->
+<!-- editorial: the unit now ships the real county-level replication data (gopal_county.csv, gopal_county_year.csv, extracted from the RFS supplementary package 2026-07-11); Table 4 and the crisis event study are reproduced on it exactly, and the real-data scatter and event-study slides replace what the binscatter figures showed. The paper's maps (Figure 3) and loan-level tables (5 to 8) still need the proprietary UCC microdata and are quoted from the article. -->
 </body>
 </html>

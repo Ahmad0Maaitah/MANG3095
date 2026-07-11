@@ -8,77 +8,84 @@ doi: 10.1093/rfs/hhac034. This week doubles as the module's panel-methods week.
 ## Objectives
 
 - Explain the paper's question, identification strategy (county exposure to the
-  nationwide 2008 bank shock via the 2006 bank share) and headline findings, with
-  the paper's own numbers (Table 4: 0.212***/0.534***/0.016; a 10th to 90th
-  percentile move in bank share raises the nonbank market share by 6.9 pp with a
-  precise null on total lending).
+  nationwide 2008 bank shock via the 2006 bank share) and headline findings, and
+  REPRODUCE them on the paper's own data: Table 4's 0.212***/0.534***/0.016 come
+  out exactly in the preferred specification (controls + state FE, county-clustered
+  SEs), and a 10th to 90th percentile move in bank share raises the nonbank market
+  share by 6.8 pp with a precise null on total lending.
 - Prepare panel data: entity (county FIPS) and time (year) identifiers, m:1 merges
   of multiple public sources (UCC, CBP, CRA, HMDA, LAUS, SUSB, FDIC deposits) on a
-  common id, balanced vs unbalanced panels.
-- Estimate and interpret fixed-effects models (pooled OLS vs county FE vs two-way
-  FE via the within transformation) and cluster-robust standard errors (CRVE,
-  Moulton factor, choice of clustering level, few-clusters caution).
+  common id, balanced vs unbalanced panels, all demonstrated on the real files.
+- Estimate and interpret fixed-effects models (specification ladder, two-way FE via
+  the within transformation, the real crisis event study) and cluster-robust
+  standard errors (CRVE, Moulton factor, choice of clustering level).
 - Read a real replication package: the run_file.do -> data_creation.do ->
   figures_and_tables.do pipeline, with verbatim excerpts from the actual do-files.
 
-## IMPORTANT: missing replication dataset
+## Data (REAL, shipped in ../../data/csv/)
 
-The paper's replication package data (about 171 MB) did NOT download when this
-unit was built; only a browser `.crdownload` stub arrived. The unit therefore
-teaches the replication ARCHITECTURE and the panel METHODS on a seeded synthetic
-county-year teaching panel, and says so honestly on the agenda slide. All numbers
-quoted from the paper come from the published article text.
+- `gopal_county.csv` (3,056 counties) - the paper's county cross-section, built
+  from the replication package's final files (county_lending_changes_baseline +
+  pre_crisis_bank_share_county_baseline + county_pre_crisis_controls, merged and
+  filtered exactly as figures_and_tables.do does): 2006 bank share, 2007-2016
+  changes in nonbank market share and lending growth (full period and subperiods),
+  and the paper's eight controls. The analysis sample after dropping missing
+  controls is 3,021 counties, matching the paper.
+- `gopal_county_year.csv` (34,385 rows) - the county x year panel of UCC-filing
+  loan counts by lender type (nonbank_loans, bank_loans), 2006-2016, from
+  county_lending.dta.
+- `data_gopal.js` (in this folder) - the 3,021-county analysis sample embedded for
+  the canvas scatter (bank share vs each Table 4 outcome).
 
-To re-download the data: the replication package (code + public data) is hosted as
-supplementary material on The Review of Financial Studies website next to the
-article (https://doi.org/10.1093/rfs/hhac034). The loan-level UCC data themselves
-are proprietary and must be purchased from the vendor named in the package README
-(Mailinglists.com, contact Becky Santaniello). The ten Stata do-files ARE available
-locally under `_extracted-knowledge/Week 10/code/code/` and are quoted in the deck.
+The replication package (code + public data) is supplementary material on the RFS
+website next to the article. The loan-level UCC records are proprietary and are
+NOT shipped; Tables 5 to 8 (loan-level and firm-level results) are quoted from the
+published article. The full 2.6 GB package archive lives outside this repo.
 
-## Simulations (3, all seeded, canvas, ST./SIM. only)
+## Verified real-data results (all reproduced by code/lecture10.py, exit 0)
 
-1. **The fixed-effects machine** - a 10-year county panel where branch closures
-   target permanently weak counties; sliders for confounding strength, FE
-   dispersion, true effect and county count; compares pooled OLS, county FE and
-   two-way FE bars against the truth.
-2. **The clustering machine** - 400 placebo panels with a county-level regressor
-   and within-county error correlation rho; histogram of naive t-statistics vs
-   N(0,1) plus false-rejection rates for naive vs cluster-robust SEs and the
-   Moulton factor readout.
-3. **Event study around staggered closures** - event-time coefficient path from a
-   two-way FE regression with +/-2 SE whiskers; sliders for effect size,
-   differential pre-trend and noise; tests the parallel-trends logic.
+- Table 4 ladder: 0.215/0.197/0.212 (share), 0.788/0.645/0.534 (nonbank growth),
+  0.240/0.126/0.016 (total); preferred column = the paper exactly.
+- Bank share moments: mean 0.475, sd 0.129 (paper Table 3: 0.476, 0.130);
+  p10/p90 = 0.312/0.634; implied 10->90 effect +6.8 pp.
+- Crisis event study (county + year FE, base 2007, 2006 excluded as the
+  exposure-measurement year): 0.038 (2008), 0.016 (2009), 0.056 (2010), 0.070,
+  0.112, 0.145, 0.171, 0.207, 0.217 (2016).
+- SEs by clustering (preferred spec): iid 0.019, county 0.024, state 0.027.
+- Subperiods: 0.073 (2007-10), 0.138 (2010-16). Leave-one-state-out: 0.199-0.229.
 
-Each simulation has a "Reading the results" panel tying it back to the paper.
+## Simulations and interactive elements
 
-## pyrun cells (4, all verified locally against code/lecture10.py)
+1. **Real Table 4 scatter** - 3,021 counties, outcome switcher (share / nonbank
+   growth / total), binscatter-style bin means and the raw OLS fit.
+2. **Real crisis event study** - the estimated gamma_t path with 2 SE whiskers.
+3. **The fixed-effects machine** (method demo, simulated with known truth) -
+   pooled vs county FE vs two-way FE under selection into treatment.
+4. **The clustering machine** (method demo) - naive t-statistics across 400
+   placebo panels vs N(0,1), false-rejection readouts.
+5. **Event study and parallel trends** (method demo) - staggered adoption with
+   adjustable pre-trend.
 
-1. Build a county x year panel with entity/time ids, xtset-style balance check and
-   the package's m:1 merge pattern (section 2).
-2. Pooled vs county FE vs two-way FE with county-clustered SEs: prints
-   -1.684 / -1.470 / -1.532 against a true effect of -1.50 (section 6).
-3. Naive vs clustered inference: single-draw SE ratio 1.84, then a 1,000-rep Monte
-   Carlo giving 35.5% vs 6.9% false rejections at a nominal 5% (section 6).
-4. Robustness: long-difference gamma = 0.212 (matching the paper's Table 4 value by
-   calibration), SEs by clustering level (iid/county/state) and leave-one-state-out
-   range 0.197 to 0.226 (section 7).
+## pyrun cells (4, all real data unless stated)
+
+1. Load the real county x year panel, xtset-style balance check, the package's
+   m:1 merge pattern (section 2).
+2. Table 4, for real: all three outcomes x three specifications; the preferred
+   column prints 0.212/0.534/0.016 (section 6).
+3. Naive vs clustered inference: real SEs by clustering level, then a placebo
+   Monte Carlo for false-rejection rates, 35.5% vs 6.9% (section 6).
+4. Robustness: real subperiods 0.073/0.138 and the 50-state leave-one-state-out
+   loop, range 0.199-0.229 (section 7).
 
 ## Code files (code/)
 
-- `lecture10.py` - full synthetic-panel workflow; runs to exit 0 and prints every
-  number used in the deck (python lecture10.py).
+- `lecture10.py` - full real-data workflow; runs to exit 0 and prints every number
+  used in the deck (python lecture10.py).
 - `lecture10.do` - the same workflow in the replication package's idioms (globals,
-  collapse/reshape, merge m:1, xtset, reghdfe with absorb() and cluster();
-  requires ssc install reghdfe winsor2 estout).
-- `lecture10.R` - fixest/dplyr version (feols with FE and cluster arguments,
-  i() event study).
-- `lecture10.prg` - EViews panel workfile with cross-section/period fixed effects
-  and White cross-section SEs, plus an honest note that the paper's full pipeline
-  (fuzzy merges, reghdfe, two-way clustering) lives outside EViews.
-
-## Data
-
-No real data are shipped (see above). Everything is generated with seeded RNGs
-(numpy default_rng(42)/(300)/(7)/(2024) in Python; ST.rng seeds in the browser
-sims), calibrated to the paper's Table 3 moments (bank share mean 0.476, sd 0.130).
+  merge m:1, xtset, reghdfe with absorb() and cluster(); ssc install reghdfe estout).
+- `lecture10.R` - fixest/dplyr version (feols with FE and cluster arguments, i()
+  event study).
+- `lecture10.prg` - EViews: the Table 4 cross-section with @expand state dummies
+  and White SEs, the panel page with cross-section/period FE, plus an honest note
+  that the package's full pipeline (fuzzy merges, reghdfe, two-way clustering)
+  lives outside EViews.

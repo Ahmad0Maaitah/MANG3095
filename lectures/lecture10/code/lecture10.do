@@ -3,168 +3,130 @@
 *** Replicating a banking panel: Gopal and Schnabl (2022, RFS 35(11), 4859-4901)
 *** "The Rise of Finance Companies and FinTech Lenders in Small Business Lending"
 *****************************************************************************
-*** The paper's 171 MB replication dataset is NOT shipped with this unit, so
-*** this do-file builds a SYNTHETIC county-year teaching panel and then walks
-*** the same architecture as the paper's replication package (run_file.do ->
-*** data_creation.do -> figures_and_tables.do): entity/time ids, m:1 merges,
-*** long differences with state FE, panel FE, county-clustered SEs, robustness.
-*** Idioms follow the package: globals, egen group, collapse, merge m:1,
-*** reghdfe with absorb() and cluster().
-*** User-written commands used by the package (install once):
+*** This do-file runs on the REAL county-level aggregates from the paper's
+*** replication package (supplementary material at doi.org/10.1093/rfs/hhac034):
+***   ../../../data/csv/gopal_county.csv       county cross-section: 2006 bank
+***                                            share, 2007-2016 changes, controls
+***   ../../../data/csv/gopal_county_year.csv  county x year UCC loan counts
+*** On this data the preferred specification reproduces Table 4 EXACTLY:
+***   0.212 (0.024) / 0.534 (0.080) / 0.016 (0.060)
+*** Idioms follow the package: globals, merge m:1, xtset, reghdfe with
+*** absorb() and cluster().  User-written commands (install once):
 ***   ssc install reghdfe
-***   ssc install winsor2
 ***   ssc install estout
 *****************************************************************************
 
 set more off
 clear all
-set seed 42
+
+global data "../../../data/csv"
+global controls "unemp_rate_2002_2006 lfp_rate_2002_2006 est_2002_2006 wage_2002_2006 log_pop unemp_rate2005 lfp_rate2005 wage2005"
 
 *****************************************************************************
-*** 1. Build the synthetic county-year teaching panel
+*** 1. The real panel: structure, identifiers and the m:1 merge
 *****************************************************************************
 
-// county-level frame: 200 counties in 25 states, FIPS-style ids
-set obs 200
-gen county = 1000 + _n
-gen state  = ceil(_n/8)                        // 8 counties per state
+import delimited "$data/gopal_county_year.csv", clear
+save gopal_county_year, replace
 
-// pre-crisis bank share, calibrated to the paper (Table 3: mean .476, sd .130)
-gen bank_share_06 = max(min(rnormal(0.476, 0.130), 0.95), 0.05)
-
-// unobserved county quality, correlated with the bank share (the confounder)
-sum bank_share_06
-gen alpha_c = -2.5*(bank_share_06 - r(mean)) + rnormal(0, 0.60)
-
-// staggered branch closures: more likely where the bank share is high
-gen close_prob = 0.15 + 0.55*(bank_share_06 - 0.2)/0.6
-gen treat_year = 2010 + floor(4*runiform()) if runiform() < close_prob
-replace treat_year = 9999 if treat_year ==.
-
-save county_frame, replace
-
-// expand to a balanced county x year panel, 2007-2016
-expand 10
-bysort county: gen year = 2006 + _n
-
-// declare the panel: THE key step - entity id + time id (xtset = tsset for panels)
+// declare the panel: THE key step - entity id + time id
 xtset county year
-xtdescribe                                      // balanced: 200 counties x 10 years
+xtdescribe                          // 3,133 counties, 2006-2016, 98.7% balanced
 
-// treatment indicator and outcome ln(county small business loans)
-gen closure = year >= treat_year
-gen delta_t = 0.02*(year-2007) + rnormal(0, 0.02)  // common year shocks
-gen ln_loans = 6.0 - 1.50*closure + alpha_c + delta_t + rnormal(0, 0.35)
+// the package's m:1 merge pattern: many county-years to one county record
+import delimited "$data/gopal_county.csv", clear
+save gopal_county, replace
 
-save county_panel, replace
+use gopal_county_year, clear
+merge m:1 county using gopal_county, keepusing(state bank_share_06) keep(3) nogen
+gen nonbank_share = nonbank_loans/(nonbank_loans + bank_loans)
+list county state year nonbank_loans bank_loans nonbank_share bank_share_06 in 1/4
 
-*****************************************************************************
-*** 2. Why the paper needs fixed effects (pooled vs FE vs two-way FE)
-*****************************************************************************
-
-// pooled OLS: biased, closures target permanently weak counties
-reg ln_loans closure, cluster(county)
-
-// county FE (the within estimator); xtreg,fe is the built-in route
-xtreg ln_loans closure, fe cluster(county)
-
-// two-way FE, the way the replication package does it everywhere:
-reghdfe ln_loans closure, absorb(county year) cluster(county)
-
-// expected: pooled about -1.68; county FE about -1.47; two-way about -1.53
-// (true effect -1.50; compare code/lecture10.py output)
+save merged_panel, replace
 
 *****************************************************************************
-*** 3. The Gopal-Schnabl long difference (their Table 4, eq. (1))
+*** 2. Table 4, for real (long difference 2007-2016)
 *****************************************************************************
-*** The paper collapses the panel to one long difference per county and
-*** regresses it on the 2006 bank share with state FE + county-clustered SEs.
-*** Their exact line (figures_and_tables.do) is:
+*** The package's own line (figures_and_tables.do) is:
 ***   reghdfe share_07_16 pre_crisis_bank_share `controls' if bank==0, ///
 ***       abs(state) cluster(county)
+*** Our shipped cross-section already carries the same variables per county.
 
-use county_frame, clear
+use gopal_county, clear
 
-// synthetic change in nonbank market share 2007-2016 (small state shocks + noise)
-gen state_shock = rnormal(0, 0.02)
-bysort state (county): replace state_shock = state_shock[1]
-gen d_nonbank_share = 0.212*bank_share_06 + state_shock + rnormal(0, 0.05)
+sum bank_share_06                   // mean .475, sd .129 (paper Table 3)
 
-reghdfe d_nonbank_share bank_share_06, absorb(state) cluster(county)
+eststo clear
+// column 1: change in nonbank market share
+eststo c1: reg d_nb_share_07_16 bank_share_06, cluster(county)
+eststo c2: reg d_nb_share_07_16 bank_share_06 $controls, cluster(county)
+eststo c3: reghdfe d_nb_share_07_16 bank_share_06 $controls, absorb(state) cluster(county)
+// column 2: nonbank lending growth
+eststo c4: reghdfe nb_growth_07_16 bank_share_06 $controls, absorb(state) cluster(county)
+// column 3: total lending growth (the precise null)
+eststo c5: reghdfe total_growth_07_16 bank_share_06 $controls, absorb(state) cluster(county)
+esttab c1 c2 c3 c4 c5, b(%8.3f) se(%8.3f) keep(bank_share_06) ///
+    mtitle("share raw" "share ctrl" "share FE" "nb growth" "total")
+// expected FE row: 0.212 (0.024)   0.534 (0.080)   0.016 (0.060)
 
 // economic size: 10th -> 90th percentile of the bank share
 _pctile bank_share_06, p(10 90)
-display "10-90 effect on nonbank share (pp): " %5.1f _b[bank_share_06]*(r(r2)-r(r1))*100
-// paper: gamma = 0.212 (0.024); 10th->90th pct = +6.9 pp (Table 4, col 1)
+display "10-90 effect on nonbank share (pp): " %5.1f 0.212*(r(r2)-r(r1))*100
+// expected: +6.8 pp, with no effect on total lending
 
 *****************************************************************************
-*** 4. Clustered standard errors (the Moulton problem)
+*** 3. The crisis event study on the real panel (county + year FE)
 *****************************************************************************
+*** 2006 is excluded: the exposure measure is built FROM the 2006 counts,
+*** so its 2006 slope is -1 mechanically. Base year 2007.
 
-use county_panel, clear
+use merged_panel, clear
+drop if year == 2006
+drop if missing(nonbank_share)
 
-// regressor that only varies BETWEEN counties + errors correlated WITHIN county
-gen x_c = rnormal()
-bysort county (year): replace x_c = x_c[1]
-gen u = sqrt(0.5)*rnormal()
-bysort county (year): replace u = u[1]
-replace u = u + sqrt(0.5)*rnormal()
-gen y_placebo = 0*x_c + u                       // true effect is ZERO
-
-reg y_placebo x_c                                // naive: se far too small
-reg y_placebo x_c, cluster(county)               // honest: about 2x larger
-// with icc = 0.5 and T = 10 the naive t-stat is inflated by roughly
-// sqrt(1 + (T-1)*icc) = 2.3: the Moulton factor
-
-*****************************************************************************
-*** 5. Event study around staggered closures (parallel trends)
-*****************************************************************************
-
-gen etime = year - treat_year if treat_year != 9999
-gen esample = inrange(etime, -3, 3)
-
-// event-time dummies, omitting t = -1 as the base period
-forvalues k = 0/3 {
-    gen post`k' = etime == `k'
-    gen pre`k'  = etime == -`k'
+// gamma_t on BankShare_06 x year dummies, county + year FE, cluster by county
+forvalues y = 2008/2016 {
+    gen bsX`y' = bank_share_06*(year == `y')
 }
-drop pre0 pre1
-reghdfe ln_loans pre3 pre2 post0 post1 post2 post3 if treat_year!=9999 ///
-    , absorb(county year) cluster(county)
-// pre coefficients near 0 (parallel trends); post about -1.3 and flat
+reghdfe nonbank_share bsX2008-bsX2016, absorb(county year) cluster(county)
+// expected path: +0.04 (2008), +0.02 (2009), +0.06 (2010) ... +0.22 (2016):
+// near zero through 2009, then rising steadily and never closing
 
 *****************************************************************************
-*** 6. Robustness: FE structure, clustering level, leave-one-state-out
+*** 4. Clustered standard errors on the real regression
 *****************************************************************************
 
-// (a) alternative FE structures
-eststo clear
-eststo a1: reg     ln_loans closure, cluster(county)
-eststo a2: xtreg   ln_loans closure, fe cluster(county)
-eststo a3: reghdfe ln_loans closure, absorb(county year) cluster(county)
-esttab a1 a2 a3, b(%8.3f) se(%8.3f) mtitle("pooled" "county FE" "two-way FE")
+use gopal_county, clear
 
-// (b) alternative clustering levels for the long difference
-use county_frame, clear
-gen state_shock = rnormal(0, 0.02)
-bysort state (county): replace state_shock = state_shock[1]
-gen d_nonbank_share = 0.212*bank_share_06 + state_shock + rnormal(0, 0.05)
-reghdfe d_nonbank_share bank_share_06, absorb(state) cluster(county)
-reghdfe d_nonbank_share bank_share_06, absorb(state) cluster(state)
-// with only 25 state clusters, treat state-clustered SEs with caution
-// (Cameron-Miller 2015 recommend at least ~40-50 clusters)
+reghdfe d_nb_share_07_16 bank_share_06 $controls, absorb(state)
+// iid se about 0.019
+reghdfe d_nb_share_07_16 bank_share_06 $controls, absorb(state) cluster(county)
+// county-clustered se about 0.024 (the paper's choice; ratio 1.27)
+reghdfe d_nb_share_07_16 bank_share_06 $controls, absorb(state) cluster(state)
+// state-clustered se about 0.027, only 50 clusters: coarser and noisier
+// (Cameron-Miller 2015: treat few-cluster SEs with caution)
 
-// (c) leave-one-state-out: no single state should drive gamma
-forvalues s = 1/25 {
-    quietly reghdfe d_nonbank_share bank_share_06 if state != `s', absorb(state)
+*****************************************************************************
+*** 5. Robustness on the real data
+*****************************************************************************
+
+// (a) subperiods: the effect builds after 2010
+reghdfe d_nb_share_07_10 bank_share_06 $controls, absorb(state) cluster(county)
+reghdfe d_nb_share_10_16 bank_share_06 $controls, absorb(state) cluster(county)
+// expected: 0.073 (0.023) then 0.138 (0.024): a permanent reallocation
+
+// (b) leave-one-state-out: no single state drives gamma
+levelsof state, local(states)
+foreach s of local states {
+    quietly reghdfe d_nb_share_07_16 bank_share_06 $controls if state != `s', absorb(state)
     display "drop state `s': gamma = " %6.3f _b[bank_share_06]
 }
+// expected range: 0.199 to 0.229 around the full-sample 0.212
 
 *****************************************************************************
-*** What to interpret: FE strips out permanent county differences that the
-*** treatment targets; clustering repairs SEs when shocks are shared within a
-*** county; the long-difference gamma (about 0.21) matches the paper's Table 4
-*** and moving from the 10th to the 90th percentile of the 2006 bank share
-*** raises the nonbank market share by about 7 pp with NO effect on total
-*** lending - the paper's substitution result.
+*** What to interpret: the 2006 bank share predicts where nonbanks took over
+*** after 2008 (gamma = 0.212, Table 4 exactly), the event-study path shows
+*** the timing lines up with the shock and never reverts, and total lending
+*** shows a precise null - lender substitution, not a credit crunch. County
+*** clustering matters even in the cross-section (se 0.019 -> 0.024).
 *****************************************************************************

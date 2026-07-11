@@ -8,66 +8,73 @@
 ' data_creation.do -> figures_and_tables.do) built around loan-level text
 ' files, fuzzy name merges, reshape/collapse steps and reghdfe with
 ' multi-way clustering. That data-engineering layer lives OUTSIDE EViews:
-' EViews has no native equivalent of merge m:1 on string keys at the
-' 11-million-row scale, no reghdfe, and no two-way (county AND industry)
-' clustered covariance. Researchers who estimate this paper's tables do so
-' in Stata, R (fixest) or Python (statsmodels/linearmodels/pyfixest).
+' EViews has no reghdfe and no two-way clustered covariance. Researchers
+' who estimate this paper's tables do so in Stata, R (fixest) or Python.
 '
-' What EViews CAN do well is the panel-methods core of this week:
-' a dated panel workfile, cross-section fixed effects, period fixed
-' effects, and one-way cluster-robust ("White cross-section") SEs.
-' The program below builds the same synthetic county-year teaching panel
-' and estimates the pooled / FE / two-way FE comparison.
+' What EViews CAN do well is the core of this week ON THE REAL DATA:
+' this unit ships the paper's own county-level aggregates, and the program
+' below loads them, reproduces the Table 4 long-difference regression with
+' state dummies and White (HC) robust SEs, and estimates the county+period
+' fixed-effects event-study panel with cluster-robust SEs.
+'   ../../../data/csv/gopal_county.csv       county cross-section
+'   ../../../data/csv/gopal_county_year.csv  county x year panel
+' Expected preferred-spec results: 0.212 / 0.534 / 0.016 (Table 4 exactly).
 ' ===========================================================================
 
-' --- 1. synthetic county-year panel: 200 counties, 2007-2016 --------------
-wfcreate(wf=week10, page=panel) a(2007, 2016) 200
-rndseed 42
+' --- 1. the real county cross-section: Table 4 -----------------------------
+wfcreate(wf=week10, page=cross) u 3056
+import(page=cross) "..\..\..\data\csv\gopal_county.csv" ftype=ascii rectype=crlf skip=0 fieldtype=delimited delim=comma colhead=1 namepos=first @freq U @smpl @all
 
-' county-level confounder and treatment (constant within cross-section)
-series bank_share_06 = 0.476 + 0.130*@qnorm(rnd)
-' hold county-level draws fixed across the ten years of each county:
-series bank_share_06 = @meansby(bank_share_06, @crossid)
-series alpha_c = -2.5*(bank_share_06 - @mean(bank_share_06)) + 0.60*@qnorm(rnd)
-series alpha_c = @meansby(alpha_c, @crossid)
+' the preferred specification: controls + state fixed effects via @expand,
+' county-level clustering with one obs per county = White (HC) robust SEs
+equation eq_share.ls(cov=white) d_nb_share_07_16 c bank_share_06 _
+    unemp_rate_2002_2006 lfp_rate_2002_2006 est_2002_2006 wage_2002_2006 _
+    log_pop unemp_rate2005 lfp_rate2005 wage2005 @expand(state, @dropfirst)
+show eq_share
+' expected: bank_share_06 coefficient 0.212 (se about 0.024)
 
-' staggered closures from 2010-2013, more likely where bank share is high
-series close_prob = 0.15 + 0.55*(bank_share_06 - 0.2)/0.6
-series treat_draw = rnd
-series treat_draw = @meansby(treat_draw, @crossid)
-series treat_year = 2010 + @floor(4*@meansby(rnd, @crossid))
-series closure = (treat_draw < close_prob) and (@year >= treat_year)
+equation eq_growth.ls(cov=white) nb_growth_07_16 c bank_share_06 _
+    unemp_rate_2002_2006 lfp_rate_2002_2006 est_2002_2006 wage_2002_2006 _
+    log_pop unemp_rate2005 lfp_rate2005 wage2005 @expand(state, @dropfirst)
+' expected: 0.534 (se about 0.080)
 
-' outcome: ln(county small business loans), true closure effect -1.50
-series ln_loans = 6.0 - 1.50*closure + alpha_c + 0.02*(@year-2007) _
-    + 0.35*@qnorm(rnd)
+equation eq_total.ls(cov=white) total_growth_07_16 c bank_share_06 _
+    unemp_rate_2002_2006 lfp_rate_2002_2006 est_2002_2006 wage_2002_2006 _
+    log_pop unemp_rate2005 lfp_rate2005 wage2005 @expand(state, @dropfirst)
+' expected: 0.016 (se about 0.060) - the precise null on total lending
 
-' --- 2. pooled OLS vs fixed effects vs two-way FE --------------------------
-' pooled OLS with cluster-robust (White cross-section) SEs: biased upward
-equation eq_pooled.ls(cov=cxwhite) ln_loans c closure
+' economic size: a 10th->90th percentile move in the 2006 bank share
+' (0.312 -> 0.634) moves the nonbank market share by about +6.8 pp
 
-' county (cross-section) fixed effects: the within estimator
-equation eq_fe.ls(cx=f, cov=cxwhite) ln_loans c closure
+' --- 2. the real county x year panel: event study --------------------------
+' Load the panel page (3,133 counties, 2006-2016, mildly unbalanced).
+pagecreate(page=panel) a(2006, 2016) 3133
+import(page=panel) "..\..\..\data\csv\gopal_county_year.csv" ftype=ascii rectype=crlf skip=0 fieldtype=delimited delim=comma colhead=1 namepos=first @freq A @id county @destid @crossid @smpl @all
 
-' two-way FE: cross-section AND period fixed effects
-equation eq_2wfe.ls(cx=f, per=f, cov=cxwhite) ln_loans c closure
+' nonbank share of filings per county-year
+series nonbank_share = nonbank_loans/(nonbank_loans + bank_loans)
 
-show eq_pooled
-show eq_fe
-show eq_2wfe
-' expected: pooled about -1.7 (biased); FE and two-way FE about -1.5 (truth)
-
-' --- 3. the long-difference cross-section ----------------------------------
-' The paper's Table 4 is a COUNTY CROSS-SECTION (one long difference per
-' county) with state FE. In EViews you would collapse the panel to a
-' cross-section workfile page and use ls with state dummies:
-'   pagecreate(page=cross) u 200
-'   equation eq_ld.ls d_nonbank_share c bank_share_06 @expand(state, @dropfirst)
-' County-level clustering with one observation per county equals White
-' (HC) robust SEs: add (cov=white) to the ls command.
+' merge the county-level 2006 bank share onto the panel (link by county id),
+' then interact it with year dummies, 2007 base; 2006 is EXCLUDED because
+' the exposure measure is built from the 2006 counts (mechanical -1 slope).
+' In EViews: copy bank_share_06 from the cross page via a link object:
+'   link bank_share_06
+'   bank_share_06.linkto cross::bank_share_06 county
+smpl 2007 2016
+' county (cross-section) + period fixed effects, cluster-robust SEs:
+equation eq_event.ls(cx=f, per=f, cov=cxwhite) nonbank_share _
+    bank_share_06*(@year=2008) bank_share_06*(@year=2009) _
+    bank_share_06*(@year=2010) bank_share_06*(@year=2011) _
+    bank_share_06*(@year=2012) bank_share_06*(@year=2013) _
+    bank_share_06*(@year=2014) bank_share_06*(@year=2015) _
+    bank_share_06*(@year=2016)
+show eq_event
+' expected path: +0.04 (2008), +0.02 (2009), +0.06 (2010) ... +0.22 (2016):
+' near zero through 2009, then rising steadily and never closing
 
 ' --- what to interpret ------------------------------------------------------
-' The FE comparison is the heart of the week: closures target permanently
-' weak counties, so pooled OLS overstates the damage; county FE removes the
-' permanent differences and recovers the truth. For the paper's full merge
-' and multi-way clustering pipeline, use the Stata, R or Python versions.
+' The 2006 bank share predicts where nonbanks took over after 2008: gamma =
+' 0.212 on the real data (Table 4 exactly), with a precise null on total
+' lending - lender substitution, not a credit crunch. The event-study path
+' lines up with the shock and never reverts. For the paper's full merge and
+' multi-way clustering pipeline, use the Stata, R or Python versions.

@@ -14,7 +14,8 @@ academic year automatically.
   - Week 7: Diebold and Yilmaz (2012), volatility spillovers and connectedness
   - Week 8: Antonakakis, Chatziantoniou and Gabauer (2020), TVP-VAR connectedness
   - Week 9: Laurent, Rombouts and Violante (2012), multivariate GARCH forecast accuracy, JAE
-  - Week 10: a Review of Financial Studies banking replication package (Stata panel methods)
+  - Week 10: Gopal and Schnabl (2022), finance companies and FinTech lenders, RFS
+    (real replication data; Table 4 reproduced exactly)
 
 Each paper unit contains: a data-preparation introduction (stationarity, transformations,
 panel identification), parameterised interactive simulations of the paper's method, code in
@@ -28,6 +29,10 @@ checks rebuilt as simulations, and a results discussion under every simulation.
   (JAE data archive)
 - `fx_returns.csv` - daily EUR/GBP/JPY returns for connectedness demonstrations
 - `crypto_returns.csv` - aligned BTC and ETH daily returns
+- `gopal_county.csv`, `gopal_county_year.csv` - real county-level analysis data from
+  the Gopal and Schnabl (2022, RFS) replication package (supplementary material,
+  doi 10.1093/rfs/hhac034), shipped with attribution; the proprietary loan-level
+  UCC records are not included
 
 ## Running the code
 
