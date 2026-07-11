@@ -19,16 +19,25 @@ paper-replication weeks.
 
 ## Interactive elements
 
-1. **Event study machine** - seeded canvas simulation of market-model abnormal returns for
+1. **Stationarity dial** - AR(1) simulator with a phi slider (0 to 1.02): path plus sample
+   ACF with a 1.96/sqrt(T) band, shock half-life readout, unit-root warning at phi >= 1.
+   Bridges directly into the ADF warm-up cell.
+2. **Volatility clustering machine** - GARCH(1,1) simulator with alpha and beta sliders,
+   conditional 2-sigma band overlay, and a readout contrasting the ACF(1) of returns
+   (near zero) with the ACF(1) of squared returns (large when persistence is high).
+3. **Event study machine** - seeded canvas simulation of market-model abnormal returns for
    N stocks around an announcement day: sliders for the event-day effect, post-event drift,
    noise sd and the number of events; plots the average CAR against a 95% no-effect band and
    reports the event-window CAR(0, +10) with its t statistic. A "Reading the results" panel links the
    picture to semi-strong efficiency and the FinTech-and-banks example from the source deck.
-2. **Warm-up pyrun cell** (five-papers-ahead section) - loads `fx_returns`, plots the EUR
+4. **Survivorship bias machine** - 200 zero-skill funds with annual attrition of the worst
+   performers; compares the average cumulative return of end-of-sample survivors against all
+   funds and reports the manufactured "alpha" per year. Sets up the spot-the-bias quiz.
+5. **Warm-up pyrun cell** (five-papers-ahead section) - loads `fx_returns`, plots the EUR
    daily % log returns, and runs an ADF test via statsmodels. Verified locally: 7141 obs,
    mean 0.0002, sd 0.4640, ADF statistic -42.34 (3 lags by AIC) against a 5% critical value
    of -2.86, so returns are emphatically stationary.
-3. Two self-check quizzes: choosing the data structure (panel fixed effects) and spotting
+6. Two self-check quizzes: choosing the data structure (panel fixed effects) and spotting
    survivorship bias in a backtest.
 
 ## The five papers ahead (bridge section)

@@ -132,6 +132,46 @@
       increasingly complement traditional approaches for improved forecasting accuracy.</div>
   </section>
   <section>
+    <h3>&#127899;&#65039; Try it: stationary or not? The AR(1) dial</h3>
+    <p class="tiny">Every paper week starts by checking stationarity. Drag &phi; towards 1 and watch mean reversion die:
+      at &phi; = 1 the series is a random walk, shocks never fade, and the ACF refuses to decay.</p>
+    <div class="sim" id="sim-st">
+      <canvas id="cv-stpath" width="545" height="215" style="display:inline-block;vertical-align:top"></canvas><canvas id="cv-stacf" width="300" height="215" style="display:inline-block;vertical-align:top;margin-left:8px"></canvas>
+      <div class="controls-row" id="ctl-st"></div>
+      <div class="note">Left: a simulated AR(1) series y<sub>t</sub> = &phi;y<sub>t-1</sub> + &epsilon;<sub>t</sub>
+        (fixed seed). Right: its sample ACF to lag 20 with a &plusmn;1.96/&radic;T band.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> Below &phi; = 1 the ACF decays
+      geometrically (&phi;<sup>k</sup>) and shocks have a finite half-life, shown in the readout. As &phi; approaches 1
+      the half-life explodes and the ACF stays near 1 for many lags: the classic unit-root signature, and the reason
+      you difference prices into returns before modelling them. This is exactly what the ADF test in the warm-up cell
+      at the end of this deck formalises: on real FX returns it rejects the unit root emphatically (statistic near -42),
+      while price levels would not reject.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it simulates an AR(1) series with a slider
+      for the autoregressive coefficient and plots the path alongside its sample autocorrelation function, reporting the
+      shock half-life as the coefficient approaches a unit root.</div></noscript>
+  </section>
+  <section>
+    <h3>&#9889; Try it: volatility clustering (why GARCH exists)</h3>
+    <p class="tiny">Financial returns are roughly unpredictable in <em>level</em> but highly predictable in
+      <em>risk</em>: calm days follow calm days, wild days follow wild days. GARCH(1,1) captures that with two numbers.</p>
+    <div class="sim" id="sim-vol">
+      <canvas id="cv-vol" width="880" height="235"></canvas>
+      <div class="controls-row" id="ctl-vol"></div>
+      <div class="note">Simulated GARCH(1,1) daily returns (fixed seed) with the <b style="color:#fbbf24">&plusmn;2&sigma;<sub>t</sub>
+        conditional band</b> overlaid. &alpha; is the reaction to yesterday's shock, &beta; the memory of yesterday's variance.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> With &alpha; + &beta; near zero the
+      band is flat and returns look iid. Raise the persistence towards 1 and volatility begins to cluster: the band
+      breathes slowly, and the readout shows the ACF of squared returns turning strongly positive even though returns
+      themselves stay serially uncorrelated. That pair of facts, uncorrelated returns but correlated squared returns, is
+      the empirical fingerprint that Engle (1982) and Bollerslev (1986) built ARCH and GARCH around, and Weeks 7 to 9
+      live entirely inside this world.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it simulates GARCH(1,1) returns with
+      sliders for the ARCH and GARCH parameters, overlays the conditional two-standard-deviation band, and reports the
+      persistence and the first-order autocorrelation of squared returns.</div></noscript>
+  </section>
+  <section>
     <h3>Event study example: FinTech and banks</h3>
     <div class="cols">
       <div class="panel small"><b class="accent">Research question</b><br>How do FinTech funding announcements affect
@@ -246,6 +286,27 @@
         firms drop from databases, artificially inflating performance. Look-ahead bias uses information not available
         at decision time. Construct unbiased samples and align information timing carefully in backtests.</div>
     </div>
+  </section>
+  <section>
+    <h3>&#129702; Try it: the survivorship bias machine</h3>
+    <p class="tiny">200 simulated funds whose TRUE average skill is exactly zero. Each year, the worst performers are
+      shut down and vanish from the database. Then you compute "average performance" the naive way, using only the
+      funds still alive at the end.</p>
+    <div class="sim" id="sim-surv">
+      <canvas id="cv-surv" width="880" height="245"></canvas>
+      <div class="controls-row" id="ctl-surv"></div>
+      <div class="note">Average cumulative return of <b style="color:#34d399">end-of-sample survivors</b> vs
+        <b style="color:#38bdf8">all funds including the dead ones</b> (fixed seed). The dashed line is the truth: zero skill.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> The all-funds average hugs zero,
+      because that is the truth. The survivors-only average drifts upward purely because losing funds keep being
+      deleted: with 10% annual attrition the fake "alpha" in the readout is worth several percent a year, and it grows
+      with both the attrition rate and the noise. Nothing about the surviving funds is skilled; the sample was filtered
+      on the outcome. This is why serious backtests use point-in-time databases (CRSP includes dead firms for exactly
+      this reason), and it is the trap in the quiz on the next slide.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it simulates 200 zero-skill funds with
+      annual attrition of the worst performers and compares the average cumulative return of end-of-sample survivors
+      against all funds, showing how survivorship filtering manufactures apparent outperformance.</div></noscript>
   </section>
   <section>
     <h3>Quick check: spot the bias</h3>
@@ -406,8 +467,8 @@ plt.tight_layout()
     <li>Explain why rigorous methodology bridges theory and data, and shapes what your findings can claim</li>
     <li>Choose between cross-sectional, time series and panel structures, and know what each demands</li>
     <li>Plan sampling, data sources (CRSP, TAQ, Compustat) and the ethics of data collection</li>
-    <li>Map the toolkit: OLS and IV, ARCH/GARCH, event studies, VAR and Granger causality, BEKK spillovers, ICSS breaks</li>
-    <li>Name and avoid the classic pitfalls: data snooping, endogeneity, overfitting, survivorship and look-ahead bias</li>
+    <li>Map the toolkit: OLS and IV, ARCH/GARCH, event studies, VAR and Granger causality, BEKK spillovers, ICSS breaks, and experiment with each idea in the stationarity, volatility-clustering and event-study simulations</li>
+    <li>Name and avoid the classic pitfalls: data snooping, endogeneity, overfitting, survivorship and look-ahead bias, and watch the survivorship machine manufacture fake alpha from zero-skill funds</li>
     <li>Say precisely what each of the five papers in Weeks 6 to 10 does, and run the standard data-preparation warm-up</li>
   </ul>
   <div class="panel def small">
@@ -531,6 +592,158 @@ SIM.initQuiz();
   SIM.button(ctl, 'new draw', function () { P.seed += 1; draw(); }, true);
   var ro = document.createElement('div');
   ro.id = 'ro-car'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM: the AR(1) stationarity dial ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-st');
+  if (!ctl) return;
+  var P = { phi: 0.7, seed: 11 };
+  var n = 300, K = 20;
+  function draw() {
+    var rand = ST.rng(P.seed), y = [], v = 0, t;
+    for (t = 0; t < n + 50; t++) { v = P.phi * v + ST.randn(rand); if (t >= 50) y.push(v); }
+    var lo = Math.min.apply(null, y), hi = Math.max.apply(null, y);
+    var pad = 0.12 * (hi - lo) + 1e-6;
+    var xs = [];
+    for (t = 0; t < n; t++) xs.push(t);
+    var p = new SIM.Plot('cv-stpath', {
+      xmin: 0, xmax: n, ymin: lo - pad, ymax: hi + pad,
+      xlabel: 't', ylabel: 'y', title: 'AR(1) path with phi = ' + P.phi.toFixed(2)
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+    p.line(xs, y, { color: SIM.colors.accent, width: 1.6 });
+    var rho = ST.acf(y, K);          // lags 1..K (index 0 = lag 1)
+    var q = new SIM.Plot('cv-stacf', {
+      xmin: 0, xmax: K + 1, ymin: -0.35, ymax: 1.05,
+      xlabel: 'lag', ylabel: 'ACF', title: 'sample ACF'
+    });
+    q.clear(); q.axes(); q.hline(0, { color: SIM.colors.dim });
+    var band = 1.96 / Math.sqrt(n);
+    q.hline(band, { color: SIM.colors.accent2, width: 1.2, dash: [5, 5] });
+    q.hline(-band, { color: SIM.colors.accent2, width: 1.2, dash: [5, 5] });
+    q.stems(rho, { color: SIM.colors.accent });
+    var half = P.phi >= 1 ? null : (P.phi <= 0 ? 0 : Math.log(0.5) / Math.log(P.phi));
+    document.getElementById('ro-st').innerHTML =
+      P.phi >= 1
+        ? '<span style="color:#f87171">unit root (or explosive): shocks never die, the series must be differenced</span>'
+        : 'shock half-life = <b>' + (half < 0.7 ? 'under 1' : half.toFixed(1)) + ' periods</b>' +
+          (P.phi >= 0.97 ? ' <span style="color:#fbbf24">(near-unit root: the ACF barely decays)</span>' : '');
+  }
+  function upd(k) { return function (v) { P[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'phi (persistence)', min: 0, max: 1.02, step: 0.01, value: P.phi, fmt: function (v) { return v.toFixed(2); } }, upd('phi'));
+  SIM.button(ctl, 'new draw', function () { P.seed += 1; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-st'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM: volatility clustering (GARCH(1,1)) ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-vol');
+  if (!ctl) return;
+  var P = { a: 0.12, b: 0.85, seed: 21 };
+  var n = 600;
+  function draw() {
+    var a = P.a, b = P.b;
+    if (a + b > 0.995) b = 0.995 - a;           // keep the process stationary
+    var rand = ST.rng(P.seed);
+    var g = ST.simGARCH(0.05, a, b, n, rand);
+    var xs = [], up = [], dn = [], t;
+    for (t = 0; t < n; t++) { xs.push(t); up.push(2 * g.sigma[t]); dn.push(-2 * g.sigma[t]); }
+    var L = Math.max.apply(null, up) * 1.25 + 0.5;
+    var p = new SIM.Plot('cv-vol', {
+      xmin: 0, xmax: n, ymin: -L, ymax: L,
+      xlabel: 't (days)', ylabel: 'return (%)',
+      title: 'GARCH(1,1) returns, persistence alpha + beta = ' + (a + b).toFixed(2)
+    });
+    p.clear(); p.axes(); p.hline(0, { color: SIM.colors.dim });
+    p.line(xs, g.r, { color: SIM.colors.accent, width: 0.9 });
+    p.line(xs, up, { color: SIM.colors.accent2, width: 1.6 });
+    p.line(xs, dn, { color: SIM.colors.accent2, width: 1.6 });
+    p.legend([{ label: 'daily return', color: SIM.colors.accent },
+              { label: 'conditional 2 sigma band', color: SIM.colors.accent2 }]);
+    var r2 = g.r.map(function (v) { return v * v; });
+    var acR = ST.acf(g.r, 1)[0], acR2 = ST.acf(r2, 1)[0];   // ST.acf index 0 = lag 1
+    document.getElementById('ro-vol').innerHTML =
+      'ACF(1) of returns = <b>' + acR.toFixed(2) + '</b> (no linear predictability) · ' +
+      'ACF(1) of squared returns = <b>' + acR2.toFixed(2) + '</b> ' +
+      (acR2 > 0.15 ? '<span style="color:#34d399">volatility is clustering</span>'
+                   : '<span style="color:#94a3b8">little clustering yet: raise alpha or beta</span>');
+  }
+  function upd(k) { return function (v) { P[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'alpha (reaction to news)', min: 0, max: 0.5, step: 0.01, value: P.a, fmt: function (v) { return v.toFixed(2); } }, upd('a'));
+  SIM.slider(ctl, { label: 'beta (memory)', min: 0, max: 0.98, step: 0.01, value: P.b, fmt: function (v) { return v.toFixed(2); } }, upd('b'));
+  SIM.button(ctl, 'new draw', function () { P.seed += 1; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-vol'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
+
+/* ---------- SIM: the survivorship bias machine ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-surv');
+  if (!ctl) return;
+  var P = { kill: 10, sd: 12, T: 15, seed: 31 };
+  var N = 200;
+  function draw() {
+    var rand = ST.rng(P.seed), T = Math.round(P.T), i, t;
+    var rets = [], alive = [], deadAt = [];
+    for (i = 0; i < N; i++) { rets.push([]); alive.push(true); deadAt.push(T); }
+    for (t = 0; t < T; t++) {
+      var yearRet = [];
+      for (i = 0; i < N; i++) {
+        var r = alive[i] ? P.sd * ST.randn(rand) : null;   // true mean is ZERO
+        rets[i].push(r);
+        if (r !== null) yearRet.push({ i: i, r: r });
+      }
+      // kill the bottom kill% of this year's live funds (they leave the database)
+      yearRet.sort(function (u, v) { return u.r - v.r; });
+      var nk = Math.floor(yearRet.length * P.kill / 100);
+      for (var k = 0; k < nk; k++) { alive[yearRet[k].i] = false; deadAt[yearRet[k].i] = t + 1; }
+    }
+    // average cumulative return paths
+    var xs = [0], mAll = [0], mSurv = [0];
+    var cum = new Array(N).fill(0);
+    for (t = 0; t < T; t++) {
+      var sA = 0, sS = 0, nS = 0;
+      for (i = 0; i < N; i++) {
+        if (rets[i][t] !== null) cum[i] += rets[i][t];
+        sA += cum[i];                                     // ALL funds, dead ones frozen at death
+        if (alive[i]) { sS += cum[i]; nS++; }             // end-of-sample survivors only
+      }
+      xs.push(t + 1); mAll.push(sA / N); mSurv.push(sS / Math.max(1, nS));
+    }
+    var L = Math.max(10, Math.max.apply(null, mSurv) * 1.3, Math.abs(Math.min.apply(null, mAll)) * 1.3 + 5);
+    var p = new SIM.Plot('cv-surv', {
+      xmin: 0, xmax: T, ymin: -L / 2, ymax: L,
+      xlabel: 'year', ylabel: 'average cumulative return (%)',
+      title: 'Zero-skill funds: survivors look like winners'
+    });
+    p.clear(); p.axes();
+    p.hline(0, { color: SIM.colors.accent2, width: 1.6, dash: [7, 5] });
+    p.line(xs, mAll, { color: SIM.colors.accent, width: 2.2 });
+    p.line(xs, mSurv, { color: SIM.colors.good, width: 2.2 });
+    p.legend([{ label: 'all funds (honest sample)', color: SIM.colors.accent },
+              { label: 'survivors only (biased sample)', color: SIM.colors.good },
+              { label: 'true skill = 0', color: SIM.colors.accent2 }]);
+    var nSurv = alive.filter(Boolean).length;
+    var fake = mSurv[T] / T;
+    document.getElementById('ro-surv').innerHTML =
+      nSurv + ' of ' + N + ' funds survive · survivors-only "alpha" = <b>' + fake.toFixed(1) +
+      '% per year</b> from funds with <b>zero</b> true skill';
+  }
+  function upd(k) { return function (v) { P[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'annual attrition (% of funds cut)', min: 0, max: 25, step: 1, value: P.kill, fmt: function (v) { return v.toFixed(0); } }, upd('kill'));
+  SIM.slider(ctl, { label: 'return noise sd (%/yr)', min: 5, max: 25, step: 1, value: P.sd, fmt: function (v) { return v.toFixed(0); } }, upd('sd'));
+  SIM.slider(ctl, { label: 'years', min: 5, max: 25, step: 1, value: P.T, fmt: function (v) { return v.toFixed(0); } }, upd('T'));
+  SIM.button(ctl, 'new draw', function () { P.seed += 1; draw(); }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-surv'; ro.className = 'readout'; ro.style.fontSize = '.55em';
   ctl.appendChild(ro);
   draw();
 })();
