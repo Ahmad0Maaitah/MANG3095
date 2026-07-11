@@ -11,8 +11,10 @@
 - Writing workshop: structuring the literature review (five structures, two worked frameworks, synthesising language) and the methodology chapter (Weissberg and Buker's element list with a fully mapped example)
 
 ## Interactive elements
-1. **Scoping quiz** - two self-marking questions on picking a well-scoped title and feasibility checks
-2. **Name-that-element quiz** - three self-marking questions classifying methodology sentences (sample, sampling technique, statistical treatment)
+1. **Scoping funnel dial** (sim) - three sliders (area focus, market and period focus, question specificity) narrow a four-bar funnel from the broad field down to "your question", compute a scope score out of 10 with a traffic-light verdict (too broad / still broad / workable / very narrow), and auto-build an example ESG research question that sharpens as the focus rises
+2. **Well-scoped question quiz** - one self-marking question picking the appropriately scoped dissertation question from four candidates
+3. **Scoping quiz** - two self-marking questions on picking a well-scoped title and feasibility checks
+4. **Name-that-element quiz** - three self-marking questions classifying methodology sentences (sample, sampling technique, statistical treatment)
 
 ## Code (`code/`)
 No code files this week: weeks 1 to 3 are research and writing skills decks. See `code/README.md`.

@@ -83,6 +83,20 @@
       strategy, data, and contribution.</div>
   </section>
   <section>
+    <h3>Quick check: spot the proposal pitfall</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">An excerpt from a draft proposal reads: "I will study the effect of interest rates on the economy
+        using appropriate econometric methods on available data." Which pitfall is this?</div>
+      <div class="opt">Plagiarism</div>
+      <div class="opt" data-ok>Vagueness: no variable, market, period, method or dataset is named, so feasibility cannot be judged</div>
+      <div class="opt">Too narrow a scope</div>
+      <div class="opt">Missing references</div>
+      <div class="explain">Every noun is generic: "the economy", "appropriate econometric methods", "available data".
+        A rigorous proposal names the outcome, the sample, the identification and the data source, which is what the
+        blueprint slide requires.</div>
+    </div>
+  </section>
+  <section>
     <h3>The proposal architecture</h3>
     <table class="data small" style="margin:0 auto;font-size:.72em">
       <tr><th>Component</th><th>The question it answers</th></tr>
@@ -94,6 +108,27 @@
     </table>
     <p class="small muted" style="margin-top:.5em">Use the <b>research onion</b> framework to scaffold each element
       systematically, ensuring coherence across all components.</p>
+  </section>
+  <section>
+    <h3>&#9997;&#65039; Try it: allocate your proposal word budget</h3>
+    <p class="tiny">The proposal has a hard limit of 2,000 words: slide each section's allocation and watch the stacked
+      bar to see whether the words go where the marks are.</p>
+    <div class="sim" id="sim-budget">
+      <canvas id="cv-budget" width="880" height="190"></canvas>
+      <div class="controls-row" id="ctl-budget"></div>
+      <div class="note">Each coloured block is one section of the proposal; the dashed red marker is the 2,000-word
+        limit. Fully deterministic: no simulation noise, just your allocation.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> The allocation mirrors the proposal
+      architecture: the methodology is where examiners judge whether your findings will be credible, so it should carry
+      the largest share, and the plan is what proves feasibility within the timeline. Starving the methodology to feed
+      the literature review is exactly the imbalance the "Common pitfalls examiners flag" slide warns about, and
+      running over 2,000 words breaks the one hard constraint behind the proposal blueprint checklist. Aim for a total
+      between 1,800 and 2,000 words with the methodology at 500 or more.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it provides five sliders, one per
+      proposal section, and draws a stacked horizontal bar of the word allocation against the 2,000-word limit,
+      flagging over-runs, unused words, an undersized methodology, and a literature review that outweighs the
+      methodology.</div></noscript>
   </section>
 </section>
 
@@ -599,6 +634,63 @@ SIM.initQuiz();
   }
   box.addEventListener('change', upd);
   upd();
+})();
+
+/* ---------- SIM: the word-budget allocator (deterministic, no randomness) ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-budget');
+  if (!ctl) return;
+  var LIMIT = 2000;
+  var S = [
+    { name: 'introduction and motivation',        short: 'intro',       w: 300, min: 100, max: 600, color: SIM.colors.accent },
+    { name: 'literature and the gap',             short: 'literature',  w: 500, min: 200, max: 800, color: SIM.colors.accent2 },
+    { name: 'data and sample',                    short: 'data',        w: 300, min: 100, max: 600, color: SIM.colors.good },
+    { name: 'methodology',                        short: 'methodology', w: 600, min: 200, max: 900, color: '#94a3b8' },
+    { name: 'plan, feasibility and references',   short: 'plan',        w: 300, min: 100, max: 600, color: '#64748b' }
+  ];
+  function draw() {
+    var total = 0, i;
+    for (i = 0; i < S.length; i++) total += S[i].w;
+    var p = new SIM.Plot('cv-budget', {
+      xmin: 0, xmax: 2600, ymin: 0, ymax: 1,
+      xlabel: 'words', ylabel: '',
+      title: 'Stacked word allocation (dashed marker: limit 2,000 words)'
+    });
+    p.clear(); p.axes({ yticks: [] });
+    var x0 = 0;
+    for (i = 0; i < S.length; i++) {
+      var x1 = x0 + S[i].w;
+      p.shade(x0, x1, { color: S[i].color });
+      if (S[i].w >= 250) {
+        p.label((x0 + x1) / 2, 0.62, S[i].short, { align: 'center', baseline: 'middle', size: 11, bold: true, color: '#0f172a' });
+      }
+      p.label((x0 + x1) / 2, 0.34, String(S[i].w), { align: 'center', baseline: 'middle', size: 10, color: '#0f172a' });
+      x0 = x1;
+    }
+    p.vline(LIMIT, { color: SIM.colors.bad, width: 2, dash: [6, 5] });
+    var msg;
+    if (total > LIMIT) {
+      msg = '<span style="color:#f87171">over the limit by ' + (total - LIMIT) + ' words: examiners stop reading</span>';
+    } else if (total < 1800) {
+      msg = '<span style="color:#fbbf24">' + (LIMIT - total) + ' words unused: the methodology or the gap can carry more detail</span>';
+    } else {
+      msg = '<span style="color:#34d399">within budget</span>';
+    }
+    var guide = [];
+    if (S[3].w < 500) guide.push('methodology is the section examiners weigh most; under 500 words rarely convinces');
+    if (S[1].w > S[3].w) guide.push('more literature than methodology is the classic imbalance the deck\'s pitfalls slide flags');
+    document.getElementById('ro-budget').innerHTML =
+      'total = <b>' + total + ' words</b> &middot; ' + msg +
+      (guide.length ? '<br><span style="color:#fbbf24">' + guide.join(' &middot; ') + '</span>' : '');
+  }
+  S.forEach(function (sec, idx) {
+    SIM.slider(ctl, { label: sec.name, min: sec.min, max: sec.max, step: 50, value: sec.w, fmt: function (v) { return v.toFixed(0); } },
+      function (v) { S[idx].w = v; draw(); });
+  });
+  var ro = document.createElement('div');
+  ro.id = 'ro-budget'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
 })();
 </script>
 <script src="../../assets/js/pyrun.js"></script>

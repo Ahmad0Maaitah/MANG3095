@@ -148,6 +148,29 @@
       to organise sources systematically and maintain proper citations throughout your research process.
       See also LibGuides@Southampton (Springshare): Research Services.</div>
   </section>
+  <section>
+    <h3>&#128269; Try it: the literature search funnel</h3>
+    <p class="tiny">Every search strategy is a funnel: keywords and databases decide how much you find,
+      screening and snowballing decide what you actually read. Move the sliders and watch the papers flow through.</p>
+    <div class="sim" id="sim-fun">
+      <canvas id="cv-funnel" width="880" height="240"></canvas>
+      <div class="controls-row" id="ctl-fun"></div>
+      <div class="note">A deterministic pipeline in the PRISMA spirit: papers identified across databases,
+        de-duplicated, screened on title and abstract, then included in full text plus snowballed references.
+        Bar widths use a log scale so every stage stays visible.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> Breadth and databases control what
+      you find: the keyword table two slides back is how you widen the top of the funnel, and each extra database adds
+      coverage but also duplicates. Strictness is your title and abstract screen, the first pass of the critical
+      evaluation framework later in this deck; snowballing (chasing reference lists and "cited by" links) catches
+      papers that keyword searches miss. Whatever lands in the final bar is the set you log, one row per paper, in the
+      evaluating-sources template, so aim for a green verdict: enough papers to synthesise themes, few enough to read
+      critically.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it models a deterministic literature
+      search funnel with sliders for keyword breadth, databases searched, screening strictness and snowballing rounds,
+      showing how many papers are identified, de-duplicated, screened and finally included in your review, with a
+      verdict on whether the final corpus is too thin, realistic, or more than you can critically evaluate.</div></noscript>
+  </section>
 </section>
 
 <!-- ======================= JOURNAL QUALITY + ABS EXPLORER ======================= -->
@@ -566,6 +589,74 @@ SIM.initQuiz();
     });
     host.appendChild(d);
   });
+})();
+
+/* ---------- INTERACTIVE 3: the literature search funnel ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-fun');
+  var DEF = { breadth: 5, db: 3, strict: 5, snow: 1 };
+  var P = { breadth: DEF.breadth, db: DEF.db, strict: DEF.strict, snow: DEF.snow };
+  function model() {
+    var identified = Math.round(80 * P.breadth * (1 + 0.35 * (P.db - 1)));
+    var dedup = Math.round(Math.max(identified * (1 - 0.12 * (P.db - 1)), identified * 0.55));
+    var rate = Math.min(0.95, Math.max(0.05, 1.05 - 0.09 * P.strict));
+    var screened = Math.round(dedup * rate);
+    var eligible = dedup * rate * 0.12;            // full-text eligibility
+    eligible = eligible * (1 + 0.18 * P.snow);     // snowballing adds papers
+    return { identified: identified, dedup: dedup, screened: screened, included: Math.round(eligible) };
+  }
+  function draw() {
+    var m = model();
+    var stages = [
+      { label: 'identified by the search', n: m.identified, color: SIM.colors.accent },
+      { label: 'after de-duplication', n: m.dedup, color: SIM.colors.accent2 },
+      { label: 'after title/abstract screening', n: m.screened, color: SIM.colors.dim },
+      { label: 'included in your review', n: m.included, color: SIM.colors.good }
+    ];
+    var p = new SIM.Plot('cv-funnel', {
+      xmin: 0, xmax: 3.6, ymin: 0, ymax: 10,
+      xlabel: 'papers (log scale)', title: 'From search hits to the papers you actually read'
+    });
+    p.clear();
+    p.axes({
+      xticks: [0, 1, 2, 3],
+      xfmt: function (v) { return Math.pow(10, v).toFixed(0); },
+      yticks: []
+    });
+    var ys = [4.6, 3.4, 2.2, 1.0];
+    stages.forEach(function (s, i) {
+      var w = Math.max(0.06, Math.log10(Math.max(s.n, 1)));
+      p.line([0, w], [ys[i], ys[i]], { color: s.color, width: 18 });
+      p.label(w + 0.06, ys[i], '' + s.n, { color: s.color, baseline: 'middle', bold: true });
+    });
+    p.legend(stages.map(function (s) { return { label: s.label, color: s.color }; }));
+    var verdict;
+    if (m.included < 15) {
+      verdict = '<b style="color:#f87171">too thin for a finance literature review: broaden keywords or add a database</b>';
+    } else if (m.included <= 60) {
+      verdict = '<b style="color:#34d399">a realistic UG review corpus</b>';
+    } else {
+      verdict = '<b style="color:#fbbf24">more than you can critically evaluate: tighten screening or narrow keywords</b>';
+    }
+    document.getElementById('ro-fun').innerHTML =
+      'identified ' + m.identified + ' -&gt; after de-duplication ' + m.dedup +
+      ' -&gt; after screening ' + m.screened + ' -&gt; in your review <b>' + m.included +
+      '</b> &middot; ' + verdict;
+  }
+  function upd(k) { return function (v) { P[k] = v; draw(); }; }
+  var s1 = SIM.slider(ctl, { label: 'keyword breadth', min: 1, max: 10, step: 1, value: P.breadth, fmt: function (v) { return v.toFixed(0); } }, upd('breadth'));
+  var s2 = SIM.slider(ctl, { label: 'databases searched', min: 1, max: 6, step: 1, value: P.db, fmt: function (v) { return v.toFixed(0); } }, upd('db'));
+  var s3 = SIM.slider(ctl, { label: 'screening strictness', min: 1, max: 10, step: 1, value: P.strict, fmt: function (v) { return v.toFixed(0); } }, upd('strict'));
+  var s4 = SIM.slider(ctl, { label: 'snowballing rounds', min: 0, max: 3, step: 1, value: P.snow, fmt: function (v) { return v.toFixed(0); } }, upd('snow'));
+  SIM.button(ctl, 'reset', function () {
+    P = { breadth: DEF.breadth, db: DEF.db, strict: DEF.strict, snow: DEF.snow };
+    s1.set(P.breadth); s2.set(P.db); s3.set(P.strict); s4.set(P.snow);
+    draw();
+  }, true);
+  var ro = document.createElement('div');
+  ro.id = 'ro-fun'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
 })();
 </script>
 <script src="../../assets/js/pyrun.js"></script>

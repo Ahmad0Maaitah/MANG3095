@@ -120,6 +120,27 @@
     </table>
   </section>
   <section>
+    <h3>&#128197; Try it: plan your dissertation year</h3>
+    <p class="tiny">You have roughly 30 teaching weeks from early October to submission. Share them between the four
+      phases with the sliders and see whether your plan actually fits before the deadline.</p>
+    <div class="sim" id="sim-plan">
+      <canvas id="cv-plan" width="880" height="210"></canvas>
+      <div class="controls-row" id="ctl-plan"></div>
+      <div class="note">Each coloured segment is one phase, drawn in sequence from week 0; the
+        <b style="color:#f87171">dashed red line</b> at week 30 is the submission deadline. The phases must add up,
+        so stretching one squeezes the others.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> Most plans fail at the right-hand
+      end: students protect the fun phases and quietly shrink the writing, but drafts, supervisor feedback and editing
+      always take longer than planned, so keep at least 5 writing weeks. A plan that lands a little short of week 30
+      is the healthy one: the buffer is what absorbs data disasters, ERGO delays and illness. Agree the split with
+      your supervisor at the first meeting, then treat the phase boundaries as real deadlines.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it provides four sliders that share a
+      budget of 30 teaching weeks between topic and proposal, literature review, data and analysis, and writing and
+      editing, draws the plan as a stacked bar against the week-30 submission deadline, and reports whether the plan
+      is workable, over budget, or short of writing time.</div></noscript>
+  </section>
+  <section>
     <h3>✅ Your first-term action list</h3>
     <p class="small">Tick each step off as you complete it. The list mirrors the suggested timeline.</p>
     <div class="panel small" id="ck-term" style="text-align:left">
@@ -246,6 +267,20 @@
         future employers.</li>
     </ul>
     <div class="panel warn small">We will find you. Is it worth the stress and the hassle?</div>
+  </section>
+  <section>
+    <h3>Quick check: is this misconduct?</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">A student pays a proofreading service that "improves the argument and adds two paragraphs" to the
+        dissertation. Is this misconduct?</div>
+      <div class="opt">No: proofreading is allowed, and this is just very thorough proofreading</div>
+      <div class="opt" data-ok>Yes, external authorship: content created by someone else is misconduct, even if paid for and even if it is only part of the work</div>
+      <div class="opt">It is only a problem if the marker notices</div>
+      <div class="opt">No, provided the student cites the service in the reference list</div>
+      <div class="explain">Proofreading may correct surface errors only. Adding or reshaping content is external
+        authorship under the university's academic integrity rules: exactly what "How to avoid a world of pain and
+        tears" warned about, and contract cheating services are now illegal.</div>
+    </div>
   </section>
   <section>
     <h3>Your skills and your actions</h3>
@@ -475,6 +510,59 @@ SIM.initQuiz();
   }
   box.addEventListener('change', upd);
   upd();
+})();
+
+/* ---------- SIM: the dissertation timeline planner ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-plan');
+  if (!ctl) return;
+  var BUDGET = 30, XMAX = 34;
+  var P = { topic: 6, lit: 6, data: 10, write: 6 };
+  var phases = [
+    { key: 'topic', label: 'topic + proposal', color: SIM.colors.accent },
+    { key: 'lit', label: 'literature review', color: SIM.colors.accent2 },
+    { key: 'data', label: 'data + analysis', color: SIM.colors.good },
+    { key: 'write', label: 'writing + editing', color: '#a78bfa' }
+  ];
+  function draw() {
+    var total = P.topic + P.lit + P.data + P.write;
+    var p = new SIM.Plot('cv-plan', {
+      xmin: 0, xmax: XMAX, ymin: 0, ymax: 2,
+      xlabel: 'teaching weeks from early October', ylabel: '',
+      title: 'Your dissertation year: dashed line at week 30 = submission'
+    });
+    p.clear(); p.axes();
+    p.line([BUDGET, BUDGET], [0, 2], { color: '#f87171', width: 1.6, dash: [6, 5] });
+    var x = 0;
+    for (var i = 0; i < phases.length; i++) {
+      var x1 = Math.min(x + P[phases[i].key], XMAX);
+      if (x < XMAX) p.line([x, x1], [1, 1], { color: phases[i].color, width: 26 });
+      x += P[phases[i].key];
+    }
+    p.legend(phases.map(function (ph) { return { label: ph.label, color: ph.color }; }));
+    var msg;
+    if (total > BUDGET) {
+      msg = '<span style="color:#f87171">you are <b>' + (total - BUDGET) +
+        ' weeks over</b>: something must shrink, and it is usually the writing</span>';
+    } else if (P.write < 5) {
+      msg = '<span style="color:#fbbf24">under 5 weeks of writing is the classic failure mode: drafts and edits always take longer than planned</span>';
+    } else if (total >= 26) {
+      msg = '<span style="color:#34d399">workable plan with <b>' + (BUDGET - total) + ' weeks of buffer</b></span>';
+    } else {
+      msg = (BUDGET - total) + ' weeks left unused: a generous buffer, so agree with your supervisor which phase gets the spare time';
+    }
+    document.getElementById('ro-plan').innerHTML =
+      'total planned = <b>' + total + ' of ' + BUDGET + ' weeks</b> · ' + msg;
+  }
+  function upd(k) { return function (v) { P[k] = Math.round(v); draw(); }; }
+  SIM.slider(ctl, { label: 'topic + proposal (weeks)', min: 2, max: 12, step: 1, value: P.topic, fmt: function (v) { return v.toFixed(0); } }, upd('topic'));
+  SIM.slider(ctl, { label: 'literature review (weeks)', min: 2, max: 12, step: 1, value: P.lit, fmt: function (v) { return v.toFixed(0); } }, upd('lit'));
+  SIM.slider(ctl, { label: 'data + analysis (weeks)', min: 3, max: 16, step: 1, value: P.data, fmt: function (v) { return v.toFixed(0); } }, upd('data'));
+  SIM.slider(ctl, { label: 'writing + editing (weeks)', min: 2, max: 12, step: 1, value: P.write, fmt: function (v) { return v.toFixed(0); } }, upd('write'));
+  var ro = document.createElement('div');
+  ro.id = 'ro-plan'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
 })();
 </script>
 <script src="../../assets/js/pyrun.js"></script>

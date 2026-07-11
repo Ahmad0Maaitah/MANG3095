@@ -13,8 +13,10 @@
 - Writing workshop: reporting results, the discussion section, writing conclusions, and data commentary (all with worked examples and answers)
 
 ## Interactive elements
-1. **Proposal blueprint checklist** - eleven-item tick-off list (essential sections plus quality markers) with a live progress readout
-2. **Check yourself quiz** - three self-marking questions on data commentary percentages, results-section elements, and where interpretation belongs
+1. **Word-budget allocator** - five sliders, one per proposal section, drive a stacked horizontal bar against the 2,000-word limit; the readout flags over-runs, unused words, an undersized methodology, and a literature review that outweighs the methodology (fully deterministic)
+2. **Spot the proposal pitfall quiz** - one self-marking question on diagnosing vagueness in a generic draft excerpt
+3. **Proposal blueprint checklist** - eleven-item tick-off list (essential sections plus quality markers) with a live progress readout
+4. **Check yourself quiz** - three self-marking questions on data commentary percentages, results-section elements, and where interpretation belongs
 
 ## Code (`code/`)
 No code files this week: weeks 1 to 3 are research and writing skills decks. See `code/README.md`.

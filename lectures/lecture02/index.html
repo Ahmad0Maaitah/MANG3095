@@ -164,6 +164,39 @@
       Traditional Banking Systems: An Analysis of Efficiency, Transparency, and Security"</div>
   </section>
   <section>
+    <h3>&#127907; Try it: dial in the scope of your question</h3>
+    <p class="tiny">Each slider is one narrowing decision from Steps 2 and 3. Watch the funnel tighten, and the example
+      question sharpen, as you dial the focus up.</p>
+    <div class="sim" id="sim-funnel">
+      <canvas id="cv-funnel" width="820" height="235"></canvas>
+      <div class="controls-row" id="ctl-funnel"></div>
+      <div class="note">The top bar is the whole broad area and never changes. Each bar below shrinks as the matching
+        slider rises; the bottom bar is the breadth of <b>your question</b>, scored out of 10 in the readout.</div>
+    </div>
+    <div class="panel tip small" style="font-size:.5em"><b>Reading the results.</b> The sliders are Step 2 (determine
+      the scope and focus) and Step 3 (frame the research questions) in action: pick an area, then a market and a
+      period, then one measurable question. The green zone is the feasible, novel, relevant sweet spot: narrow enough
+      that a marker can see your contribution and that one dataset can answer it, broad enough that data exist and the
+      answer matters to someone. Past the green zone the funnel keeps narrowing but the risks flip: check the data
+      exist (Lecture 4) and that the answer is interesting whichever way it goes, the so-what test.</div>
+    <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it draws a four-bar narrowing funnel
+      whose lower bars shrink as three sliders (area focus, market and period focus, question specificity) rise,
+      scores the overall scope out of 10, and shows an example research question at that level of focus.</div></noscript>
+  </section>
+  <section>
+    <h3>Quick check: which question is well scoped?</h3>
+    <div class="quiz" style="font-size:.6em;text-align:left">
+      <div class="q">Pick the research question that is appropriately scoped for an undergraduate finance dissertation.</div>
+      <div class="opt">What causes financial crises?</div>
+      <div class="opt">Do FTSE 100 firms exist?</div>
+      <div class="opt" data-ok>Do UK equity funds with higher ESG scores show different risk-adjusted returns, 2016 to 2024?</div>
+      <div class="opt">Is money important?</div>
+      <div class="explain">The correct option names the market (UK equity funds), the variable (ESG scores), the metric
+        (risk-adjusted returns) and the period (2016 to 2024), so one dataset can answer it. The others are a whole
+        literature, trivially true, or unanswerable as posed.</div>
+    </div>
+  </section>
+  <section>
     <h3>Step 3 · Frame the research questions</h3>
     <div class="panel small" style="font-size:.78em"><b class="accent">RQ1.</b> How does the implementation of blockchain technology
       influence the <b>operational efficiency</b> of traditional banking systems?<br>
@@ -434,6 +467,66 @@ Reveal.on('ready', function () {
   });
 });
 SIM.initQuiz();
+
+/* ---------- SIM: the scoping funnel dial ---------- */
+(function () {
+  var ctl = document.getElementById('ctl-funnel');
+  if (!ctl) return;
+  var P = { area: 3, market: 3, spec: 3 };
+  function draw() {
+    var w1 = 100;
+    var w2 = w1 * (1 - 0.065 * P.area);
+    var w3 = w2 * (1 - 0.06 * P.market);
+    var w4 = w3 * (1 - 0.06 * P.spec);
+    var S = (P.area + P.market + P.spec) / 3;
+    var color, verdict, example;
+    if (S < 3) {
+      color = SIM.colors.bad;
+      verdict = 'far too broad: this is a textbook chapter, not a dissertation';
+      example = 'How does ESG affect stock returns?';
+    } else if (S < 5) {
+      color = SIM.colors.accent2;
+      verdict = 'still broad: a marker cannot see your contribution yet';
+      example = 'How does ESG affect stock returns of UK banks?';
+    } else if (S <= 8) {
+      color = SIM.colors.good;
+      verdict = 'workable: focused enough to answer with one dataset in one year';
+      example = 'Does an ESG rating upgrade change the 12-month abnormal return of FTSE 350 banks, 2015 to 2024?';
+    } else {
+      color = SIM.colors.accent2;
+      verdict = 'very narrow: check data exist (Lecture 4) and that anyone cares (the so-what test)';
+      example = 'Does a one-notch MSCI upgrade in June 2019 change next-day returns of the 3 largest UK banks?';
+    }
+    var p = new SIM.Plot('cv-funnel', {
+      xmin: -62, xmax: 62, ymin: 0, ymax: 5,
+      xlabel: 'breadth of what the project covers',
+      title: 'The scoping funnel: each choice narrows the next layer'
+    });
+    p.clear(); p.axes({ xticks: [], yticks: [] });
+    var bars = [
+      { y: 4.15, w: w1, c: SIM.colors.dim,     lab: 'broad area' },
+      { y: 3.15, w: w2, c: SIM.colors.accent,  lab: 'after area focus' },
+      { y: 2.15, w: w3, c: SIM.colors.accent2, lab: 'after market and period focus' },
+      { y: 1.15, w: w4, c: color,              lab: 'your question' }
+    ];
+    bars.forEach(function (b) {
+      p.line([-b.w / 2, b.w / 2], [b.y, b.y], { color: b.c, width: 20 });
+      p.label(0, b.y + 0.33, b.lab, { align: 'center', size: 10 });
+      p.label(b.w / 2 + 2, b.y, Math.round(b.w) + '%', { align: 'left', baseline: 'middle', size: 10 });
+    });
+    document.getElementById('ro-funnel').innerHTML =
+      'scope score S = <b>' + S.toFixed(1) + '</b> / 10 · <span style="color:' + color + '">' + verdict + '</span><br>' +
+      'example question at this scope: <i>&quot;' + example + '&quot;</i>';
+  }
+  function upd(k) { return function (v) { P[k] = v; draw(); }; }
+  SIM.slider(ctl, { label: 'area focus', min: 0, max: 10, step: 1, value: P.area, fmt: function (v) { return v.toFixed(0); } }, upd('area'));
+  SIM.slider(ctl, { label: 'market and period focus', min: 0, max: 10, step: 1, value: P.market, fmt: function (v) { return v.toFixed(0); } }, upd('market'));
+  SIM.slider(ctl, { label: 'question specificity', min: 0, max: 10, step: 1, value: P.spec, fmt: function (v) { return v.toFixed(0); } }, upd('spec'));
+  var ro = document.createElement('div');
+  ro.id = 'ro-funnel'; ro.className = 'readout'; ro.style.fontSize = '.55em';
+  ctl.appendChild(ro);
+  draw();
+})();
 </script>
 <script src="../../assets/js/pyrun.js"></script>
 <!-- editorial: the source reference "Collins, J and R. Hussy (2009)" is corrected to the published title (Collis and Hussey, 2009). The Week 2 Methodology worksheet's full 21-sentence passage is condensed on the worked-example slide (key sentences quoted verbatim, marking kept); the complete sentence-to-element answer table is reproduced in grouped form on the mapping slide. -->

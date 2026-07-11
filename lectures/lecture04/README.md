@@ -28,7 +28,14 @@ handouts: the evaluating-sources template and the abstracts worksheet.
 2. **Label-the-abstract task** - sentences 3 to 7 of the Gillett EAP abstract from the
    Week 4 abstracts worksheet, each with Background / Purpose / Method / Results / Conclusion
    buttons and instant feedback (answers: purpose, method, method, results, conclusion).
-3. Two self-check quizzes: journal quality and synthesis versus summary.
+3. **Literature search funnel** - a deterministic, PRISMA-style canvas sim on the search
+   strategy slides. Sliders for keyword breadth (1-10), databases searched (1-6), screening
+   strictness (1-10) and snowballing rounds (0-3) feed a pipeline of papers identified,
+   de-duplicated, title/abstract screened and finally included; four horizontal bars on a
+   log scale keep the funnel visible, and a readout traces the counts and gives a verdict
+   (too thin / realistic UG corpus / more than you can critically evaluate). Built on
+   `SIM.Plot` and `SIM.slider` from `assets/js/sim-core.js`; no randomness, so no seed.
+4. Two self-check quizzes: journal quality and synthesis versus summary.
 
 ## Files
 
