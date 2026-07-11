@@ -3,7 +3,28 @@
 Interactive course site for **MANG3095** (University of Southampton). The site shows the current
 academic year automatically.
 
-**Live site:** https://ahmad0maaitah.github.io/MANG3095/
+> **This repository holds the source code.** To USE the course (interactive slides, simulations,
+> in-browser Python), open the live site:
+>
+> ## &#128073; https://ahmad0maaitah.github.io/MANG3095/
+
+## Open the interactive slides
+
+| Week | Unit | Interactive slides |
+|---|---|---|
+| 1 | Introduction to the Module | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture01/) |
+| 2 | Foundations for Your Project | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture02/) |
+| 3 | The Research Proposal | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture03/) |
+| 4 | Literature Review in Finance | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture04/) |
+| 5 | From Skills to Applications | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture05/) |
+| 6 | Fama and French (2015), five-factor model | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture06/) |
+| 7 | Diebold and Yilmaz (2012), volatility spillovers | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture07/) |
+| 8 | Antonakakis, Chatziantoniou and Gabauer (2020), TVP-VAR | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture08/) |
+| 9 | Laurent, Rombouts and Violante (2012), multivariate GARCH | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture09/) |
+| 10 | Gopal and Schnabl (2022), banking panel replication | [open](https://ahmad0maaitah.github.io/MANG3095/lectures/lecture10/) |
+
+Inside a deck: &rarr; moves between sections, &darr; dives into a section's slides (the
+simulations live on those vertical slides), `o` shows the overview grid, `f` is full screen.
 
 ## Structure
 
