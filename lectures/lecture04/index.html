@@ -150,7 +150,7 @@
       See also LibGuides@Southampton (Springshare): Research Services.</div>
   </section>
   <section>
-    <h3>&#128269; Try it: the literature search funnel</h3>
+    <h3>Try it: the literature search funnel</h3>
     <p class="tiny">Every search strategy is a funnel: keywords and databases decide how much you find,
       screening and snowballing decide what you actually read. Move the sliders and watch the papers flow through.</p>
     <div class="sim" id="sim-fun">
@@ -189,7 +189,7 @@
     <p class="small muted">&#9660; explore the actual 2024 guide below</p>
   </section>
   <section>
-    <h3>&#127899;&#65039; ABS ranking explorer - AJG 2024</h3>
+    <h3>ABS ranking explorer - AJG 2024</h3>
     <div class="absx" id="absx">
       <div class="absbar">
         <input type="text" id="abs-q" placeholder="Type to filter, e.g. banking, energy, econometrics, review..." autocomplete="off">
@@ -405,7 +405,7 @@
       information and their order are highly conventional. Your report abstract: max 300 words.</p>
   </section>
   <section>
-    <h3>&#127899;&#65039; Task: label the abstract</h3>
+    <h3>Task: label the abstract</h3>
     <p class="small" style="font-size:.55em">From Gillett, "Use of a writing web-site by pre-masters students on an EAP course"
       (154 words, about half your 300-word maximum). Sentences 1 and 2 are labelled for you: both are <b class="accent">background</b>
       ("use of the World-Wide-Web ... has increased dramatically"; "very little empirical research has been carried out").
@@ -453,7 +453,7 @@
     methodology, data types and the econometric toolkit.
   </div>
   <div class="files" style="justify-content:center;margin-top:.6em">
-    <a href="../../">&#127968; Hub</a>
+    <a href="../../">Hub</a>
     <a href="../lecture03/">&larr; Lecture 3</a>
     <a href="../lecture05/">Lecture 5 &rarr;</a>
   </div>
@@ -508,11 +508,11 @@ SIM.initQuiz();
   var q = document.getElementById('abs-q');
   var state = { text: '', star: 'All', field: 'All' };
   function stars(r) {
-    if (r === '4*') return '&#9733;&#9733;&#9733;&#9733;&#10029; 4*';
+    if (r === '4*') return '4*';
     var n = parseInt(r, 10);
     if (!n) return r || '<span class="muted">-</span>';
     var s = '';
-    for (var i = 0; i < n; i++) s += '&#9733;';
+    for (var i = 0; i < n; i++) s += '';
     return s + ' ' + r;
   }
   function render() {
