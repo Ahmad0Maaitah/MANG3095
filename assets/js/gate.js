@@ -36,7 +36,7 @@
       var el = nodes[i];
       var wk = parseInt(el.getAttribute('data-week'), 10);
       if (!wk) continue;
-      var u = unlockMs(wk);
+      var u = (wk <= 1) ? 0 : unlockMs(wk);
       el.classList.add('gated');
       if (now >= u) { el.classList.remove('locked'); continue; }
       el.classList.add('locked');
