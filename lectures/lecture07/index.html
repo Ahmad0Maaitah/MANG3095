@@ -165,7 +165,7 @@
     <p class="small muted">▼ run both checks yourself</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: stationarity on the real series</h3>
+    <h3>Run it yourself: stationarity on the real series</h3>
     <p class="small">ADF tests on the actual EUR, GBP and JPY return series, in your browser:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
@@ -249,7 +249,7 @@ for c in ["EUR", "GBP", "JPY"]:
 <section>
   <section>
     <p class="tiny muted" style="margin-bottom:0">4 · Interactive lab</p>
-    <h3>🎛️ Sim 1: the connectedness table, live</h3>
+    <h3>Sim 1: the connectedness table, live</h3>
     <p class="tiny muted">VAR(p) estimated equation by equation on the embedded data (the most recent 2000 observations of
       <code>fx_returns</code>, January 2013 to July 2018), then the generalised FEVD at horizon H. Move the sliders: the whole table re-estimates.</p>
     <div class="sim" id="sim-table">
@@ -266,7 +266,7 @@ for c in ["EUR", "GBP", "JPY"]:
     <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it estimates a VAR(p) on the embedded EUR/GBP/JPY returns, computes the generalised FEVD at horizon H, and displays the full Diebold-Yilmaz connectedness table (FROM, TO, NET, total index) with sliders for the lag order p (1-4) and horizon H (2-20).</div></noscript>
   </section>
   <section>
-    <h3>🎛️ Sim 2: the rolling total spillover index</h3>
+    <h3>Sim 2: the rolling total spillover index</h3>
     <div class="sim" id="sim-roll">
       <canvas id="cv-roll" width="880" height="290"></canvas>
       <div class="controls-row" id="ctl-roll"></div>
@@ -284,7 +284,7 @@ for c in ["EUR", "GBP", "JPY"]:
     <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it computes the Diebold-Yilmaz total spillover index on rolling windows of the embedded FX returns with a window-length slider (100-500 days), plots it through time with the Brexit vote marked, and reports the mean, minimum and maximum of the series.</div></noscript>
   </section>
   <section>
-    <h3>🎛️ Sim 3: net directional spillovers - transmitters and receivers</h3>
+    <h3>Sim 3: net directional spillovers - transmitters and receivers</h3>
     <div class="sim" id="sim-net">
       <canvas id="cv-net-ts" width="880" height="150"></canvas>
       <canvas id="cv-net-bar" width="880" height="150"></canvas>
@@ -301,7 +301,7 @@ for c in ["EUR", "GBP", "JPY"]:
     <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it plots rolling net directional spillovers (TO minus FROM) for EUR, GBP and JPY, with a time scrubber and play button animating a bar chart of each currency's net transmitter/receiver position.</div></noscript>
   </section>
   <section>
-    <h3>🎛️ Sim 4: Cholesky vs generalised - why ordering matters</h3>
+    <h3>Sim 4: Cholesky vs generalised - why ordering matters</h3>
     <div class="sim" id="sim-chol">
       <div id="tbl-chol"></div>
       <div class="controls-row" id="ctl-chol"></div>
@@ -381,7 +381,7 @@ print(sel.aic, sel.bic, sel.hqic)             # 4, 1, 2</code></pre></div>
     <p class="small muted">▼ reproduce the lag-selection numbers in the browser</p>
   </section>
   <section>
-    <h3>💻 Step 1 in the browser: lag selection</h3>
+    <h3>Step 1 in the browser: lag selection</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 from statsmodels.tsa.api import VAR
@@ -451,7 +451,7 @@ def gfevd(Phi, Sigma, H):               # Pesaran-Shin, row-normalised
     <p class="small muted">▼ run the whole table in the browser</p>
   </section>
   <section>
-    <h3>💻 Step 2 in the browser: the full-sample table</h3>
+    <h3>Step 2 in the browser: the full-sample table</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -526,7 +526,7 @@ print(tci.mean(), tci.min(), tci.max())</code></pre></div>
     <p class="small muted">▼ roll it in the browser (about 15 seconds of compute)</p>
   </section>
   <section>
-    <h3>💻 Step 3 in the browser: the rolling index</h3>
+    <h3>Step 3 in the browser: the rolling index</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -580,7 +580,7 @@ plt.title("Rolling total connectedness, w = 200, p = 2, H = 10")
       against smoothing; and the <b>sample period</b> genuinely matters, because connectedness itself moves over time.</p>
   </section>
   <section>
-    <h3>🎛️ Sim 5: the robustness explorer</h3>
+    <h3>Sim 5: the robustness explorer</h3>
     <div class="sim" id="sim-rob">
       <canvas id="cv-rob" width="880" height="215"></canvas>
       <div id="tbl-rob"></div>
@@ -595,7 +595,7 @@ plt.title("Rolling total connectedness, w = 200, p = 2, H = 10")
     <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it overlays the rolling total spillover index for window lengths 100, 200 and 300 and tabulates the full-sample index for every lag order p in 1-4 and horizon H in 5, 10, 20, showing the index is insensitive to p and H but responsive to the window length.</div></noscript>
   </section>
   <section>
-    <h3>💻 Run it yourself: subsample analysis</h3>
+    <h3>Run it yourself: subsample analysis</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -685,7 +685,7 @@ for p in [1, 2, 3, 4]:
       (gabauerdavid.github.io/ConnectednessApproach/2012DieboldYilmaz)
     </div>
     <div class="files" style="justify-content:center;margin-top:.6em">
-      <a href="../../">🏠 Hub</a>
+      <a href="../../">Hub</a>
       <a href="../lecture06/">← Week 6</a>
       <a href="../lecture08/">Week 8 →</a>
     </div>
@@ -1002,7 +1002,7 @@ function yearFmt(v) { return FX.dates[Math.max(0, Math.min(TT - 1, Math.round(v)
   var btn = SIM.button(ctl, '▶ play', function () {
     if (playing) { clearInterval(playing); playing = null; btn.textContent = '▶ play'; return; }
     if (cur >= K - 1) cur = 0;
-    btn.textContent = '⏸ pause';
+    btn.textContent = ' pause';
     playing = setInterval(function () {
       cur += 2;
       if (cur >= K) { cur = K - 1; clearInterval(playing); playing = null; btn.textContent = '▶ play'; }
