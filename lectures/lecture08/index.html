@@ -149,7 +149,7 @@
     </ul>
   </section>
   <section>
-    <h3>💻 Run it yourself: the real data and its ADF tests</h3>
+    <h3>Run it yourself: the real data and its ADF tests</h3>
     <p class="small">Daily EUR/GBP/JPY % log returns vs USD. Stationarity is the entry ticket to any VAR:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
@@ -313,7 +313,7 @@ for c in r.columns:
       sliders for the forgetting factors and the GFEVD horizon H.</div></noscript>
   </section>
   <section>
-    <h3>🎛️ Rolling windows vs TVP-VAR: the paper's headline comparison</h3>
+    <h3>Rolling windows vs TVP-VAR: the paper's headline comparison</h3>
     <div class="sim" id="sim-roll">
       <canvas id="cv-roll" width="880" height="255"></canvas>
       <div class="controls-row" id="ctl-roll"></div>
@@ -334,7 +334,7 @@ for c in r.columns:
       overreact/oversmooth trade-off.</div></noscript>
   </section>
   <section>
-    <h3>🎛️ Net directional connectedness: who transmits, who receives</h3>
+    <h3>Net directional connectedness: who transmits, who receives</h3>
     <div class="sim" id="sim-net">
       <canvas id="cv-net" width="880" height="255"></canvas>
       <div class="controls-row" id="ctl-net"></div>
@@ -356,7 +356,7 @@ for c in r.columns:
       (Lehman, GFC trough, Brexit).</div></noscript>
   </section>
   <section>
-    <h3>🎛️ The pairwise network, one week at a time</h3>
+    <h3>The pairwise network, one week at a time</h3>
     <div class="sim" id="sim-nw">
       <canvas id="cv-nw" width="880" height="270"></canvas>
       <div class="controls-row" id="ctl-nw"></div>
@@ -482,7 +482,7 @@ for t, (z, y) in enumerate(zip(Zlag, Y)):
       \(\kappa_1, \kappa_2\). Replication page: gabauerdavid.github.io/ConnectednessApproach.</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: the dynamic total connectedness index</h3>
+    <h3>Run it yourself: the dynamic total connectedness index</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -560,7 +560,7 @@ NPDC = phi.T - phi              # [i,j] &gt; 0: i dominates j
     </div>
   </section>
   <section>
-    <h3>💻 Run it yourself: the averaged connectedness table</h3>
+    <h3>Run it yourself: the averaged connectedness table</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -623,7 +623,7 @@ print(f"\nTCI = {off.sum() / m:.1f}%   (paper, Table 3: EUR +9.6, GBP -8.1,"
       out-adjusts rolling windows).</p>
   </section>
   <section>
-    <h3>🎛️ Sensitivity: forgetting factor and horizon</h3>
+    <h3>Sensitivity: forgetting factor and horizon</h3>
     <div class="sim" id="sim-rob">
       <canvas id="cv-rob" width="880" height="255"></canvas>
       <div class="controls-row" id="ctl-rob"></div>
@@ -643,7 +643,7 @@ print(f"\nTCI = {off.sum() / m:.1f}%   (paper, Table 3: EUR +9.6, GBP -8.1,"
       connectedness paths for forgetting factors 0.97/0.99/1.00 and horizons 5/10/20 with mean readouts.</div></noscript>
   </section>
   <section>
-    <h3>💻 Run it yourself: does anything overturn the conclusions?</h3>
+    <h3>Run it yourself: does anything overturn the conclusions?</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -749,7 +749,7 @@ for lab, v in [("kappa1 = 0.97", tvp_tci(W, k1=0.97).mean()),
         the VAR's linearity; and a falling index does not mean falling risk (March 2009 here)</li>
     </ul>
     <div class="files" style="justify-content:center;margin-top:.6em">
-      <a href="../../">🏠 Hub</a>
+      <a href="../../">Hub</a>
       <a href="../lecture07/">← Lecture 7</a>
       <a href="../lecture09/">Lecture 9 →</a>
       <a href="code/lecture08.do">.do</a><a href="code/lecture08.prg">.prg</a>
