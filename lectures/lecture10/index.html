@@ -197,7 +197,7 @@
     </ul>
   </section>
   <section>
-    <h3>💻 Run it yourself: the real county × year panel</h3>
+    <h3>Run it yourself: the real county × year panel</h3>
     <p class="tiny">Load the paper's actual filing panel, check its structure the <code>xtset</code> way, and run the package's m:1 merge pattern:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
@@ -477,7 +477,7 @@ m = smf.ols(f"d_nb_share_07_16 ~ bank_share_06 + {CTRL} + C(state)",
       <a href="code/lecture10.R">R</a> · <a href="code/lecture10.py">Python</a>. The Python file runs end to end on the shipped real data and prints every number used on these slides.</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: Table 4, for real</h3>
+    <h3>Run it yourself: Table 4, for real</h3>
     <p class="tiny">The paper's headline table on the paper's own data: three specifications per outcome, county-clustered SEs. The preferred column reproduces the published 0.212 / 0.534 / 0.016 exactly:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
@@ -505,7 +505,7 @@ print("paper (Table 4, preferred):  0.212 (0.024)  0.534 (0.080)  0.016 (0.060)"
     <p class="tiny muted">Expect the +state FE column to read 0.212 (0.024), 0.534 (0.080), 0.016 (0.060): an exact replication in your browser. The Monte Carlo pooled-vs-FE method demo lives in simulation 1 and <code>code/lecture10.py</code>.</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: naive vs clustered inference</h3>
+    <h3>Run it yourself: naive vs clustered inference</h3>
     <p class="tiny">First on the real regression (iid vs county vs state SEs for the published gamma), then 1,000 placebo panels for the false-rejection rates. The placebo part is a statistics demonstration by construction: only simulation can show rejection rates for a null you <em>know</em> is true:</p>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
@@ -556,7 +556,7 @@ print(f"false rejections of a TRUE null: naive {rej_n/10:.1f}%   "
       weighting, scaling), report the coefficient each time, and let the reader see the result is not an artefact of any single choice.</div>
   </section>
   <section>
-    <h3>💻 Run it yourself: subperiods and leave-one-state-out, on the real data</h3>
+    <h3>Run it yourself: subperiods and leave-one-state-out, on the real data</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import pandas as pd, statsmodels.formula.api as smf
@@ -642,7 +642,7 @@ print(f"leave-one-state-out gamma: min {min(g):.3f}  max {max(g):.3f}"
       <b>Paper:</b> doi 10.1093/rfs/hhac034 (replication package on the RFS website)
     </div>
     <div class="files" style="justify-content:center;margin-top:.6em">
-      <a href="../../">🏠 Hub</a>
+      <a href="../../">Hub</a>
       <a href="../lecture09/">← Lecture 9</a>
     </div>
   </section>
