@@ -57,6 +57,7 @@
   function card(u) {
     var div = document.createElement('div');
     div.className = 'card';
+    div.setAttribute('data-week', u.n);
     var dir = 'lectures/lecture' + pad(u.n) + '/';
     var links = u.ready
       ? '<a class="btn" href="' + dir + '">Open →</a><a class="btn ghost" href="https://github.com/Ahmad0Maaitah/MANG3095/tree/main/' + dir + 'code">Code</a>'
@@ -75,5 +76,6 @@
   });
 })();
 </script>
+<script src="assets/js/gate.js"></script>
 </body>
 </html>
