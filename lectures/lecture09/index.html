@@ -134,7 +134,7 @@
     </ul>
   </section>
   <section>
-    <h3>💻 Run it yourself: the paper's data, checked</h3>
+    <h3>Run it yourself: the paper's data, checked</h3>
     <p class="small">Load the original Laurent-Rombouts-Violante estimation sample, describe the three stocks used in this week's labs,
       count zero-return days, and confirm stationarity with ADF tests.</p>
     <div class="pyrun">
@@ -270,7 +270,7 @@ for tk in R:
 <section>
   <section>
     <h2>4 · Interactive laboratory</h2>
-    <h3>🎛️ Sim 1: a DCC(1,1) laboratory on the paper's data</h3>
+    <h3>Sim 1: a DCC(1,1) laboratory on the paper's data</h3>
     <p class="tiny">KO, PepsiCo and P&amp;G, the last 2,000 days of the paper's estimation sample (April 1991 to December 1998). Univariate
       GARCH(1,1) filters are pre-estimated by maximum likelihood; you drive the correlation recursion.</p>
     <div class="sim" id="sim-dcc">
@@ -286,7 +286,7 @@ for tk in R:
       hedges fail when they are needed most.</div>
   </section>
   <section>
-    <h3>🎛️ Sim 2: CCC vs DCC vs EWMA, a covariance forecast race</h3>
+    <h3>Sim 2: CCC vs DCC vs EWMA, a covariance forecast race</h3>
     <p class="tiny">Each model produces a 1-step covariance matrix forecast every day over the last 800 days (June 1995 to December 1998);
       forecasts are scored against the outer-product proxy \(\varepsilon_t\varepsilon_t'\). The chart shows each model's <b>cumulative
       average loss advantage over CCC</b> (above zero = beating CCC).</p>
@@ -303,7 +303,7 @@ for tk in R:
       more than over-predicted. The loss function choice is not innocent - it is why the paper reports four of them.</div>
   </section>
   <section>
-    <h3>🎛️ Sim 3: the curse of dimensionality</h3>
+    <h3>Sim 3: the curse of dimensionality</h3>
     <p class="tiny">Parameters each model asks the optimiser to find (orders 1, variance/correlation targeting imposed as in the paper),
       as the number of assets \(N\) grows. Log scale.</p>
     <div class="sim" id="sim-curse">
@@ -319,7 +319,7 @@ for tk in R:
       optimiser's problem barely grows with N.</div>
   </section>
   <section>
-    <h3>🎛️ Sim 4: model confidence set intuition</h3>
+    <h3>Sim 4: model confidence set intuition</h3>
     <p class="tiny">A teaching-grade MCS on the three racers from Sim 2: block-bootstrap the daily loss differentials, eliminate the worst
       model while its inferiority is significant, stop when the survivors are statistically indistinguishable. (The paper uses Hansen,
       Lunde and Nason's full procedure on 125 models, \(\alpha=0.25\), 10,000 bootstraps.)</p>
@@ -407,7 +407,7 @@ print(res.params)     # omega, alpha[1], beta[1]</code></pre></div>
     <p class="small muted">▼ reproduce the estimates in the browser below</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: GARCH(1,1) on Coca Cola by MLE</h3>
+    <h3>Run it yourself: GARCH(1,1) on Coca Cola by MLE</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np, pandas as pd
@@ -484,7 +484,7 @@ R_t <- rcor(dfit)            # 3 x 3 x T correlation array</code></pre></div>
     <p class="small muted">▼ estimate the full two-step DCC in the browser below</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: two-step DCC on KO, PEP, PG</h3>
+    <h3>Run it yourself: two-step DCC on KO, PEP, PG</h3>
     <p class="small tiny">The same window as the interactive laboratory (last 2,000 days). Step 1 fits three GARCH(1,1) models; step 2
       maximises the correlation likelihood over (a, b). Takes roughly 20-40 seconds in the browser.</p>
     <div class="pyrun">
@@ -596,7 +596,7 @@ library(MCS)  # Bernardi & Catania's implementation
 <section>
   <section>
     <h2>6 · Robustness checks</h2>
-    <h3>🎛️ Sim 5: is the ranking stable?</h3>
+    <h3>Sim 5: is the ranking stable?</h3>
     <p class="tiny">The paper's three robustness axes, rebuilt on its own data: forecast horizon (1, 5, 20 days, non-overlapping),
       evaluation subsample (calm 1995-97 vs turbulent 1997-98), and the loss function (Sims 2 and 4 toggle Frobenius/QLIKE).
       Bars show average Frobenius loss <b>relative to CCC = 100</b> (lower = better).</p>
@@ -631,7 +631,7 @@ library(MCS)  # Bernardi & Catania's implementation
     <p class="small muted">▼ verify the 1,000-day row in your browser</p>
   </section>
   <section>
-    <h3>💻 Run it yourself: window robustness</h3>
+    <h3>Run it yourself: window robustness</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np, pandas as pd
@@ -740,7 +740,7 @@ for W in (1000, 2000):
         shrinkage territory (Engle's 2009 book is the map)</li>
     </ul>
     <div class="files" style="justify-content:center;margin-top:.6em">
-      <a href="../../">🏠 Hub</a>
+      <a href="../../">Hub</a>
       <a href="../lecture08/">← Lecture 8</a>
       <a href="../lecture10/">Lecture 10 →</a>
     </div>
