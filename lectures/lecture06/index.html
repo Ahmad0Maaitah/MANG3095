@@ -145,7 +145,7 @@
       the HML cumulative index ADF = -1.9 (p = 0.33, cannot reject: not stationary). Run it yourself below.</div>
   </section>
   <section>
-    <h3>&#128187; Run it yourself: ADF on returns vs the cumulative index</h3>
+    <h3>Run it yourself: ADF on returns vs the cumulative index</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -211,7 +211,7 @@ plt.tight_layout()
     </ul>
   </section>
   <section>
-    <h3>&#127899;&#65039; The sorting machine: build HML yourself</h3>
+    <h3>The sorting machine: build HML yourself</h3>
     <div class="sim" id="sim-sort">
       <canvas id="cv-sort" width="880" height="190"></canvas>
       <div class="controls-row" id="ctl-sort"></div>
@@ -258,7 +258,7 @@ plt.tight_layout()
 <!-- ======================= 4. SIMULATIONS ======================= -->
 <section>
   <section>
-    <h3>4 &#183; &#127899;&#65039; Sim 1: factor premia explorer (real data)</h3>
+    <h3>4 &#183; Sim 1: factor premia explorer (real data)</h3>
     <div class="sim" id="sim-prem">
       <canvas id="cv-prem" width="880" height="210"></canvas>
       <div class="controls-row" id="ctl-prem"></div>
@@ -274,7 +274,7 @@ plt.tight_layout()
     <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it plots cumulative log returns of the five Fama-French factors over a user-chosen date window with series toggles and reports annualised mean, sd and Sharpe ratio per factor.</div></noscript>
   </section>
   <section>
-    <h3>&#127899;&#65039; Sim 2: the spanning regression, live</h3>
+    <h3>Sim 2: the spanning regression, live</h3>
     <div class="sim" id="sim-span">
       <canvas id="cv-span" width="880" height="200"></canvas>
       <div class="controls-row" id="ctl-span"></div>
@@ -291,7 +291,7 @@ plt.tight_layout()
     <noscript><div class="sim-fallback">Interactive demo requires JavaScript: it regresses a chosen Fama-French factor on the other four over a user-chosen window and displays the intercept and slopes with 95% confidence intervals, reproducing the paper's Table 6 redundancy result for HML.</div></noscript>
   </section>
   <section>
-    <h3>&#127899;&#65039; Sim 3: the alpha map - individual t-stats vs the GRS verdict</h3>
+    <h3>Sim 3: the alpha map - individual t-stats vs the GRS verdict</h3>
     <div class="sim" id="sim-grs">
       <canvas id="cv-grs" width="880" height="200"></canvas>
       <div class="controls-row" id="ctl-grs"></div>
@@ -370,7 +370,7 @@ print(df[fac].corr().round(2))</code></pre></div>
       <a href="code/lecture06.R">R</a> · <a href="code/lecture06.py">Python</a>. Run the same step in your browser on the next slide (press &darr;).</p>
   </section>
   <section>
-    <h3>&#128187; Run it yourself: the factor premiums, 1963-2022</h3>
+    <h3>Run it yourself: the factor premiums, 1963-2022</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -434,7 +434,7 @@ for target in ["HML", "RMW", "CMA"]:
     <p class="tiny muted">Press &darr; to run this step in the browser.</p>
   </section>
   <section>
-    <h3>&#128187; Run it yourself: is HML redundant?</h3>
+    <h3>Run it yourself: is HML redundant?</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -518,7 +518,7 @@ def grs_test(assets, factors, data):
     <p class="tiny muted">Press &darr; to run the GRS test in the browser.</p>
   </section>
   <section>
-    <h3>&#128187; Run it yourself: two GRS tests</h3>
+    <h3>Run it yourself: two GRS tests</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -569,7 +569,7 @@ print(f"HML vs 4-factor: GRS = {g:5.2f}, p = {p:.3f}    -> HML redundant")
     </div>
   </section>
   <section>
-    <h3>&#127899;&#65039; Sim 4: redundancy under the split slider</h3>
+    <h3>Sim 4: redundancy under the split slider</h3>
     <div class="sim" id="sim-split">
       <canvas id="cv-split" width="880" height="190"></canvas>
       <div class="controls-row" id="ctl-split"></div>
@@ -604,7 +604,7 @@ print(f"HML vs 4-factor: GRS = {g:5.2f}, p = {p:.3f}    -> HML redundant")
       the result, the sample period does.</div>
   </section>
   <section>
-    <h3>&#128187; Run it yourself: the whole robustness table</h3>
+    <h3>Run it yourself: the whole robustness table</h3>
     <div class="pyrun">
 <textarea class="pyrun-code" spellcheck="false">
 import numpy as np
@@ -681,7 +681,7 @@ for name, d in samples:
       <b>Data:</b> <code>ff5_monthly</code>, <code>ff5_annual</code> in <code>data/csv/</code>
     </div>
     <div class="files" style="justify-content:center;margin-top:.6em">
-      <a href="../../">&#127968; Hub</a>
+      <a href="../../">Hub</a>
       <a href="../lecture05/">&larr; Week 5</a>
       <a href="../lecture07/">Week 7 &rarr;</a>
     </div>
